@@ -1,7 +1,7 @@
 <x-filament-widgets::widget>
     <x-filament::section>
-        <h1 class="text-2xl font-semibold">Welcome to OpenGRC</h1>
-        OpenGRC is a fast, free, lightweight, and opinionated cyber GRC tools for managing and auditing standards,
+        <h1 class="text-2xl font-semibold">Welcome to WathbaGRC</h1>
+        WathbaGRC is a fast, free, lightweight, and opinionated cyber GRC tools for managing and auditing standards,
         controls, implementations of those controls. This version is a work in progress and is not yet ready for use
         in a production environment.
         <br><br>

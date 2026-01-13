@@ -352,7 +352,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center text-sm text-gray-500">
                 <p>&copy; {{ date('Y') }} {{ $companyName ?: config('app.name') }}. All rights reserved.</p>
-                <p class="mt-1">Powered by <a href="https://opengrc.org" target="_blank" class="text-blue-600 hover:text-blue-800">OpenGRC</a></p>
+                <p class="mt-1">Powered by <a href="https://opengrc.org" target="_blank" class="text-blue-600 hover:text-blue-800">WathbaGRC</a></p>
             </div>
         </div>
     </footer>

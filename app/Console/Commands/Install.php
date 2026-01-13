@@ -22,7 +22,7 @@ class Install extends Command
      *
      * @var string
      */
-    protected $description = 'Install OpenGRC';
+    protected $description = 'Install WathbaGRC';
 
     /**
      * Execute the console command.
@@ -51,7 +51,7 @@ class Install extends Command
             $password = 'password';
 
             // Set default site settings.
-            $site_name = 'OpenGRC';
+            $site_name = 'WathbaGRC';
             $site_url = 'https://opengrc.test';
         } else {
             // Interactive mode: prompt for database driver.
@@ -98,7 +98,7 @@ class Install extends Command
             // Prompt for Site settings.
             $site_name = text(
                 label: 'Enter the Site Name',
-                default: 'OpenGRC',
+                default: 'WathbaGRC',
                 required: true,
                 hint: 'This will be displayed in the header of the site'
             );
@@ -210,7 +210,7 @@ class Install extends Command
         $this->warn('Change the file system permissions for least privilege based on your own system.');
 
         $this->info('########################################');
-        $this->info('OpenGRC has been installed successfully!');
+        $this->info('WathbaGRC has been installed successfully!');
         $this->info('########################################');
     }
 

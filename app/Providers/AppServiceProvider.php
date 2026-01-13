@@ -57,7 +57,7 @@ class AppServiceProvider extends ServiceProvider
         if (! $isInstaller) {
             if (Schema::hasTable('settings')) {
 
-                Config::set('app.name', setting('general.name', 'OpenGRC'));
+                Config::set('app.name', setting('general.name', 'WathbaGRC'));
                 Config::set('app.url', setting('general.url', 'https://opengrc.test'));
 
                 // Decrypt mail password if it's encrypted
@@ -147,7 +147,7 @@ class AppServiceProvider extends ServiceProvider
             } else {
                 // if table "settings" does not exist
                 // Error that app was not installed properly
-                abort(500, 'OpenGRC was not installed properly. Please review the
+                abort(500, 'WathbaGRC was not installed properly. Please review the
                 installation guide at https://docs.opengrc.com to install the app.');
             }
         }

@@ -21,7 +21,6 @@ use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Get;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\HtmlString;
-use Filament\Forms\Components\CheckboxList;
 use LucasGiovanny\FilamentMultiselectTwoSides\Forms\Components\Fields\MultiselectTwoSides;
 
 class CreateAudit extends CreateRecord
@@ -170,14 +169,13 @@ class CreateAudit extends CreateRecord
                                 }
 
                                 return [
-                                    CheckboxList::make('controls')
+                                    MultiselectTwoSides::make('controls')
                                         ->label(__('audit.wizard.details.controls'))
                                         ->options($controls)
-                                        ->searchable()
-                                        ->bulkToggleable()
-                                        ->columns(2)
-                                        ->gridDirection('row')
-                                        ->default(! is_array($controls) ? array_keys($controls->toArray()) : array_keys($controls))
+                                        ->selectableLabel(__('audit.wizard.details.available_items'))
+                                        ->selectedLabel(__('audit.wizard.details.selected_items'))
+                                        ->enableSearch()
+                                        ->default(! is_array($controls) ? $controls->toArray() : $controls)
                                         ->required(),
                                 ];
                             }),

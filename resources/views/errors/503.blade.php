@@ -25,13 +25,13 @@
 <div class="mt-8 flex justify-center">
     <div name="content" class="sm:w-1 md:w-1/2">
         <div class="flex justify-center p-6">
-            <img src="{{ asset('/img/logo.png') }}" width="30%" alt="OpenGRC Logo">
+            <img src="{{ asset('/img/logo.png') }}" width="30%" alt="WathbaGRC Logo">
         </div>
         <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-3xl dark:text-white text-center"
-            style="font-family: 'Bruno Ace SC', sans-serif;">OpenGRC</h1>
+            style="font-family: 'Bruno Ace SC', sans-serif;">WathbaGRC</h1>
 
         <div class="text-center mt-12">
-            <p class="bg-grcblue-400 text-white p-3 rounded ">OpenGRC is currently offline for Maintenance</p>
+            <p class="bg-grcblue-400 text-white p-3 rounded ">WathbaGRC is currently offline for Maintenance</p>
         </div>
 
     </div>

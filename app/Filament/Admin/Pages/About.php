@@ -15,7 +15,7 @@ class About extends Page
 
     protected static ?string $navigationLabel = 'About';
 
-    protected static ?string $title = 'About OpenGRC';
+    protected static ?string $title = 'About WathbaGRC';
 
     protected static ?int $navigationSort = 1000;
 
@@ -217,7 +217,7 @@ class About extends Page
             'type' => 'Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International',
             'short_type' => 'CC BY-NC-SA 4.0',
             'url' => 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
-            'text' => $this->getOpenGRCLicenseText(),
+            'text' => $this->getWathbaGRCLicenseText(),
         ];
     }
 
@@ -271,9 +271,9 @@ class About extends Page
         return round($size, $precision).' '.$units[$i];
     }
 
-    protected function getOpenGRCLicenseText(): string
+    protected function getWathbaGRCLicenseText(): string
     {
-        return 'OpenGRC is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+        return 'WathbaGRC is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 
 To view a copy of this license, visit:
 https://creativecommons.org/licenses/by-nc-sa/4.0/
@@ -282,7 +282,7 @@ EXCEPTIONS:
 
 • Code Commits prior to April 14, 2025 are MIT Licensed.
 
-• Commercial use is permitted as long as resale of the OpenGRC code is not involved in any way. 
+• Commercial use is permitted as long as resale of the WathbaGRC code is not involved in any way. 
   In other words, you may use this for your own company to help you in your own GRC endeavors.
 
 • Hosting of this software for customers - regardless of compensation - is not permitted.

@@ -8,9 +8,11 @@ use App\Enums\ResponseStatus;
 use App\Enums\WorkflowStatus;
 use App\Filament\Resources\AuditItemResource;
 use App\Filament\Resources\DataRequestResource;
+use App\Http\Controllers\AiController;
 use App\Http\Controllers\HelperController;
 use App\Mail\EvidenceRequestMail;
 use App\Models\AuditItem;
+use App\Models\Control;
 use App\Models\DataRequest;
 use App\Models\User;
 use Filament\Actions\Action;
@@ -31,6 +33,8 @@ class EditAuditItem extends EditRecord
     // set title to Assess Audit Item
     protected static string $resource = AuditItemResource::class;
 
+    public ?string $aiSuggestion = null;
+
     public function getRedirectUrl(): string
     {
         return route('filament.app.resources.audits.view', $this->record->audit_id);
@@ -43,6 +47,42 @@ class EditAuditItem extends EditRecord
                 ->label('Back to Audit')
                 ->icon('heroicon-m-arrow-left')
                 ->url(route('filament.app.resources.audits.view', $this->record->audit_id)),
+            Action::make('ai_suggestions')
+                ->label(__('Get AI Suggestions'))
+                ->icon('heroicon-o-sparkles')
+                ->color('warning')
+                ->hidden(fn () => setting('ai.enabled') != true)
+                ->mountUsing(function () {
+                    // For Controls, use the control directly
+                    // For Implementations, create a temporary object with the required structure
+                    $auditable = $this->record->auditable;
+                    if ($auditable instanceof Control) {
+                        $this->aiSuggestion = AiController::getControlSuggestions($auditable)->toHtml();
+                    } else {
+                        // For Implementation, create a compatible structure
+                        $record = (object) [
+                            'description' => $auditable->details ?? $auditable->title ?? '',
+                        ];
+                        $this->aiSuggestion = AiController::getControlSuggestions($record)->toHtml();
+                    }
+                })
+                ->modalHeading(__('AI Suggestions'))
+                ->modalDescription(fn () => new HtmlString($this->aiSuggestion ?? 'Loading...'))
+                ->modalSubmitAction(false)
+                ->closeModalByEscaping(true),
+            Action::make('ai_check_implementations')
+                ->label(__('AI Check Implementations'))
+                ->icon('heroicon-o-check-badge')
+                ->color('warning')
+                // Only show for Controls (Implementations don't have sub-implementations)
+                ->hidden(fn () => setting('ai.enabled') != true || ! ($this->record->auditable instanceof Control))
+                ->mountUsing(function () {
+                    $this->aiSuggestion = AiController::getImplementationCheck($this->record->auditable)->toHtml();
+                })
+                ->modalHeading(__('AI Implementation Check'))
+                ->modalDescription(fn () => new HtmlString($this->aiSuggestion ?? 'Loading...'))
+                ->modalSubmitAction(false)
+                ->closeModalByEscaping(true),
             Action::make('request_evidence')
                 ->label('Request Evidence')
                 ->icon('heroicon-m-document')

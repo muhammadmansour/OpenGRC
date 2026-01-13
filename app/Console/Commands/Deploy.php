@@ -21,7 +21,7 @@ class Deploy extends Command
                             {--db-password= : Database password}
                             {--admin-email=admin@example.com : Admin user email address}
                             {--admin-password= : Admin user password}
-                            {--site-name=OpenGRC : Site name}
+                            {--site-name=WathbaGRC : Site name}
                             {--site-url=https://opengrc.test : Site URL}
                             {--app-key= : Application key (will generate if not provided)}
                             {--s3 : Enable S3 storage configuration}
@@ -50,7 +50,7 @@ class Deploy extends Command
      *
      * @var string
      */
-    protected $description = 'Deploy OpenGRC with command line configuration for production environments';
+    protected $description = 'Deploy WathbaGRC with command line configuration for production environments';
 
     /**
      * Execute the console command.
@@ -72,7 +72,7 @@ class Deploy extends Command
 
         // Confirm deployment
         if (! $this->option('accept')) {
-            if (! $this->confirm('Proceed with OpenGRC deployment?', true)) {
+            if (! $this->confirm('Proceed with WathbaGRC deployment?', true)) {
                 $this->error('Deployment cancelled.');
 
                 return;
@@ -97,7 +97,7 @@ class Deploy extends Command
     {
         $this->info('');
         $this->info('╔══════════════════════════════════════════════════════════════════╗');
-        $this->info('║                    OpenGRC Deployment Tool                      ║');
+        $this->info('║                    WathbaGRC Deployment Tool                      ║');
         $this->info('║                                                                  ║');
         $this->info('║  Automated deployment for production environments               ║');
         $this->info('╚══════════════════════════════════════════════════════════════════╝');
@@ -729,7 +729,7 @@ class Deploy extends Command
     {
         $this->info('');
         $this->info('[SUCCESS] ════════════════════════════════════════════════════════════════');
-        $this->info('[SUCCESS]  OpenGRC has been successfully deployed!');
+        $this->info('[SUCCESS]  WathbaGRC has been successfully deployed!');
         $this->info('[SUCCESS] ════════════════════════════════════════════════════════════════');
         $this->info('');
         $this->info('[INFO] Next Steps:');
@@ -739,7 +739,7 @@ class Deploy extends Command
         $this->info('   • Review and adjust file permissions as needed');
         $this->info('   • Set up monitoring and log rotation');
         $this->info('');
-        $this->info('[INFO] Access your OpenGRC installation at: '.$this->option('site-url'));
+        $this->info('[INFO] Access your WathbaGRC installation at: '.$this->option('site-url'));
         $this->info('[INFO] Login with: '.$this->option('admin-email'));
         $this->info('');
     }

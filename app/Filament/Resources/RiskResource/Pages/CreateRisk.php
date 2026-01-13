@@ -249,7 +249,7 @@ class CreateRisk extends CreateRecord
                             Placeholder::make('implementations')
                                 ->hiddenLabel(true)
                                 ->columnSpanFull()
-                                ->content('If you already have implementatons in OpenGRC
+                                ->content('If you already have implementatons in WathbaGRC
                                 that you use to control this risk, you can link them here. You
                                 can relate these later if you need to.'),
                             Select::make('implementations')

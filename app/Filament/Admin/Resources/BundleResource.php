@@ -111,8 +111,8 @@ class BundleResource extends Resource
                     ->requiresConfirmation()
                     ->modalContent(function () {
                         return new HtmlString('
-                                <div>This action will import the selected bundle into your OpenGRC. If you already have
-                                content in OpenGRC with the same codes, this will overwrite that data.</div>');
+                                <div>This action will import the selected bundle into your WathbaGRC. If you already have
+                                content in WathbaGRC with the same codes, this will overwrite that data.</div>');
                     })
                     ->visible(fn () => auth()->check() && auth()->user()->can('Manage Bundles'))
                     ->modalHeading('Bundle Import')
@@ -132,7 +132,7 @@ class BundleResource extends Resource
                     ->visible(fn () => auth()->check() && auth()->user()->can('Manage Bundles'))
                     ->modalContent(function () {
                         return new HtmlString('
-                                <div>This action will fetch the latest bundles from the OpenGRC repository and add them to your OpenGRC.</div>');
+                                <div>This action will fetch the latest bundles from the WathbaGRC repository and add them to your WathbaGRC.</div>');
                     })
                     ->modalHeading('Fetch Bundles')
                     ->modalIconColor('danger')
@@ -152,7 +152,7 @@ class BundleResource extends Resource
                     ->label('Type'),
             ])
             ->emptyStateHeading(new HtmlString('No Bundles Imported'))
-            ->emptyStateDescription(new HtmlString('Try fetching the latest bundles from the OpenGRC repository by clicking "Fetch Bundle Updates" above.'));
+            ->emptyStateDescription(new HtmlString('Try fetching the latest bundles from the WathbaGRC repository by clicking "Fetch Bundle Updates" above.'));
 
     }
 

@@ -47,7 +47,7 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->brandName(name: 'OpenGRC Admin')
+            ->brandName(name: 'WathbaGRC Admin')
             ->viteTheme('resources/css/filament/app/theme.css')
             ->brandLogo(fn () => view('filament.admin.logo'))
             ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
@@ -103,7 +103,7 @@ class AdminPanelProvider extends PanelProvider
                 fn () => view('components.session-expiration-handler')
             )
             ->navigationItems([
-                NavigationItem::make('Back to OpenGRC')
+                NavigationItem::make('Back to WathbaGRC')
                     ->url('/app', shouldOpenInNewTab: false)
                     ->icon('heroicon-o-arrow-left'),
             ]);

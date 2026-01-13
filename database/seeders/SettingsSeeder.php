@@ -14,7 +14,7 @@ class SettingsSeeder extends Seeder
         $settings = [
             [
                 'key' => 'general.name',
-                'value' => 'OpenGRC',
+                'value' => 'WathbaGRC',
             ],
             [
                 'key' => 'general.url',
@@ -50,27 +50,27 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key' => 'mail.templates.password_reset_subject',
-                'value' => 'OpenGRC Password Reset',
+                'value' => 'WathbaGRC Password Reset',
             ],
             [
                 'key' => 'mail.templates.password_reset_body',
-                'value' => '<!DOCTYPE html>\n<html>\n<head>\n    <title>Account Created</title>\n</head>\n<body>\n<h1>OpenGRC Password Reset</h1>\n<p>Hello, {{ $name }}!</p>\n<p>An administrator has performed a password reset on your account. </p>\n<p>Your temporary login details are:</p>\n<ul>\n    <li><strong>URL:</strong> {{ $url }}</li>\n    <li><strong>Email:</strong> {{ $email }}</li>\n    <li><strong>Password:</strong> {{ $password }}</li>\n</ul>\n<p>After logging in you will be prompted to change your password. You will then be asked to re-login with your new secret password before continuing.</p>\n</body>\n</html>',
+                'value' => '<!DOCTYPE html>\n<html>\n<head>\n    <title>Account Created</title>\n</head>\n<body>\n<h1>WathbaGRC Password Reset</h1>\n<p>Hello, {{ $name }}!</p>\n<p>An administrator has performed a password reset on your account. </p>\n<p>Your temporary login details are:</p>\n<ul>\n    <li><strong>URL:</strong> {{ $url }}</li>\n    <li><strong>Email:</strong> {{ $email }}</li>\n    <li><strong>Password:</strong> {{ $password }}</li>\n</ul>\n<p>After logging in you will be prompted to change your password. You will then be asked to re-login with your new secret password before continuing.</p>\n</body>\n</html>',
             ],
             [
                 'key' => 'mail.templates.new_account_subject',
-                'value' => 'OpenGRC Account Created',
+                'value' => 'WathbaGRC Account Created',
             ],
             [
                 'key' => 'mail.templates.new_account_body',
-                'value' => '<!DOCTYPE html>\n<html>\n<head>\n    <title>Account Created</title>\n</head>\n<body>\n<h1>OpenGRC Account Created</h1>\n<p>Hello, {{ $name }}!</p>\n<p>An OpenGRC account has been created for you. You may your account using the credentials provided below. </p>\n<p>Your login details are:</p>\n<ul>\n    <li><strong>URL:</strong> {{ $url }}</li>\n    <li><strong>Email:</strong> {{ $email }}</li>\n    <li><strong>Password:</strong> {{ $password }}</li>\n</ul>\n<p>After logging in you will be prompted to change your password. You will then be asked to re-login with your new secret password before continuing.</p>\n</body>\n</html>',
+                'value' => '<!DOCTYPE html>\n<html>\n<head>\n    <title>Account Created</title>\n</head>\n<body>\n<h1>WathbaGRC Account Created</h1>\n<p>Hello, {{ $name }}!</p>\n<p>An WathbaGRC account has been created for you. You may your account using the credentials provided below. </p>\n<p>Your login details are:</p>\n<ul>\n    <li><strong>URL:</strong> {{ $url }}</li>\n    <li><strong>Email:</strong> {{ $email }}</li>\n    <li><strong>Password:</strong> {{ $password }}</li>\n</ul>\n<p>After logging in you will be prompted to change your password. You will then be asked to re-login with your new secret password before continuing.</p>\n</body>\n</html>',
             ],
             [
                 'key' => 'mail.templates.evidence_request_subject',
-                'value' => 'OpenGRC Evidence Request',
+                'value' => 'WathbaGRC Evidence Request',
             ],
             [
                 'key' => 'mail.templates.evidence_request_body',
-                'value' => '<h1>OpenGRC Evidence Requested</h1><p>Hello, {{ $name }}!</p><p>An auditor has requested evidence from you. Please login to OpenGRC to view the request and provide the necessary evidence.</p><p><strong>URL:</strong> {{ $url }}</p><p>Thank you for your cooperation.</p><p><br></p><p><br></p>',
+                'value' => '<h1>WathbaGRC Evidence Requested</h1><p>Hello, {{ $name }}!</p><p>An auditor has requested evidence from you. Please login to WathbaGRC to view the request and provide the necessary evidence.</p><p><strong>URL:</strong> {{ $url }}</p><p>Thank you for your cooperation.</p><p><br></p><p><br></p>',
             ],
             [
                 'key' => 'mail.templates.survey_invitation_subject',

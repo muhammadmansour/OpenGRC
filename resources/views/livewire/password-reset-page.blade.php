@@ -1,6 +1,6 @@
 <section class="flex flex-col gap-y-8 py-8 w-full">
     <div class="flex justify-center p-6">
-        <img src="{{ asset('/img/logo-128-128.png') }}" alt="OpenGRC Logo">
+        <img src="{{ asset('/img/logo-128-128.png') }}" alt="WathbaGRC Logo">
     </div>
     <div class="flex justify-center p-6">
         <h1 class="fi-header-heading text-2xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-3xl">

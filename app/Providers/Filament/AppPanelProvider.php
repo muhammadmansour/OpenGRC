@@ -102,7 +102,7 @@ class AppPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Slate,
             ])
-            ->brandName('OpenGRC')
+            ->brandName('WathbaGRC')
             ->brandLogo(fn () => view('filament.admin.logo'))
             ->globalSearch(true)
             ->readOnlyRelationManagersOnResourceViewPagesByDefault(false)

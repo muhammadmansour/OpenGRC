@@ -39,11 +39,11 @@ class DemoSeeder extends Seeder
         \App\Models\User::factory(10)->create();
 
         $standard = Standard::create([
-            'name' => 'OpenGRC Demo Security Standard 1.0',
-            'code' => 'OpenGRC-1.0',
+            'name' => 'WathbaGRC Demo Security Standard 1.0',
+            'code' => 'WathbaGRC-1.0',
             'authority' => 'Lee Mangold',
             'status' => 'In Scope',
-            'description' => 'OpenGRC Demo Security Standard 1.0 is a conceptual framework designed for demonstration purposes within the realm of cybersecurity. This standard encompasses a comprehensive set of guidelines and best practices aimed at fortifying digital infrastructure and safeguarding sensitive data. It integrates key principles across six critical domains: Legal, Ethical, Environmental, Governance, Risk Management, and Compliance (OpenGRC), offering a holistic approach to cybersecurity. Tailored for educational and demonstrative scenarios, this standard serves as a pedagogical tool to illustrate effective cybersecurity strategies. It emphasizes the importance of legal compliance, ethical hacking, environmental awareness in digital contexts, governance structures, proactive risk management, and adherence to compliance standards. The OpenGRC Demo Security Standard 1.0 is designed to be adaptable, allowing it to be applied in various hypothetical scenarios to demonstrate the impact and implementation of robust cybersecurity measures in a controlled environment',
+            'description' => 'WathbaGRC Demo Security Standard 1.0 is a conceptual framework designed for demonstration purposes within the realm of cybersecurity. This standard encompasses a comprehensive set of guidelines and best practices aimed at fortifying digital infrastructure and safeguarding sensitive data. It integrates key principles across six critical domains: Legal, Ethical, Environmental, Governance, Risk Management, and Compliance (WathbaGRC), offering a holistic approach to cybersecurity. Tailored for educational and demonstrative scenarios, this standard serves as a pedagogical tool to illustrate effective cybersecurity strategies. It emphasizes the importance of legal compliance, ethical hacking, environmental awareness in digital contexts, governance structures, proactive risk management, and adherence to compliance standards. The WathbaGRC Demo Security Standard 1.0 is designed to be adaptable, allowing it to be applied in various hypothetical scenarios to demonstrate the impact and implementation of robust cybersecurity measures in a controlled environment',
         ]);
 
         $controlsData = [
@@ -274,8 +274,8 @@ class DemoSeeder extends Seeder
         });
 
         $audit = Audit::create([
-            'title' => 'Audit of OpenGRC-1.0 standards',
-            'description' => 'Annual internal best practice audit performed in alignment with OpenGRC-1.0 Demonstration Standards',
+            'title' => 'Audit of WathbaGRC-1.0 standards',
+            'description' => 'Annual internal best practice audit performed in alignment with WathbaGRC-1.0 Demonstration Standards',
             'start_date' => '2024-01-01',
             'end_date' => '2024-02-01',
             'audit_type' => 'standards',
