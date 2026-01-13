@@ -25,10 +25,7 @@ class AuditItemRelationManager extends RelationManager
 {
     protected static string $relationship = 'AuditItems';
 
-    public static function getTitle($ownerRecord, string $pageClass): string
-    {
-        return __('audit.audit_items.title');
-    }
+    protected static ?string $title = 'عناصر التدقيق';
 
     public function form(Form $form): Form
     {

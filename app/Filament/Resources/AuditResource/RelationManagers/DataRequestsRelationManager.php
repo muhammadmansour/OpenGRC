@@ -25,12 +25,9 @@ class DataRequestsRelationManager extends RelationManager
 {
     protected static string $relationship = 'DataRequest';
 
-    protected $listeners = ['refreshComponent' => '$refresh'];
+    protected static ?string $title = 'طلبات البيانات';
 
-    public static function getTitle($ownerRecord, string $pageClass): string
-    {
-        return __('audit.data_requests.title');
-    }
+    protected $listeners = ['refreshComponent' => '$refresh'];
 
     public function getTablePollInterval(): ?string
     {

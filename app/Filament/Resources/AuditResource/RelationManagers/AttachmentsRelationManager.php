@@ -17,10 +17,7 @@ class AttachmentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'attachments';
 
-    public static function getTitle($ownerRecord, string $pageClass): string
-    {
-        return __('audit.attachments.title');
-    }
+    protected static ?string $title = 'المرفقات';
 
     public function form(Form $form): Form
     {
