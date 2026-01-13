@@ -110,4 +110,38 @@ return [
             'selected_items' => 'Selected Items',
         ],
     ],
+    
+    // Attachments
+    'attachments' => [
+        'title' => 'Attachments',
+        'description' => 'Description',
+        'file' => 'File',
+        'file_name' => 'File Name',
+        'uploaded_at' => 'Uploaded At',
+        'uploaded_by' => 'Uploaded By',
+        'status' => 'Status',
+        'status_pending' => 'Pending',
+        'status_approved' => 'Approved',
+        'status_rejected' => 'Rejected',
+        'upload' => 'Upload File',
+        'view' => 'View',
+        'delete' => 'Delete',
+        'system' => 'System',
+        'empty_state' => 'No attachments',
+        'download_draft' => 'Download Draft Report',
+        'download_final' => 'Download Final Report',
+        'report_downloads' => 'Report Downloads',
+        'error' => 'Error',
+        'report_not_available' => 'The final audit report is not available until the audit has been completed.',
+    ],
+    
+    // Data Requests
+    'data_requests' => [
+        'title' => 'Data Requests',
+    ],
+    
+    // Audit Items
+    'audit_items' => [
+        'title' => 'Audit Items',
+    ],
 ];

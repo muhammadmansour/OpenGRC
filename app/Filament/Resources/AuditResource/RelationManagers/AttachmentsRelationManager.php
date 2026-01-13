@@ -19,19 +19,24 @@ class AttachmentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'attachments';
 
+    public static function getTitle($ownerRecord, string $pageClass): string
+    {
+        return __('audit.attachments.title');
+    }
+
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextArea::make('description')
-                    ->label('Description')
+                    ->label(__('audit.attachments.description'))
                     ->columnSpanFull()
                     ->required(),
                 FileUpload::make('file_path')
                     ->downloadable()
                     ->openable()
                     ->columnSpanFull()
-                    ->label('File')
+                    ->label(__('audit.attachments.file'))
                     ->required()
                     ->disk(setting('storage.driver', config('filesystems.default')))
                     ->visibility('private')
@@ -43,15 +48,15 @@ class AttachmentsRelationManager extends RelationManager
                         }
                     }),
                 DateTimePicker::make('updated_at')
-                    ->label('Uploaded At')
+                    ->label(__('audit.attachments.uploaded_at'))
                     ->default(now())
                     ->required(),
                 Select::make('status')
-                    ->label('Status')
+                    ->label(__('audit.attachments.status'))
                     ->options([
-                        'Pending' => 'Pending',
-                        'Approved' => 'Approved',
-                        'Rejected' => 'Rejected',
+                        'Pending' => __('audit.attachments.status_pending'),
+                        'Approved' => __('audit.attachments.status_approved'),
+                        'Rejected' => __('audit.attachments.status_rejected'),
                     ])
                     ->default('Pending')
                     ->required(),
@@ -61,6 +66,7 @@ class AttachmentsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading(__('audit.attachments.empty_state'))
             ->modifyQueryUsing(function ($query) {
                 // Always show "Exported audit evidence ZIP" files first
                 return $query->orderByRaw("CASE WHEN description = 'Exported audit evidence ZIP' THEN 0 ELSE 1 END")
@@ -68,33 +74,41 @@ class AttachmentsRelationManager extends RelationManager
             })
             ->columns([
                 Tables\Columns\TextColumn::make('file_name')
-                    ->label('File Name')
+                    ->label(__('audit.attachments.file_name'))
                     ->searchable()
                     ->sortable()
                     ->wrap()
                     ->description(fn ($record) => $record->description),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Uploaded At')
+                    ->label(__('audit.attachments.uploaded_at'))
                     ->searchable()
                     ->sortable()
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('uploaded_by')
-                    ->label('Uploaded By')
+                    ->label(__('audit.attachments.uploaded_by'))
                     ->getStateUsing(function ($record) {
                         if ($record->description === 'Exported audit evidence ZIP') {
-                            return 'System';
+                            return __('audit.attachments.system');
                         }
                         $user = User::find($record->uploaded_by);
 
-                        return $user ? $user->name : 'System';
+                        return $user ? $user->name : __('audit.attachments.system');
                     }),
             ])
             ->recordClasses(fn ($record) => $record->description === 'Exported audit evidence ZIP' ? 'bg-blue-50' : null)
             ->filters([])
             ->headerActions([
+                Tables\Actions\CreateAction::make()
+                    ->label(__('audit.attachments.upload'))
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['uploaded_by'] = auth()->id();
+                        $data['audit_id'] = $this->getOwnerRecord()->id;
+                        return $data;
+                    }),
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('DownloadDraftReport')
-                        ->label('Download Draft Report')
+                        ->label(__('audit.attachments.download_draft'))
                         ->icon('heroicon-o-document')
                         ->action(function ($record) {
                             $audit = $this->getOwnerRecord();
@@ -111,7 +125,7 @@ class AttachmentsRelationManager extends RelationManager
                             );
                         }),
                     Tables\Actions\Action::make('DownloadFinalReport')
-                        ->label('Download Final Report')
+                        ->label(__('audit.attachments.download_final'))
                         ->icon('heroicon-o-document')
                         ->action(function ($record) {
                             $audit = $this->getOwnerRecord();
@@ -125,18 +139,20 @@ class AttachmentsRelationManager extends RelationManager
                                 );
                             } else {
                                 return Notification::make()
-                                    ->title('Error')
-                                    ->body('The final audit report is not available until the audit has been completed.')
+                                    ->title(__('audit.attachments.error'))
+                                    ->body(__('audit.attachments.report_not_available'))
                                     ->danger()
                                     ->send();
                             }
                         }),
-                ])->label('Report Downloads'),
+                ])->label(__('audit.attachments.report_downloads')),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
-                    ->label('View')
+                    ->label(__('audit.attachments.view'))
                     ->icon('heroicon-o-eye'),
+                Tables\Actions\DeleteAction::make()
+                    ->label(__('audit.attachments.delete')),
             ]);
     }
 }

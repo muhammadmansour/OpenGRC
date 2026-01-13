@@ -110,4 +110,38 @@ return [
             'selected_items' => 'العناصر المحددة',
         ],
     ],
+    
+    // Attachments
+    'attachments' => [
+        'title' => 'المرفقات',
+        'description' => 'الوصف',
+        'file' => 'الملف',
+        'file_name' => 'اسم الملف',
+        'uploaded_at' => 'تاريخ الرفع',
+        'uploaded_by' => 'رفع بواسطة',
+        'status' => 'الحالة',
+        'status_pending' => 'قيد الانتظار',
+        'status_approved' => 'موافق عليه',
+        'status_rejected' => 'مرفوض',
+        'upload' => 'رفع ملف',
+        'view' => 'عرض',
+        'delete' => 'حذف',
+        'system' => 'النظام',
+        'empty_state' => 'لا توجد مرفقات',
+        'download_draft' => 'تحميل التقرير المسودة',
+        'download_final' => 'تحميل التقرير النهائي',
+        'report_downloads' => 'تحميل التقارير',
+        'error' => 'خطأ',
+        'report_not_available' => 'التقرير النهائي غير متاح حتى يتم إكمال التدقيق.',
+    ],
+    
+    // Data Requests
+    'data_requests' => [
+        'title' => 'طلبات البيانات',
+    ],
+    
+    // Audit Items
+    'audit_items' => [
+        'title' => 'عناصر التدقيق',
+    ],
 ];

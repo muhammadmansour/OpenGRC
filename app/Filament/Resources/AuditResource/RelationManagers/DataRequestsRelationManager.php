@@ -27,6 +27,11 @@ class DataRequestsRelationManager extends RelationManager
 
     protected $listeners = ['refreshComponent' => '$refresh'];
 
+    public static function getTitle($ownerRecord, string $pageClass): string
+    {
+        return __('audit.data_requests.title');
+    }
+
     public function getTablePollInterval(): ?string
     {
         // Poll every 5 seconds to update button state
