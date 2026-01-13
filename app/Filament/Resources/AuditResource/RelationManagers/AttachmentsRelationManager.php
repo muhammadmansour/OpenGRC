@@ -141,8 +141,8 @@ class AttachmentsRelationManager extends RelationManager
                             return $disk->temporaryUrl($record->file_path, now()->addMinutes(30));
                         }
                         
-                        // For local storage, use the priv-storage route (downloads file)
-                        return route('priv-storage', ['filepath' => $record->file_path]);
+                        // For local storage, use the priv-view route (opens inline)
+                        return route('priv-view', ['filepath' => $record->file_path]);
                     })
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('download')
