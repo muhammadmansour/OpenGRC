@@ -178,7 +178,7 @@ class AiController extends Controller
                 'Authorization' => "Bearer {$key}",
             ],
             'json' => [
-                'model' => 'gpt-4.1-mini',
+                'model' => 'gpt-4o-mini',
                 'store' => true,
                 'messages' => [
                     [
