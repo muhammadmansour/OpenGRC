@@ -75,7 +75,7 @@ class AuditResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('manager.name')
                     ->label(__('audit.table.columns.manager'))
-                    ->default('Unassigned')
+                    ->default(__('audit.table.columns.unassigned'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('start_date')
                     ->label(__('audit.table.columns.start_date'))
@@ -86,7 +86,7 @@ class AuditResource extends Resource
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('department')
-                    ->label('Department')
+                    ->label(__('audit.table.columns.department'))
                     ->formatStateUsing(function (Audit $record) {
                         $department = $record->taxonomies()
                             ->whereHas('parent', function ($query) {
@@ -94,12 +94,12 @@ class AuditResource extends Resource
                             })
                             ->first();
 
-                        return $department?->name ?? 'Not assigned';
+                        return $department?->name ?? __('audit.table.columns.not_assigned');
                     })
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('scope')
-                    ->label('Scope')
+                    ->label(__('audit.table.columns.scope'))
                     ->formatStateUsing(function (Audit $record) {
                         $scope = $record->taxonomies()
                             ->whereHas('parent', function ($query) {
@@ -107,7 +107,7 @@ class AuditResource extends Resource
                             })
                             ->first();
 
-                        return $scope?->name ?? 'Not assigned';
+                        return $scope?->name ?? __('audit.table.columns.not_assigned');
                     })
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -124,16 +124,16 @@ class AuditResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('manager_id')
-                    ->label('Manager')
+                    ->label(__('audit.table.filters.manager'))
                     ->options(User::query()->pluck('name', 'id')->toArray())
                     ->searchable(),
 
                 SelectFilter::make('status')
-                    ->label('Status')
+                    ->label(__('audit.table.filters.status'))
                     ->options(WorkflowStatus::class)
                     ->searchable(),
                 Tables\Filters\SelectFilter::make('department')
-                    ->label('Department')
+                    ->label(__('audit.table.filters.department'))
                     ->options(function () {
                         $taxonomy = \Aliziodev\LaravelTaxonomy\Models\Taxonomy::where('name', 'Department')
                             ->whereNull('parent_id')
@@ -158,7 +158,7 @@ class AuditResource extends Resource
                         });
                     }),
                 Tables\Filters\SelectFilter::make('scope')
-                    ->label('Scope')
+                    ->label(__('audit.table.filters.scope'))
                     ->options(function () {
                         $taxonomy = \Aliziodev\LaravelTaxonomy\Models\Taxonomy::where('name', 'Scope')
                             ->whereNull('parent_id')
@@ -193,7 +193,17 @@ class AuditResource extends Resource
 
     public static function label(): string
     {
-        return 'Audits';
+        return __('audit.model.plural_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('audit.model.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('audit.model.plural_label');
     }
 
     public static function infolist(Infolist $infolist): Infolist
@@ -215,7 +225,7 @@ class AuditResource extends Resource
                         TextEntry::make('end_date')
                             ->label(__('audit.table.columns.end_date')),
                         TextEntry::make('taxonomies')
-                            ->label('Department')
+                            ->label(__('audit.table.columns.department'))
                             ->formatStateUsing(function (Audit $record) {
                                 $department = $record->taxonomies()
                                     ->whereHas('parent', function ($query) {
@@ -223,10 +233,10 @@ class AuditResource extends Resource
                                     })
                                     ->first();
 
-                                return $department?->name ?? 'Not assigned';
+                                return $department?->name ?? __('audit.table.columns.not_assigned');
                             }),
                         TextEntry::make('taxonomies')
-                            ->label('Scope')
+                            ->label(__('audit.table.columns.scope'))
                             ->formatStateUsing(function (Audit $record) {
                                 $scope = $record->taxonomies()
                                     ->whereHas('parent', function ($query) {
@@ -234,7 +244,7 @@ class AuditResource extends Resource
                                     })
                                     ->first();
 
-                                return $scope?->name ?? 'Not assigned';
+                                return $scope?->name ?? __('audit.table.columns.not_assigned');
                             }),
                         TextEntry::make('description')
                             ->columnSpanFull()

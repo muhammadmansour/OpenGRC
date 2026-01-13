@@ -32,100 +32,104 @@ class CreateAudit extends CreateRecord
     public function getSteps(): array
     {
         return [
-            Step::make('Audit Type')
+            Step::make(__('audit.wizard.steps.audit_type'))
                 ->columns(2)
                 ->schema([
                     Placeholder::make('Introduction')
-                        ->label('There are two Audit Types to choose from:')
+                        ->label(__('audit.wizard.audit_type.introduction'))
                         ->columnSpanFull(),
-                    Section::make('Standards Audit')
+                    Section::make(__('audit.wizard.audit_type.standards.title'))
                         ->columnSpan(1)
                         ->schema(
                             [
                                 Placeholder::make('Introduction')
                                     ->label('')
                                     ->content(new HtmlString('                                 
-                                        <p>This audit type is used to check the compliance of the organization with a specific standard. The standard is selected from the list of standards available in the system. The audit will be performed against the controls specified in the selected standard.</p> <p><strong>Note:</strong> The standard must be set to In Scope first.</strong></p>                                       
+                                        <p>'.__('audit.wizard.audit_type.standards.description').'</p> <p><strong>'.__('audit.wizard.audit_type.standards.note').'</strong></p>                                       
                                 ')),
                             ]
                         ),
 
-                    Section::make('Implementations Audit')
+                    Section::make(__('audit.wizard.audit_type.implementations.title'))
                         ->columnSpan(1)
                         ->schema(
                             [
                                 Placeholder::make('Introduction')
                                     ->label('')
                                     ->content(new HtmlString('
-                                   <p>This kind of audit is used to audit the implementations of controls in your organization. Implementations are selected from your total list of implemented controls and setup for audit.</p>
+                                   <p>'.__('audit.wizard.audit_type.implementations.description').'</p>
                                 ')),
                             ]
                         ),
 
                     Select::make('audit_type')
-                        ->label('Select Audit Type')
+                        ->label(__('audit.wizard.audit_type.select_type'))
                         ->columns(1)
                         ->required()
                         ->options([
-                            'standards' => 'Standards Audit',
-                            'implementations' => 'Implementations Audit',
-                            'program' => 'Program Audit',
+                            'standards' => __('audit.wizard.audit_type.standards.label'),
+                            'implementations' => __('audit.wizard.audit_type.implementations.label'),
+                            'program' => __('audit.wizard.audit_type.program.label'),
                         ])
                         ->native(false)
                         ->live(),
                     Select::make('sid')
                         ->columns(1)
-                        ->label('Standard to Audit')
+                        ->label(__('audit.wizard.audit_type.standard_to_audit'))
                         ->options(Standard::where('status', 'In Scope')->pluck('name', 'id'))
                         ->columns(1)
                         ->searchable()
                         ->native(false)
                         ->visible(fn (Get $get) => $get('audit_type') == 'standards'),
                     Select::make('program_id')
-                        ->label('Program to Audit')
+                        ->label(__('audit.wizard.audit_type.program_to_audit'))
                         ->relationship('program', 'name')
                         ->searchable()
                         ->preload()
                         ->visible(fn (Get $get) => $get('audit_type') == 'program'),
                 ]),
 
-            Step::make('Basic Information')
+            Step::make(__('audit.wizard.steps.basic_information'))
                 ->columns(2)
                 ->schema([
                     TextInput::make('title')
-                        ->hint('Give the audit a distinctive title.')
+                        ->label(__('audit.wizard.basic_info.title'))
+                        ->hint(__('audit.wizard.basic_info.title_hint'))
                         ->required()
                         ->columns(1)
-                        ->placeholder('2023 SOC 2 Type II Audit')
+                        ->placeholder(__('audit.wizard.basic_info.title_placeholder'))
                         ->maxLength(255),
                     Select::make('manager_id')
-                        ->label('Audit Manager')
+                        ->label(__('audit.wizard.basic_info.audit_manager'))
                         ->required()
-                        ->hint('Who will be managing this audit?')
+                        ->hint(__('audit.wizard.basic_info.audit_manager_hint'))
                         ->options(User::query()->pluck('name', 'id')->toArray())
                         ->columns(1)
                         ->default(fn () => auth()->id())
                         ->searchable(),
                     Textarea::make('description')
+                        ->label(__('audit.wizard.basic_info.description'))
                         ->maxLength(65535)
                         ->columnSpanFull(),
                     DatePicker::make('start_date')
+                        ->label(__('audit.wizard.basic_info.start_date'))
                         ->default(now())
                         ->required(),
                     DatePicker::make('end_date')
+                        ->label(__('audit.wizard.basic_info.end_date'))
                         ->default(now()->addDays(30))
                         ->required(),
                     Hidden::make('status')
                         ->default(WorkflowStatus::NOTSTARTED),
-                    AuditResource::taxonomySelect('Department', 'department')
+                    AuditResource::taxonomySelect(__('audit.wizard.basic_info.department'), 'department')
                         ->nullable()
                         ->columnSpan(1),
-                    AuditResource::taxonomySelect('Scope', 'scope')
+                    AuditResource::taxonomySelect(__('audit.wizard.basic_info.scope'), 'scope')
                         ->nullable()
                         ->columnSpan(1),
                 ]),
 
-            Step::make('Audit Details')
+            Step::make(__('audit.wizard.steps.audit_details'))
                 ->schema([
 
                     Grid::make(1)
@@ -166,9 +170,10 @@ class CreateAudit extends CreateRecord
 
                                 return [
                                     MultiselectTwoSides::make('controls')
+                                        ->label(__('audit.wizard.details.controls'))
                                         ->options($controls)
-                                        ->selectableLabel('Available Items')
-                                        ->selectedLabel('Selected Items')
+                                        ->selectableLabel(__('audit.wizard.details.available_items'))
+                                        ->selectedLabel(__('audit.wizard.details.selected_items'))
                                         ->enableSearch()
                                         ->default(! is_array($controls) ? $controls->toArray() : $controls)
                                         ->required(),
