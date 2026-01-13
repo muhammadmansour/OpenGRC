@@ -61,9 +61,8 @@ class AttachmentsRelationManager extends RelationManager
                     ->sortable()
                     ->wrap()
                     ->description(fn ($record) => $record->description),
-                Tables\Columns\TextColumn::make('updated_at')
+                Tables\Columns\TextColumn::make('created_at')
                     ->label(__('audit.attachments.uploaded_at'))
-                    ->searchable()
                     ->sortable()
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('uploaded_by')
@@ -85,7 +84,7 @@ class AttachmentsRelationManager extends RelationManager
                     ->icon('heroicon-o-arrow-up-tray')
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['uploaded_by'] = auth()->id();
-                        $data['uploaded_at'] = now();
+                        // created_at/updated_at are auto-set by Eloquent timestamps
                         return $data;
                     }),
                 Tables\Actions\ActionGroup::make([
