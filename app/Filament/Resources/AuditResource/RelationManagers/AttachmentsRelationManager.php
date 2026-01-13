@@ -129,9 +129,32 @@ class AttachmentsRelationManager extends RelationManager
                 ])->label(__('audit.attachments.report_downloads')),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
+                Tables\Actions\Action::make('view')
                     ->label(__('audit.attachments.view'))
-                    ->icon('heroicon-o-eye'),
+                    ->icon('heroicon-o-eye')
+                    ->url(function ($record) {
+                        $driver = setting('storage.driver', config('filesystems.default'));
+                        $disk = Storage::disk($driver);
+                        
+                        // S3-compatible drivers support temporaryUrl
+                        if (in_array($driver, ['s3', 'do'])) {
+                            return $disk->temporaryUrl($record->file_path, now()->addMinutes(30));
+                        }
+                        
+                        // For local storage, use the private file route
+                        return route('private-file', ['path' => $record->file_path]);
+                    })
+                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('download')
+                    ->label(__('audit.attachments.download'))
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function ($record) {
+                        $disk = Storage::disk(setting('storage.driver', config('filesystems.default')));
+                        return response()->streamDownload(
+                            fn () => print($disk->get($record->file_path)),
+                            $record->file_name
+                        );
+                    }),
                 Tables\Actions\DeleteAction::make()
                     ->label(__('audit.attachments.delete')),
             ]);

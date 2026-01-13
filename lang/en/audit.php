@@ -125,6 +125,7 @@ return [
         'status_rejected' => 'Rejected',
         'upload' => 'Upload File',
         'view' => 'View',
+        'download' => 'Download',
         'delete' => 'Delete',
         'system' => 'System',
         'empty_state' => 'No attachments',

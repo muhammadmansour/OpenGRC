@@ -125,6 +125,7 @@ return [
         'status_rejected' => 'مرفوض',
         'upload' => 'رفع ملف',
         'view' => 'عرض',
+        'download' => 'تحميل',
         'delete' => 'حذف',
         'system' => 'النظام',
         'empty_state' => 'لا توجد مرفقات',
