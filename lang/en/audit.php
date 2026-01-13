@@ -47,6 +47,24 @@ return [
         'create' => 'Create Audit',
     ],
     
+    // Edit Audit Form
+    'edit' => [
+        'section_title' => 'Edit Audit Details',
+        'title' => 'Title',
+        'title_hint' => 'Give the audit a distinctive title.',
+        'title_placeholder' => '2023 SOC 2 Type II Audit',
+        'audit_manager' => 'Audit Manager',
+        'audit_manager_hint' => 'Who will be managing this audit?',
+        'additional_members' => 'Additional Members',
+        'additional_members_hint' => 'Who else should have full access to the Audit?',
+        'additional_members_helper' => 'Note: You don\'t need to add evidence people who are only fulfilling requests here.',
+        'description' => 'Description',
+        'start_date' => 'Start Date',
+        'end_date' => 'End Date',
+        'department' => 'Department',
+        'scope' => 'Scope',
+    ],
+    
     // Create Audit Wizard
     'wizard' => [
         'steps' => [

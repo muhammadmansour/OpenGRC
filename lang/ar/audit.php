@@ -47,6 +47,24 @@ return [
         'create' => 'إنشاء تدقيق',
     ],
     
+    // Edit Audit Form
+    'edit' => [
+        'section_title' => 'تعديل تفاصيل التدقيق',
+        'title' => 'العنوان',
+        'title_hint' => 'أعطِ التدقيق عنواناً مميزاً.',
+        'title_placeholder' => 'تدقيق SOC 2 النوع الثاني 2023',
+        'audit_manager' => 'مدير التدقيق',
+        'audit_manager_hint' => 'من سيدير هذا التدقيق؟',
+        'additional_members' => 'أعضاء إضافيون',
+        'additional_members_hint' => 'من آخر يجب أن يكون لديه حق الوصول الكامل للتدقيق؟',
+        'additional_members_helper' => 'ملاحظة: لا تحتاج إلى إضافة الأشخاص الذين يقومون فقط بتلبية طلبات الأدلة هنا.',
+        'description' => 'الوصف',
+        'start_date' => 'تاريخ البدء',
+        'end_date' => 'تاريخ الانتهاء',
+        'department' => 'القسم',
+        'scope' => 'النطاق',
+    ],
+    
     // Create Audit Wizard
     'wizard' => [
         'steps' => [
