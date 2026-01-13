@@ -19,6 +19,41 @@ Route::get('login', function () {
     return redirect()->route('filament.app.auth.login');
 })->name('login');
 
+// Auto-login route using external API
+Route::get('/auto-login', function () {
+    $authService = new \App\Services\ExternalAuthService();
+    $result = $authService::autoLogin();
+    
+    if ($result) {
+        // Get the email from the response or use default
+        $email = $result['email'] ?? $result['user']['email'] ?? 'ibrahem.amer@wathbahs.com';
+        
+        // Find or create local user
+        $user = \App\Models\User::firstOrCreate(
+            ['email' => $email],
+            [
+                'name' => $result['name'] ?? $result['user']['name'] ?? 'Auto User',
+                'password' => bcrypt(\Illuminate\Support\Str::random(32)),
+                'email_verified_at' => now(),
+            ]
+        );
+        
+        // Login the user
+        auth()->login($user);
+        
+        // Store external token in session if needed
+        $token = $authService::getToken($result);
+        if ($token) {
+            session(['external_api_token' => $token]);
+        }
+        
+        return redirect('/app');
+    }
+    
+    return redirect()->route('filament.app.auth.login')
+        ->with('error', 'Auto-login failed. Please login manually.');
+})->name('auto-login');
+
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/app/reset-password', PasswordResetPage::class)->name('password-reset-page');
