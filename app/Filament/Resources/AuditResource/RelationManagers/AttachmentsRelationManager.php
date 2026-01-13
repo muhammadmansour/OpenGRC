@@ -4,9 +4,7 @@ namespace App\Filament\Resources\AuditResource\RelationManagers;
 
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -28,7 +26,7 @@ class AttachmentsRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                TextArea::make('description')
+                Textarea::make('description')
                     ->label(__('audit.attachments.description'))
                     ->columnSpanFull()
                     ->required(),
@@ -47,19 +45,6 @@ class AttachmentsRelationManager extends RelationManager
                             Storage::disk(setting('storage.driver', config('filesystems.default')))->delete($state);
                         }
                     }),
-                DateTimePicker::make('updated_at')
-                    ->label(__('audit.attachments.uploaded_at'))
-                    ->default(now())
-                    ->required(),
-                Select::make('status')
-                    ->label(__('audit.attachments.status'))
-                    ->options([
-                        'Pending' => __('audit.attachments.status_pending'),
-                        'Approved' => __('audit.attachments.status_approved'),
-                        'Rejected' => __('audit.attachments.status_rejected'),
-                    ])
-                    ->default('Pending')
-                    ->required(),
             ]);
     }
 
@@ -103,7 +88,7 @@ class AttachmentsRelationManager extends RelationManager
                     ->icon('heroicon-o-arrow-up-tray')
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['uploaded_by'] = auth()->id();
-                        $data['audit_id'] = $this->getOwnerRecord()->id;
+                        $data['uploaded_at'] = now();
                         return $data;
                     }),
                 Tables\Actions\ActionGroup::make([
