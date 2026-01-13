@@ -38,88 +38,88 @@ class RiskResource extends Resource
             ->columns()
             ->schema([
                 Forms\Components\TextInput::make('code')
-                    ->label('Code')
+                    ->label(__('risk-management.form.code'))
                     ->unique('risks', 'code', ignoreRecord: true)
                     ->columnSpanFull()
                     ->required(),
                 Forms\Components\TextInput::make('name')
-                    ->label('Name')
+                    ->label(__('risk-management.form.name'))
                     ->columnSpanFull()
                     ->required(),
                 Forms\Components\Textarea::make('description')
                     ->columnSpanFull()
-                    ->label('Description'),
+                    ->label(__('risk-management.form.description')),
                 Forms\Components\Section::make('inherent')
                     ->columnSpan(1)
-                    ->heading('Inherent Risk Scoring')
+                    ->heading(__('risk-management.form.inherent_risk_scoring'))
                     ->schema([
                         Forms\Components\ToggleButtons::make('inherent_likelihood')
-                            ->label('Likelihood')
+                            ->label(__('risk-management.likelihood'))
                             ->options([
-                                '1' => 'Very Low',
-                                '2' => 'Low',
-                                '3' => 'Moderate',
-                                '4' => 'High',
-                                '5' => 'Very High',
+                                '1' => __('risk-management.levels.very_low'),
+                                '2' => __('risk-management.levels.low'),
+                                '3' => __('risk-management.levels.moderate'),
+                                '4' => __('risk-management.levels.high'),
+                                '5' => __('risk-management.levels.very_high'),
                             ])
                             ->grouped()
                             ->required(),
                         Forms\Components\ToggleButtons::make('inherent_impact')
-                            ->label('Impact')
+                            ->label(__('risk-management.impact'))
                             ->options([
-                                '1' => 'Very Low',
-                                '2' => 'Low',
-                                '3' => 'Moderate',
-                                '4' => 'High',
-                                '5' => 'Very High',
+                                '1' => __('risk-management.levels.very_low'),
+                                '2' => __('risk-management.levels.low'),
+                                '3' => __('risk-management.levels.moderate'),
+                                '4' => __('risk-management.levels.high'),
+                                '5' => __('risk-management.levels.very_high'),
                             ])
                             ->grouped()
                             ->required(),
                     ]),
                 Forms\Components\Section::make('residual')
                     ->columnSpan(1)
-                    ->heading('Residual Risk Scoring')
+                    ->heading(__('risk-management.form.residual_risk_scoring'))
                     ->schema([
                         Forms\Components\ToggleButtons::make('residual_likelihood')
-                            ->label('Likelihood')
+                            ->label(__('risk-management.likelihood'))
                             ->options([
-                                '1' => 'Very Low',
-                                '2' => 'Low',
-                                '3' => 'Moderate',
-                                '4' => 'High',
-                                '5' => 'Very High',
+                                '1' => __('risk-management.levels.very_low'),
+                                '2' => __('risk-management.levels.low'),
+                                '3' => __('risk-management.levels.moderate'),
+                                '4' => __('risk-management.levels.high'),
+                                '5' => __('risk-management.levels.very_high'),
                             ])
                             ->grouped()
                             ->required(),
                         Forms\Components\ToggleButtons::make('residual_impact')
-                            ->label('Impact')
+                            ->label(__('risk-management.impact'))
                             ->options([
-                                '1' => 'Very Low',
-                                '2' => 'Low',
-                                '3' => 'Moderate',
-                                '4' => 'High',
-                                '5' => 'Very High',
+                                '1' => __('risk-management.levels.very_low'),
+                                '2' => __('risk-management.levels.low'),
+                                '3' => __('risk-management.levels.moderate'),
+                                '4' => __('risk-management.levels.high'),
+                                '5' => __('risk-management.levels.very_high'),
                             ])
                             ->grouped()
                             ->required(),
                     ]),
 
                 Forms\Components\Select::make('implementations')
-                    ->label('Related Implementations')
-                    ->helperText('What are we doing to mitigate this risk?')
+                    ->label(__('risk-management.form.related_implementations'))
+                    ->helperText(__('risk-management.form.related_implementations_helper'))
                     ->relationship(name: 'implementations', titleAttribute: 'title')
                     ->searchable(['title', 'code'])
                     ->multiple(),
 
                 Forms\Components\Select::make('status')
-                    ->label('Status')
+                    ->label(__('risk-management.form.status'))
                     ->enum(RiskStatus::class)
                     ->options(RiskStatus::class)
                     ->required(),
-                self::taxonomySelect('Department', 'department')
+                self::taxonomySelect(__('risk-management.form.department'), 'department')
                     ->nullable()
                     ->columnSpan(1),
-                self::taxonomySelect('Scope', 'scope')
+                self::taxonomySelect(__('risk-management.form.scope'), 'scope')
                     ->nullable()
                     ->columnSpan(1),
             ]);
@@ -129,8 +129,8 @@ class RiskResource extends Resource
     {
         return $table
             ->defaultSort('residual_risk', 'desc')
-            ->emptyStateHeading('No Risks Identified Yet')
-            ->emptyStateDescription('Add and analyse your first risk by clicking the "Track New Risk" button above.')
+            ->emptyStateHeading(__('risk-management.table.empty_heading'))
+            ->emptyStateDescription(__('risk-management.table.empty_description'))
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
@@ -155,7 +155,7 @@ class RiskResource extends Resource
                         }, $state);
                     }),
                 Tables\Columns\TextColumn::make('inherent_risk')
-                    ->label('Inherent Risk')
+                    ->label(__('risk-management.table.inherent_risk'))
                     ->sortable()
                     ->color(function (Risk $record) {
                         return self::getRiskColor($record->inherent_likelihood, $record->inherent_impact);
@@ -168,9 +168,9 @@ class RiskResource extends Resource
                         return self::getRiskColor($record->residual_likelihood, $record->residual_impact);
                     }),
                 Tables\Columns\TextColumn::make('taxonomy_department')
-                    ->label('Department')
+                    ->label(__('risk-management.form.department'))
                     ->getStateUsing(function (Risk $record) {
-                        return self::getTaxonomyTerm($record, 'department')?->name ?? 'Not assigned';
+                        return self::getTaxonomyTerm($record, 'department')?->name ?? __('risk-management.table.not_assigned');
                     })
                     ->sortable(query: function ($query, string $direction): void {
                         $departmentParent = \Aliziodev\LaravelTaxonomy\Models\Taxonomy::where('slug', 'department')->whereNull('parent_id')->first();
@@ -189,9 +189,9 @@ class RiskResource extends Resource
                     })
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('taxonomy_scope')
-                    ->label('Scope')
+                    ->label(__('risk-management.form.scope'))
                     ->getStateUsing(function (Risk $record) {
-                        return self::getTaxonomyTerm($record, 'scope')?->name ?? 'Not assigned';
+                        return self::getTaxonomyTerm($record, 'scope')?->name ?? __('risk-management.table.not_assigned');
                     })
                     ->sortable(query: function ($query, string $direction): void {
                         $scopeParent = \Aliziodev\LaravelTaxonomy\Models\Taxonomy::where('slug', 'scope')->whereNull('parent_id')->first();
@@ -212,43 +212,43 @@ class RiskResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('inherent_likelihood')
-                    ->label('Inherent Likelihood')
+                    ->label(__('risk-management.filters.inherent_likelihood'))
                     ->options([
-                        '1' => 'Very Low',
-                        '2' => 'Low',
-                        '3' => 'Moderate',
-                        '4' => 'High',
-                        '5' => 'Very High',
+                        '1' => __('risk-management.levels.very_low'),
+                        '2' => __('risk-management.levels.low'),
+                        '3' => __('risk-management.levels.moderate'),
+                        '4' => __('risk-management.levels.high'),
+                        '5' => __('risk-management.levels.very_high'),
                     ]),
                 Tables\Filters\SelectFilter::make('inherent_impact')
-                    ->label('Inherent Impact')
+                    ->label(__('risk-management.filters.inherent_impact'))
                     ->options([
-                        '1' => 'Very Low',
-                        '2' => 'Low',
-                        '3' => 'Moderate',
-                        '4' => 'High',
-                        '5' => 'Very High',
+                        '1' => __('risk-management.levels.very_low'),
+                        '2' => __('risk-management.levels.low'),
+                        '3' => __('risk-management.levels.moderate'),
+                        '4' => __('risk-management.levels.high'),
+                        '5' => __('risk-management.levels.very_high'),
                     ]),
                 Tables\Filters\SelectFilter::make('residual_likelihood')
-                    ->label('Residual Likelihood')
+                    ->label(__('risk-management.filters.residual_likelihood'))
                     ->options([
-                        '1' => 'Very Low',
-                        '2' => 'Low',
-                        '3' => 'Moderate',
-                        '4' => 'High',
-                        '5' => 'Very High',
+                        '1' => __('risk-management.levels.very_low'),
+                        '2' => __('risk-management.levels.low'),
+                        '3' => __('risk-management.levels.moderate'),
+                        '4' => __('risk-management.levels.high'),
+                        '5' => __('risk-management.levels.very_high'),
                     ]),
                 Tables\Filters\SelectFilter::make('residual_impact')
-                    ->label('Residual Impact')
+                    ->label(__('risk-management.filters.residual_impact'))
                     ->options([
-                        '1' => 'Very Low',
-                        '2' => 'Low',
-                        '3' => 'Moderate',
-                        '4' => 'High',
-                        '5' => 'Very High',
+                        '1' => __('risk-management.levels.very_low'),
+                        '2' => __('risk-management.levels.low'),
+                        '3' => __('risk-management.levels.moderate'),
+                        '4' => __('risk-management.levels.high'),
+                        '5' => __('risk-management.levels.very_high'),
                     ]),
                 Tables\Filters\SelectFilter::make('department')
-                    ->label('Department')
+                    ->label(__('risk-management.filters.department'))
                     ->options(function () {
                         $taxonomy = self::getParentTaxonomy('department');
 
@@ -271,7 +271,7 @@ class RiskResource extends Resource
                         });
                     }),
                 Tables\Filters\SelectFilter::make('scope')
-                    ->label('Scope')
+                    ->label(__('risk-management.filters.scope'))
                     ->options(function () {
                         $taxonomy = self::getParentTaxonomy('scope');
 
@@ -296,7 +296,7 @@ class RiskResource extends Resource
             ])
             ->headerActions([
                 Tables\Actions\Action::make('reset_filters')
-                    ->label('Reset Filters')
+                    ->label(__('risk-management.actions.reset_filters'))
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
                     ->alpineClickHandler("\$dispatch('reset-risk-filters')")

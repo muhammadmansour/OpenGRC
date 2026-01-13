@@ -22,11 +22,11 @@ class ResidualRisk extends Widget
 
     protected static ?int $sort = 2;
 
-    public function mount(string $title = 'Residual Risk'): void
+    public function mount(string $title = null): void
     {
         $risks = Risk::select(['id', 'name', 'residual_likelihood', 'residual_impact'])->get();
         $this->grid = InherentRisk::generateGrid($risks, 'residual');
-        $this->title = $title;
+        $this->title = $title ?? __('risk-management.residual_risk');
         $this->type = 'residual';
         $this->filterUrl = RiskResource::getUrl('index');
     }

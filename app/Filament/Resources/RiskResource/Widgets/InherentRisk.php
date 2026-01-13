@@ -23,11 +23,11 @@ class InherentRisk extends Widget
 
     protected static ?int $sort = 2;
 
-    public function mount(string $title = 'Inherent Risk'): void
+    public function mount(string $title = null): void
     {
         $risks = Risk::select(['id', 'name', 'inherent_likelihood', 'inherent_impact'])->get();
         $this->grid = self::generateGrid($risks, 'inherent');
-        $this->title = $title;
+        $this->title = $title ?? __('risk-management.inherent_risk');
         $this->type = 'inherent';
         $this->filterUrl = RiskResource::getUrl('index');
     }

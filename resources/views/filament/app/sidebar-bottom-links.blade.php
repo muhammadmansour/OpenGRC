@@ -3,11 +3,11 @@
     @canany(['Manage Users', 'View Audit Log', 'Manage Permissions', 'Configure Authentication'])
     <a href="/admin/settings" class="flex items-center gap-2 text-sm text-primary-600 hover:underline">
         <x-heroicon-o-cog class="w-5 h-5" />
-        Settings
+        {{ __('navigation.resources.settings') }}
     </a>
     @endcanany
     <a href="https://docs.opengrc.com" target="_blank" class="flex items-center gap-2 text-sm text-primary-600 hover:underline">
         <x-heroicon-o-question-mark-circle class="w-5 h-5" />
-        Help
+        {{ __('navigation.resources.help') }}
     </a>
 </div> 

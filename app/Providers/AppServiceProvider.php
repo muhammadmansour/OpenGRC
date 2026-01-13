@@ -163,7 +163,14 @@ class AppServiceProvider extends ServiceProvider
 
         LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
             $switch
-                ->locales(['en', 'es', 'fr', 'hr']);
+                ->locales(['en', 'ar', 'es', 'fr', 'hr'])
+                ->labels([
+                    'en' => 'English',
+                    'ar' => 'العربية',
+                    'es' => 'Español',
+                    'fr' => 'Français',
+                    'hr' => 'Hrvatski',
+                ]);
         });
 
         Table::configureUsing(function (Table $table): Table {

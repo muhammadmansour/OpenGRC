@@ -32,6 +32,8 @@ class VendorPanelProvider extends PanelProvider
             ->passwordReset()
             ->emailVerification()
             ->profile()
+            ->darkMode(false)
+            ->font('Cairo')
             ->colors([
                 'primary' => Color::Teal,
             ])

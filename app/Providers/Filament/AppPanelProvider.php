@@ -97,6 +97,8 @@ class AppPanelProvider extends PanelProvider
             ->path('app')
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->loginRouteSlug('login')
+            ->darkMode(false)
+            ->font('Cairo')
             ->colors([
                 'primary' => Color::Slate,
             ])
@@ -139,8 +141,8 @@ class AppPanelProvider extends PanelProvider
                 fn () => view('components.session-expiration-handler')
             )
             ->navigationGroups([
-                'Foundations',
-                'Entities',
+                __('navigation.groups.foundations'),
+                __('navigation.groups.entities'),
             ])
             ->middleware([
                 EncryptCookies::class,

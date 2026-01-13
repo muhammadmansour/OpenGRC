@@ -23,12 +23,12 @@ class ApplicationResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Applications');
+        return __('navigation.resources.applications');
     }
 
     public static function getNavigationGroup(): string
     {
-        return __('Entities');
+        return __('navigation.groups.entities');
     }
 
     public static function getModelLabel(): string

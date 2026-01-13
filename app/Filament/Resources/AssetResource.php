@@ -24,9 +24,15 @@ class AssetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
 
-    protected static ?string $navigationLabel = 'Assets';
+    public static function getNavigationLabel(): string
+    {
+        return __('navigation.resources.assets');
+    }
 
-    protected static ?string $navigationGroup = 'Entities';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.groups.entities');
+    }
 
     protected static ?string $recordTitleAttribute = 'name';
 

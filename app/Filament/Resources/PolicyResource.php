@@ -22,9 +22,15 @@ class PolicyResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationLabel = 'Policies';
+    public static function getNavigationLabel(): string
+    {
+        return __('navigation.resources.policies');
+    }
 
-    protected static ?string $navigationGroup = 'Entities';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.groups.entities');
+    }
 
     protected static ?string $recordTitleAttribute = 'name';
 

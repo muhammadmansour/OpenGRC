@@ -14,9 +14,15 @@ class VendorManager extends TabbedPage
 {
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
 
-    protected static ?string $navigationLabel = 'Vendor Management';
+    public static function getNavigationLabel(): string
+    {
+        return __('navigation.resources.vendor_management');
+    }
 
-    protected static ?string $title = 'Vendor Management';
+    public function getTitle(): string
+    {
+        return __('navigation.resources.vendor_management');
+    }
 
     protected static ?int $navigationSort = 10;
 

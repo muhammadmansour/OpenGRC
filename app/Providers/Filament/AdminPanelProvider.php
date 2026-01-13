@@ -42,6 +42,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->loginRouteSlug('login')
+            ->darkMode(false)
+            ->font('Cairo')
             ->colors([
                 'primary' => Color::Amber,
             ])

@@ -13,9 +13,15 @@ class TrustCenterManager extends TabbedPage
 {
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
 
-    protected static ?string $navigationLabel = 'Trust Center';
+    public static function getNavigationLabel(): string
+    {
+        return __('navigation.resources.trust_center');
+    }
 
-    protected static ?string $title = 'Trust Center';
+    public function getTitle(): string
+    {
+        return __('navigation.resources.trust_center');
+    }
 
     protected static ?int $navigationSort = 15;
 

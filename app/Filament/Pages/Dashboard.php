@@ -12,9 +12,15 @@ class Dashboard extends TabbedPage
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
 
-    protected static ?string $navigationLabel = 'Dashboard';
+    public static function getNavigationLabel(): string
+    {
+        return __('navigation.resources.dashboard');
+    }
 
-    protected static ?string $title = 'Dashboard';
+    public function getTitle(): string
+    {
+        return __('navigation.resources.dashboard');
+    }
 
     protected static ?int $navigationSort = -2;
 

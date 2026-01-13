@@ -21,6 +21,8 @@ class TrustCenterPanelProvider extends PanelProvider
         return $panel
             ->id('trustcenter')
             ->path('trust')
+            ->darkMode(false)
+            ->font('Cairo')
             ->colors([
                 'primary' => Color::Blue,
             ])

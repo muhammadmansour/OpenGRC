@@ -13,7 +13,10 @@ class ListRisks extends ListRecords
 {
     protected static string $resource = RiskResource::class;
 
-    protected ?string $heading = 'Risk Management';
+    public function getHeading(): string
+    {
+        return __('risk-management.heading');
+    }
 
     public bool $hasActiveRiskFilters = false;
 
@@ -36,9 +39,9 @@ class ListRisks extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('Track New Risk'),
+            Actions\CreateAction::make()->label(__('risk-management.actions.track_new_risk')),
             Actions\Action::make('download_risk_report')
-                ->label('Download Risk Report')
+                ->label(__('risk-management.actions.download_risk_report'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->size(ActionSize::Small)
                 ->color('primary')

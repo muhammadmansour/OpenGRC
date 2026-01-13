@@ -1,0 +1,56 @@
+<?php
+
+return [
+    'navigation_label' => 'الاستبيانات',
+    'model_label' => 'استبيان',
+    'plural_model_label' => 'الاستبيانات',
+    'form' => [
+        'title' => 'العنوان',
+        'description' => 'الوصف',
+        'status' => 'الحالة',
+        'due_date' => 'تاريخ الاستحقاق',
+        'vendor' => 'المورد',
+        'questions' => 'الأسئلة',
+        'question' => 'السؤال',
+        'answer' => 'الإجابة',
+        'notes' => 'ملاحظات',
+        'attachments' => 'المرفقات',
+    ],
+    'table' => [
+        'title' => 'العنوان',
+        'vendor' => 'المورد',
+        'status' => 'الحالة',
+        'due_date' => 'تاريخ الاستحقاق',
+        'created_at' => 'تاريخ الإنشاء',
+        'updated_at' => 'تاريخ التحديث',
+        'questions_count' => 'عدد الأسئلة',
+        'responses_count' => 'عدد الردود',
+    ],
+    'status' => [
+        'draft' => 'مسودة',
+        'sent' => 'مرسل',
+        'in_progress' => 'قيد التنفيذ',
+        'completed' => 'مكتمل',
+        'expired' => 'منتهي الصلاحية',
+    ],
+    'actions' => [
+        'create' => 'إنشاء استبيان',
+        'edit' => 'تعديل',
+        'delete' => 'حذف',
+        'view' => 'عرض',
+        'send' => 'إرسال',
+        'complete' => 'إكمال',
+        'export' => 'تصدير',
+    ],
+    'messages' => [
+        'created' => 'تم إنشاء الاستبيان بنجاح.',
+        'updated' => 'تم تحديث الاستبيان بنجاح.',
+        'deleted' => 'تم حذف الاستبيان بنجاح.',
+        'sent' => 'تم إرسال الاستبيان بنجاح.',
+        'completed' => 'تم إكمال الاستبيان بنجاح.',
+    ],
+    'empty_state' => [
+        'heading' => 'لا توجد استبيانات',
+        'description' => 'ابدأ بإنشاء استبيان جديد.',
+    ],
+];

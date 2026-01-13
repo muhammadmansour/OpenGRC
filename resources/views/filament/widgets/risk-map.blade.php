@@ -22,7 +22,7 @@
             <!-- Narrow column for rotated "Impact" label -->
             <div style="width: 0;" class="flex items-center justify-center flex-none">
                 <div class="transform -rotate-90 text-sm font-bold leading-none">
-                    Impact
+                    {{ __('risk-management.impact') }}
                 </div>
             </div>
 
@@ -30,11 +30,11 @@
             <div class="flex-1 flex items-start overflow-visible">
                 <!-- Row labels column -->
                 <div class="w-20 flex flex-col gap-0.5">
-                    <div class="h-[60px] flex items-center justify-end text-xs p-1">Very High</div>
-                    <div class="h-[60px] flex items-center justify-end text-xs p-1">High</div>
-                    <div class="h-[60px] flex items-center justify-end text-xs p-1">Moderate</div>
-                    <div class="h-[60px] flex items-center justify-end text-xs p-1">Low</div>
-                    <div class="h-[60px] flex items-center justify-end text-xs p-1">Very Low</div>
+                    <div class="h-[60px] flex items-center justify-end text-xs p-1">{{ __('risk-management.levels.very_high') }}</div>
+                    <div class="h-[60px] flex items-center justify-end text-xs p-1">{{ __('risk-management.levels.high') }}</div>
+                    <div class="h-[60px] flex items-center justify-end text-xs p-1">{{ __('risk-management.levels.moderate') }}</div>
+                    <div class="h-[60px] flex items-center justify-end text-xs p-1">{{ __('risk-management.levels.low') }}</div>
+                    <div class="h-[60px] flex items-center justify-end text-xs p-1">{{ __('risk-management.levels.very_low') }}</div>
                 </div>
 
                 <!-- 5-col risk map grid -->
@@ -85,7 +85,7 @@
                                                     class="absolute z-10 bg-gray-800 text-white text-xs rounded py-2 px-3 top-0 shadow-lg whitespace-nowrap overflow-y-auto max-h-48 text-left {{ $showOnLeft ? 'right-full mr-2' : 'left-full ml-2' }}"
                                                     style="min-width: 200px; max-width: 300px;"
                                             >
-                                                <div class="font-medium mb-1">Risks:</div>
+                                                <div class="font-medium mb-1">{{ __('risk-management.risks') }}:</div>
                                                 <ul class="list-disc list-outside pl-4 space-y-0.5">
                                                 @foreach($risks as $risk)
                                                     <li class="ml-0 truncate" title="{{ $risk->name }}">{{ Str::limit($risk->name, 40) }}</li>
@@ -113,16 +113,16 @@
             <div class="flex-1">
                 <div class="grid grid-cols-5 gap-0.5 text-center w-full">
                     <!-- First row: the 5 "Likelihood" labels -->
-                    <div class="text-xs">Very Low</div>
-                    <div class="text-xs">Low</div>
-                    <div class="text-xs">Moderate</div>
-                    <div class="text-xs">High</div>
-                    <div class="text-xs">Very High</div>
+                    <div class="text-xs">{{ __('risk-management.levels.very_low') }}</div>
+                    <div class="text-xs">{{ __('risk-management.levels.low') }}</div>
+                    <div class="text-xs">{{ __('risk-management.levels.moderate') }}</div>
+                    <div class="text-xs">{{ __('risk-management.levels.high') }}</div>
+                    <div class="text-xs">{{ __('risk-management.levels.very_high') }}</div>
 
                     <!-- Second row: leave columns 1,2 & 4,5 blank; put "Likelihood" in column 3 -->
                     <div></div>
                     <div></div>
-                    <div class="text-sm font-bold">Likelihood</div>
+                    <div class="text-sm font-bold">{{ __('risk-management.likelihood') }}</div>
                     <div></div>
                     <div></div>
                 </div>
