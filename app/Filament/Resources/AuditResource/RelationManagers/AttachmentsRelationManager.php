@@ -136,13 +136,13 @@ class AttachmentsRelationManager extends RelationManager
                         $driver = setting('storage.driver', config('filesystems.default'));
                         $disk = Storage::disk($driver);
                         
-                        // S3-compatible drivers support temporaryUrl
+                        // S3-compatible drivers support temporaryUrl for inline viewing
                         if (in_array($driver, ['s3', 'do'])) {
                             return $disk->temporaryUrl($record->file_path, now()->addMinutes(30));
                         }
                         
-                        // For local storage, use the private file route
-                        return route('private-file', ['path' => $record->file_path]);
+                        // For local storage, use the priv-storage route (downloads file)
+                        return route('priv-storage', ['filepath' => $record->file_path]);
                     })
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('download')
