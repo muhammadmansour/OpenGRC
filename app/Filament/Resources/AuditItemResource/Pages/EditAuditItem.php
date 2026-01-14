@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Http;
 
 class EditAuditItem extends EditRecord
 {
-    public static ?string $title = 'Assess Audit Item';
+    public static ?string $title = 'تقييم عنصر المراجعة';
 
     // set title to Assess Audit Item
     protected static string $resource = AuditItemResource::class;
@@ -51,7 +51,7 @@ class EditAuditItem extends EditRecord
     {
         return [
             Action::make('back')
-                ->label('Back to Audit')
+                ->label('العودة للمراجعة')
                 ->icon('heroicon-m-arrow-left')
                 ->url(route('filament.app.resources.audits.view', $this->record->audit_id)),
             Action::make('gemini_evaluation')
@@ -62,11 +62,11 @@ class EditAuditItem extends EditRecord
                     'onclick' => 'window.startGeminiEvaluation(); return false;',
                 ]),
             Action::make('view_gemini_results')
-                ->label('View AI Results')
+                ->label('عرض نتائج الذكاء الاصطناعي')
                 ->icon('heroicon-o-document-text')
                 ->color('info')
                 ->hidden(fn () => empty($this->record->ai_evaluation))
-                ->modalHeading('Gemini AI Evaluation Results')
+                ->modalHeading('نتائج تحليل الذكاء الاصطناعي')
                 ->modalContent(function () {
                     $evaluation = json_decode($this->record->ai_evaluation, true);
                     if (!$evaluation) {
@@ -78,7 +78,7 @@ class EditAuditItem extends EditRecord
                     ]);
                 })
                 ->modalSubmitAction(false)
-                ->modalCancelActionLabel('Close'),
+                ->modalCancelActionLabel('إغلاق'),
             Action::make('ai_suggestions')
                 ->label(__('Get AI Suggestions'))
                 ->icon('heroicon-o-sparkles')
@@ -116,7 +116,7 @@ class EditAuditItem extends EditRecord
                 ->modalSubmitAction(false)
                 ->closeModalByEscaping(true),
             Action::make('request_evidence')
-                ->label('Request Evidence')
+                ->label('طلب دليل')
                 ->icon('heroicon-m-document')
                 ->action(function ($data) {
                     $dataRequest = new DataRequest;
@@ -146,7 +146,7 @@ class EditAuditItem extends EditRecord
                             Mail::to($data['email'])->send(new EvidenceRequestMail($data['email'], $data['name']));
                         } catch (\Exception $e) {
                             Notification::make()
-                                ->title('Failed to send email')
+                                ->title('فشل إرسال البريد الإلكتروني')
                                 ->danger()
                                 ->send();
                         }
@@ -157,8 +157,8 @@ class EditAuditItem extends EditRecord
                 })
                 ->after(function () {
                     Notification::make()
-                        ->title('Evidence Requested')
-                        ->body('The evidence request has been submitted.')
+                        ->title('تم طلب الدليل')
+                        ->body('تم إرسال طلب الدليل بنجاح.')
                         ->success()
                         ->send();
                 })
@@ -167,33 +167,33 @@ class EditAuditItem extends EditRecord
                         ->columns(2)
                         ->schema([
                             Forms\Components\Select::make('user_id')
-                                ->label('Assigned To')
+                                ->label('المكلف')
                                 ->options(User::pluck('name', 'id'))
                                 ->default($this->record->audit->manager_id)
                                 ->required()
                                 ->searchable(),
                             Forms\Components\DatePicker::make('due_at')
-                                ->label('Due Date')
+                                ->label('تاريخ الاستحقاق')
                                 ->default(HelperController::getEndDate($this->record->audit->end_date, 5))
                                 ->required(),
                             Forms\Components\Textarea::make('details')
-                                ->label('Request Details')
+                                ->label('تفاصيل الطلب')
                                 ->maxLength(65535)
                                 ->columnSpanFull()
                                 ->required(),
                             Forms\Components\TextInput::make('code')
-                                ->label('Request Code')
+                                ->label('رمز الطلب')
                                 ->maxLength(255)
-                                ->helperText('Optional. If left blank, will default to Request-{id} after creation.')
+                                ->helperText('اختياري. إذا تُرك فارغاً، سيتم تعيين Request-{id} تلقائياً.')
                                 ->nullable(),
                             Forms\Components\Checkbox::make('send_email')
-                                ->label('Send Email Notification')
+                                ->label('إرسال إشعار بالبريد الإلكتروني')
                                 ->default(true),
                         ]),
                 ])
-                ->modalHeading('Request Evidence')
-                ->modalSubmitActionLabel('Submit')
-                ->modalCancelActionLabel('Cancel'),
+                ->modalHeading('طلب دليل')
+                ->modalSubmitActionLabel('إرسال')
+                ->modalCancelActionLabel('إلغاء'),
         ];
     }
 
@@ -201,39 +201,39 @@ class EditAuditItem extends EditRecord
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Item Information')
+                Forms\Components\Section::make('معلومات العنصر')
                     ->schema([
                         Placeholder::make('control_code')
-                            ->label('Code')
+                            ->label('الرمز')
                             ->content(fn (AuditItem $record): ?string => $record->auditable->code),
                         Placeholder::make('control_title')
-                            ->label('Title')
+                            ->label('العنوان')
                             ->content(fn (AuditItem $record): ?string => $record->auditable->title),
                         Placeholder::make('control_desc')
-                            ->label('Description')
+                            ->label('الوصف')
                             ->content(fn (AuditItem $record): HtmlString => new HtmlString(optional($record->auditable)->description ?? ''))
                             ->columnSpanFull(),
                         Placeholder::make('control_discussion')
-                            ->label('Discussion')
+                            ->label('المناقشة')
                             ->content(fn (AuditItem $record): HtmlString => new HtmlString(optional($record->auditable)->discussion ?? ''))
                             ->columnSpanFull(),
 
                     ])->columns(2)->collapsible(true),
 
-                Forms\Components\Section::make('Evaluation')
+                Forms\Components\Section::make('التقييم')
                     ->schema([
                         ToggleButtons::make('status')
-                            ->label('Status')
+                            ->label('الحالة')
                             ->options(WorkflowStatus::class)
                             ->default('Not Started')
                             ->grouped(),
                         ToggleButtons::make('effectiveness')
-                            ->label('Effectiveness')
+                            ->label('الفعالية')
                             ->options(Effectiveness::class)
                             ->default('Not Effective')
                             ->grouped(),
                         ToggleButtons::make('applicability')
-                            ->label('Applicability')
+                            ->label('القابلية للتطبيق')
                             ->options(Applicability::class)
                             ->default('Applicable')
                             ->grouped(),
@@ -244,24 +244,24 @@ class EditAuditItem extends EditRecord
                                 'image',
                                 'attachFiles',
                             ])
-                            ->label('Auditor Notes'),
+                            ->label('ملاحظات المدقق'),
                     ]),
 
-                Forms\Components\Section::make('Audit Evidence')
+                Forms\Components\Section::make('أدلة المراجعة')
                     ->schema([
                         // Todo: This can be replaced with a Repeater component when nested relationships are
                         // supported in Filament - potentially in v4.x. Or, maybe do a footer widget.
                         Placeholder::make('control.implementations')
                             ->hidden($this->record->audit->audit_type == 'implementations')
-                            ->label('Documented Implementations')
+                            ->label('التطبيقات الموثقة')
                             ->view('tables.implementations-table', ['implementations' => $this->record->auditable->implementations])
                             ->columnSpanFull()
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Implementations that are related to this control.'),
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'التطبيقات المرتبطة بهذا الضابط.'),
                         Placeholder::make('data_requests')
-                            ->label('Data Requests')
+                            ->label('طلبات البيانات')
                             ->view('tables.data-requests-table', ['requests' => $this->record->dataRequests])
                             ->columnSpanFull()
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Data Requests that have been issued.'),
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'طلبات البيانات التي تم إصدارها.'),
                     ])
                     ->collapsible(true),
             ]);
