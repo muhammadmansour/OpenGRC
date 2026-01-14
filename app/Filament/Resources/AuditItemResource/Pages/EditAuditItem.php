@@ -281,6 +281,12 @@ class EditAuditItem extends EditRecord
     public function saveGeminiEvaluation(array $evaluation): void
     {
         try {
+            \Log::info('📥 Received evaluation data', [
+                'audit_item_id' => $this->record->id,
+                'evaluation_keys' => array_keys($evaluation),
+                'score' => $evaluation['score'] ?? null,
+            ]);
+
             $this->record->update([
                 'ai_evaluation' => json_encode($evaluation),
                 'ai_evaluation_score' => $evaluation['score'] ?? null,
@@ -295,10 +301,24 @@ class EditAuditItem extends EditRecord
             ]);
 
             $this->dispatch('evaluationSaved');
+            
+            Notification::make()
+                ->title('تم حفظ التحليل بنجاح')
+                ->success()
+                ->send();
+                
         } catch (\Exception $e) {
             \Log::error('❌ Failed to save evaluation', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'audit_item_id' => $this->record->id ?? 'unknown',
             ]);
+            
+            Notification::make()
+                ->title('فشل في حفظ التحليل')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
         }
     }
 }
