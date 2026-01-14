@@ -61,9 +61,11 @@ class EditAuditItem extends EditRecord
                 ->modalDescription('This will analyze the audit item and evidence using AI. This may take 10-30 seconds.')
                 ->modalSubmitActionLabel('Start Analysis')
                 ->action(function () {
+                    \Log::info('Gemini Evaluation Started');
                     $this->isEvaluating = true;
                     
                     try {
+                        \Log::info('Preparing evaluation data...');
                         // Gather audit item data
                         $auditable = $this->record->auditable;
                         $fileContents = [];
@@ -104,17 +106,33 @@ class EditAuditItem extends EditRecord
                             'fileContents' => $fileContents,
                         ];
                         
+                        $apiUrl = config('services.evaluation_api.url', 'https://muraji-api.wathbahs.com') . '/api/evaluations/audit-item';
+                        
+                        \Log::info('Calling Gemini API', [
+                            'url' => $apiUrl,
+                            'title' => $requestData['title'],
+                            'code' => $requestData['code'],
+                            'evidence_count' => count($fileNames),
+                        ]);
+                        
                         // Call Gemini API
                         $response = Http::timeout(60)
                             ->withHeaders([
-                                'Authorization' => 'Bearer ' . (auth()->user()->api_token ?? ''),
-                                'userid' => auth()->id(),
+                                'Content-Type' => 'application/json',
+                                'Accept' => 'application/json',
                             ])
-                            ->post(config('services.evaluation_api.url', 'https://muraji-api.wathbahs.com') . '/api/evaluations/audit-item', $requestData);
+                            ->withOptions([
+                                'verify' => false, // Disable SSL verification (temporary fix)
+                            ])
+                            ->post($apiUrl, $requestData);
+                        
+                        \Log::info('API Response Status', ['status' => $response->status()]);
                         
                         if ($response->successful()) {
                             $data = $response->json();
                             $this->geminiEvaluation = $data['evaluation'] ?? null;
+                            
+                            \Log::info('Evaluation received', ['score' => $this->geminiEvaluation['score'] ?? 'N/A']);
                             
                             // Save evaluation to audit item
                             if ($this->geminiEvaluation) {
@@ -132,13 +150,23 @@ class EditAuditItem extends EditRecord
                                 ->send();
                                 
                         } else {
+                            \Log::error('API call failed', [
+                                'status' => $response->status(),
+                                'body' => $response->body(),
+                            ]);
+                            
                             Notification::make()
                                 ->title('Evaluation Failed')
                                 ->danger()
-                                ->body($response->json()['message'] ?? 'Failed to get evaluation from AI service')
+                                ->body('Status: ' . $response->status() . ' - ' . ($response->json()['message'] ?? 'Failed to get evaluation from AI service'))
                                 ->send();
                         }
                     } catch (\Exception $e) {
+                        \Log::error('Evaluation exception', [
+                            'message' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                        ]);
+                        
                         Notification::make()
                             ->title('Evaluation Error')
                             ->danger()
@@ -146,12 +174,7 @@ class EditAuditItem extends EditRecord
                             ->send();
                     } finally {
                         $this->isEvaluating = false;
-                    }
-                })
-                ->after(function () {
-                    if ($this->geminiEvaluation) {
-                        // Show results modal
-                        $this->dispatch('open-modal', id: 'gemini-results');
+                        \Log::info('Evaluation process completed');
                     }
                 }),
             Action::make('view_gemini_results')
