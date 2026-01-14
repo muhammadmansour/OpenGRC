@@ -28,7 +28,7 @@ class GeminiEvaluationService {
     try {
       this.genAI = new GoogleGenerativeAI(apiKey);
       this.model = this.genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
+        model: 'gemini-pro', // Using stable gemini-pro model
         generationConfig: {
           temperature: 0.4,
           topP: 0.95,
@@ -36,7 +36,7 @@ class GeminiEvaluationService {
           maxOutputTokens: 8192,
         }
       });
-      console.log('✅ Gemini AI initialized successfully');
+      console.log('✅ Gemini AI initialized successfully with gemini-pro model');
     } catch (error) {
       console.error('❌ Failed to initialize Gemini AI:', error.message);
     }
@@ -152,7 +152,7 @@ Please provide a structured evaluation in the following JSON format:
 
       // Add metadata
       evaluation.evaluatedAt = new Date().toISOString();
-      evaluation.aiModel = 'gemini-1.5-flash';
+      evaluation.aiModel = 'gemini-pro';
       evaluation.itemCode = itemData.code;
       evaluation.itemTitle = itemData.title;
 
@@ -176,7 +176,7 @@ Please provide a structured evaluation in the following JSON format:
         riskAssessment: 'medium',
         nextSteps: ['Conduct manual review', 'Request additional evidence if needed'],
         evaluatedAt: new Date().toISOString(),
-        aiModel: 'gemini-1.5-flash',
+        aiModel: 'gemini-pro',
         itemCode: itemData.code,
         itemTitle: itemData.title,
         parseError: true
