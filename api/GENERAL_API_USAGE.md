@@ -1,11 +1,11 @@
-# General Evaluation API Usage
+# General Chat API Usage
 
-The evaluation API has been redesigned to be **flexible and general-purpose**. It can now work with any type of content, not just audit items.
+The Chat API is designed to be **flexible and general-purpose**. It can work with any type of content and provide AI-powered analysis and evaluation.
 
 ## API Endpoint
 
 ```
-POST /api/evaluations/audit-item
+POST /api/chat
 ```
 
 ## Request Format
@@ -102,7 +102,7 @@ const files = [
   }
 ];
 
-fetch('/api/evaluations/audit-item', {
+fetch('/api/chat', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ context, files })
@@ -325,7 +325,7 @@ const files = [
 
 ### Simple Text Evaluation
 ```bash
-curl -X POST https://muraji-api.wathbahs.com/api/evaluations/audit-item \
+curl -X POST https://muraji-api.wathbahs.com/api/chat \
   -H "Content-Type: application/json" \
   -d '{
     "context": "Evaluate this security policy implementation...",
@@ -335,7 +335,7 @@ curl -X POST https://muraji-api.wathbahs.com/api/evaluations/audit-item \
 
 ### With Files
 ```bash
-curl -X POST https://muraji-api.wathbahs.com/api/evaluations/audit-item \
+curl -X POST https://muraji-api.wathbahs.com/api/chat \
   -H "Content-Type: application/json" \
   -d '{
     "context": "Review the attached security audit report...",

@@ -80,8 +80,8 @@ class SecurityHeaders
             // Base URI restriction
             "base-uri 'self'",
 
-            // Connect (XHR/WebSocket): same origin for Livewire + external storage for file uploads + evaluation API
-            "connect-src 'self' ".config('services.evaluation_api.url', 'https://muraji-api.wathbahs.com').$storageEndpoints,
+            // Connect (XHR/WebSocket): same origin for Livewire + external storage for file uploads + chat API
+            "connect-src 'self' ".config('services.chat_api.url', 'https://muraji-api.wathbahs.com').$storageEndpoints,
 
             // Workers: blob URLs required for Filament file uploads
             "worker-src 'self' blob:",

@@ -21,7 +21,7 @@ const projectRoutes = require('./routes/project.routes');
 const domainRoutes = require('./routes/domain.routes');
 const adminRoutes = require('./routes/admin.routes');
 const extractionRoutes = require('./routes/extraction.routes');
-const evaluationRoutes = require('./routes/evaluation.routes');
+const chatRoutes = require('./routes/chat.routes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
@@ -146,7 +146,7 @@ app.get('/api/health', (req, res) => {
 
 // Public routes (no auth required)
 app.use('/api/auth', authRoutes);
-app.use('/api/evaluations', evaluationRoutes); // Public for internal use
+app.use('/api/chat', chatRoutes); // Public for internal use
 
 // Protected routes (auth required)
 app.use('/api/files', authMiddleware, fileRoutes);

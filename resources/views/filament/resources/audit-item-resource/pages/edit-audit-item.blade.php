@@ -22,7 +22,7 @@
 
             // Prepare the request data
             const auditItemId = {{ $record->id }};
-            const apiUrl = '{{ config('services.evaluation_api.url', 'https://muraji-api.wathbahs.com') }}/api/evaluations/audit-item';
+            const apiUrl = '{{ config('services.chat_api.url', 'https://muraji-api.wathbahs.com') }}/api/chat';
 
             // Build context string
             const title = @js($record->auditable->title ?? 'N/A');
