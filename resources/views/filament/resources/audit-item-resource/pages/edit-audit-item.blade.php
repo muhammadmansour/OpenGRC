@@ -1,40 +1,45 @@
 <x-filament-panels::page>
     {{ $this->form }}
 
-    {{-- Display Latest AI Analysis Results --}}
-    @php
-        $latestEvaluation = null;
-        if ($this->geminiEvaluation) {
-            $latestEvaluation = $this->geminiEvaluation;
-        } elseif ($record->ai_evaluation) {
-            $latestEvaluation = json_decode($record->ai_evaluation, true);
-        }
-    @endphp
+    {{-- AI Evaluation Results Modal --}}
+    <div id="ai-results-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            {{-- Background overlay --}}
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAiModal()"></div>
 
-    @if($latestEvaluation)
-        <div class="mt-6">
-            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            {{-- Modal panel --}}
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                {{-- Header --}}
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                            <svg class="w-6 h-6 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button onclick="closeAiModal()" class="text-white hover:text-gray-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <h3 class="text-xl font-bold text-white flex items-center">
+                            <svg class="w-6 h-6 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                             </svg>
-                            نتائج التحليل بالذكاء الاصطناعي
+                            نتائج تحليل الذكاء الاصطناعي
                         </h3>
-                        @if(!empty($latestEvaluation['timestamp']) || !empty($latestEvaluation['evaluatedAt']))
-                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                            آخر تحديث: {{ \Carbon\Carbon::parse($latestEvaluation['timestamp'] ?? $latestEvaluation['evaluatedAt'])->diffForHumans() }}
-                        </span>
-                        @endif
                     </div>
                 </div>
-                <div class="p-6">
-                    @include('filament.components.gemini-evaluation-results', ['evaluation' => $latestEvaluation])
+
+                {{-- Content --}}
+                <div id="ai-results-content" class="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                    {{-- Content will be injected by JavaScript --}}
+                </div>
+
+                {{-- Footer --}}
+                <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex justify-end">
+                    <button onclick="closeAiModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                        إغلاق
+                    </button>
                 </div>
             </div>
         </div>
-    @endif
+    </div>
 
     <script>
         // Make function globally available
@@ -217,35 +222,15 @@ Please evaluate this audit item based on the information and evidence provided a
                     const evaluation = data.response;
                     console.log(`✅ Success! Score: ${evaluation.score}/100 - ${evaluation.compliance_status}`);
                     
-                    // Save to database using Livewire
-                    // Find the Livewire component from the page
-                    const livewireEl = document.querySelector('[wire\\:id]');
-                    if (livewireEl) {
-                        const componentId = livewireEl.getAttribute('wire:id');
-                        const livewireComponent = Livewire.find(componentId);
-                        if (livewireComponent) {
-                            livewireComponent.call('saveGeminiEvaluation', evaluation).then(() => {
-                                // Reload the page to show latest results
-                                console.log('🔄 Reloading page to show latest analysis...');
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 1000);
-                            });
-                        } else {
-                            console.log('⚠️ Component not found, saving via reload');
-                            window.location.reload();
-                        }
-                    } else {
-                        console.log('⚠️ No Livewire element found, reloading page...');
-                        window.location.reload();
-                    }
+                    // Show results in modal
+                    showAiResultsModal(evaluation, duration);
 
                     // Show success notification
                     new FilamentNotification()
                         .title(`✅ اكتمل التحليل! (${Math.round(duration/1000)}s)`)
                         .success()
-                        .body(`النتيجة: ${evaluation.score}/100 - ${evaluation.compliance_status}\n\nجاري تحديث الصفحة...`)
-                        .duration(3000)
+                        .body(`النتيجة: ${evaluation.score}/100 - ${evaluation.compliance_status}`)
+                        .duration(5000)
                         .send();
                     
                 } else {
@@ -272,5 +257,141 @@ Please evaluate this audit item based on the information and evidence provided a
         };
         
         console.log('✅ Gemini evaluation script loaded and ready');
+        
+        // Modal functions
+        function showAiResultsModal(evaluation, duration) {
+            const modal = document.getElementById('ai-results-modal');
+            const content = document.getElementById('ai-results-content');
+            
+            // Generate styled HTML content
+            content.innerHTML = generateEvaluationHTML(evaluation, duration);
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeAiModal() {
+            const modal = document.getElementById('ai-results-modal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAiModal();
+        });
+        
+        function generateEvaluationHTML(eval, duration) {
+            const scoreColor = eval.score >= 80 ? 'green' : eval.score >= 50 ? 'yellow' : 'red';
+            const scoreColorClass = {
+                green: 'from-green-500 to-green-600',
+                yellow: 'from-yellow-500 to-yellow-600', 
+                red: 'from-red-500 to-red-600'
+            }[scoreColor];
+            
+            const statusBadge = {
+                'Compliant': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+                'Partially Compliant': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+                'Non-Compliant': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+            }[eval.compliance_status] || 'bg-gray-100 text-gray-800';
+
+            return `
+                <div class="space-y-6" dir="rtl">
+                    <!-- Score Card -->
+                    <div class="bg-gradient-to-r ${scoreColorClass} rounded-xl p-6 text-white text-center">
+                        <div class="text-6xl font-bold mb-2">${eval.score}<span class="text-3xl">/100</span></div>
+                        <div class="text-xl">${eval.compliance_status}</div>
+                        <div class="text-sm opacity-80 mt-2">تم التحليل في ${Math.round(duration/1000)} ثانية</div>
+                    </div>
+                    
+                    <!-- Status Badges -->
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <span class="px-4 py-2 rounded-full text-sm font-medium ${statusBadge}">
+                            ${eval.compliance_status}
+                        </span>
+                        <span class="px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                            الفعالية: ${eval.effectiveness || 'N/A'}
+                        </span>
+                        <span class="px-4 py-2 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+                            جودة الأدلة: ${eval.evidenceQuality || 'N/A'}
+                        </span>
+                        <span class="px-4 py-2 rounded-full text-sm font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+                            المخاطر: ${eval.riskAssessment || 'N/A'}
+                        </span>
+                    </div>
+                    
+                    <!-- Summary -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                        <h4 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">📋 الملخص</h4>
+                        <p class="text-gray-700 dark:text-gray-300">${eval.summary || 'لا يوجد ملخص'}</p>
+                    </div>
+                    
+                    <!-- Detailed Analysis -->
+                    ${eval.detailedAnalysis ? `
+                    <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
+                        <h4 class="font-bold text-lg mb-2 text-blue-900 dark:text-blue-100">🔍 التحليل التفصيلي</h4>
+                        <p class="text-blue-800 dark:text-blue-200">${eval.detailedAnalysis}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Two Column Layout -->
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- Strengths -->
+                        <div class="bg-green-50 dark:bg-green-900/30 rounded-lg p-4">
+                            <h4 class="font-bold text-lg mb-3 text-green-900 dark:text-green-100">✅ نقاط القوة</h4>
+                            ${eval.strengths && eval.strengths.length > 0 ? `
+                                <ul class="space-y-2">
+                                    ${eval.strengths.map(s => `<li class="flex items-start"><span class="text-green-500 ml-2">•</span><span class="text-green-800 dark:text-green-200">${s}</span></li>`).join('')}
+                                </ul>
+                            ` : '<p class="text-green-600 dark:text-green-400 italic">لم يتم تحديد نقاط قوة</p>'}
+                        </div>
+                        
+                        <!-- Weaknesses -->
+                        <div class="bg-red-50 dark:bg-red-900/30 rounded-lg p-4">
+                            <h4 class="font-bold text-lg mb-3 text-red-900 dark:text-red-100">⚠️ نقاط الضعف</h4>
+                            ${eval.weaknesses && eval.weaknesses.length > 0 ? `
+                                <ul class="space-y-2">
+                                    ${eval.weaknesses.map(w => `<li class="flex items-start"><span class="text-red-500 ml-2">•</span><span class="text-red-800 dark:text-red-200">${w}</span></li>`).join('')}
+                                </ul>
+                            ` : '<p class="text-red-600 dark:text-red-400 italic">لم يتم تحديد نقاط ضعف</p>'}
+                        </div>
+                    </div>
+                    
+                    <!-- Recommendations -->
+                    <div class="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-4">
+                        <h4 class="font-bold text-lg mb-3 text-yellow-900 dark:text-yellow-100">💡 التوصيات</h4>
+                        ${eval.recommendations && eval.recommendations.length > 0 ? `
+                            <ul class="space-y-2">
+                                ${eval.recommendations.map((r, i) => `<li class="flex items-start"><span class="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm ml-2 flex-shrink-0">${i+1}</span><span class="text-yellow-800 dark:text-yellow-200">${r}</span></li>`).join('')}
+                            </ul>
+                        ` : '<p class="text-yellow-600 dark:text-yellow-400 italic">لا توجد توصيات</p>'}
+                    </div>
+                    
+                    <!-- Next Steps -->
+                    ${eval.nextSteps && eval.nextSteps.length > 0 ? `
+                    <div class="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-4">
+                        <h4 class="font-bold text-lg mb-3 text-purple-900 dark:text-purple-100">📌 الخطوات التالية</h4>
+                        <ul class="space-y-2">
+                            ${eval.nextSteps.map((s, i) => `<li class="flex items-start"><span class="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm ml-2 flex-shrink-0">${i+1}</span><span class="text-purple-800 dark:text-purple-200">${s}</span></li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Note -->
+                    ${eval.note ? `
+                    <div class="bg-gray-100 dark:bg-gray-600 rounded-lg p-4 border-r-4 border-gray-500">
+                        <p class="text-gray-700 dark:text-gray-200"><strong>ملاحظة:</strong> ${eval.note}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Footer Info -->
+                    <div class="text-center text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <p>🤖 تم التحليل بواسطة: ${eval.aiModel || 'Gemini AI'}</p>
+                        <p>🕐 ${eval.timestamp ? new Date(eval.timestamp).toLocaleString('ar-SA') : new Date().toLocaleString('ar-SA')}</p>
+                    </div>
+                </div>
+            `;
+        }
     </script>
 </x-filament-panels::page>
