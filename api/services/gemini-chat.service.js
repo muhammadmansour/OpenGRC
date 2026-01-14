@@ -68,6 +68,7 @@ class GeminiChatService {
 
   /**
    * General chat method - works with any context and files
+   * Now properly sends files to Gemini using multimodal API
    */
   async chat(context, files = []) {
     if (!this.model) {
@@ -79,11 +80,13 @@ class GeminiChatService {
       console.log(`📄 Context: ${context.substring(0, 100)}...`);
       console.log(`📎 Files: ${files.length}`);
       
-      // Build prompt
-      const prompt = this.buildPrompt(context, files);
+      // Build multimodal content parts
+      const parts = this.buildMultimodalParts(context, files);
       
-      // Send to Gemini
-      const result = await this.model.generateContent(prompt);
+      console.log(`📦 Sending ${parts.length} parts to Gemini (text + files)`);
+      
+      // Send to Gemini with multimodal content
+      const result = await this.model.generateContent(parts);
       const response = await result.response;
       const aiResponse = response.text();
 
@@ -98,60 +101,57 @@ class GeminiChatService {
   }
 
   /**
-   * Build chat prompt (general purpose)
+   * Build multimodal parts for Gemini (text + files)
    */
-  buildPrompt(context, files = []) {
+  buildMultimodalParts(context, files = []) {
+    const parts = [];
+    
     // Separate text and binary files
     const textFiles = files.filter(f => f.encoding === 'text');
     const binaryFiles = files.filter(f => f.encoding === 'base64');
 
-    let prompt = `You are an expert compliance and audit evaluator. Analyze the provided context and evidence files, then provide a comprehensive evaluation.
+    // Build the text prompt
+    let textPrompt = `You are an expert compliance and audit evaluator. Analyze the provided context and ALL evidence files thoroughly, then provide a comprehensive evaluation.
 
 **CONTEXT:**
 ${context}
 
 `;
 
-    // Add text files content
+    // Add text files content to the prompt
     if (textFiles.length > 0) {
-      prompt += `\n**TEXT-BASED EVIDENCE (${textFiles.length} file(s)):**\n`;
+      textPrompt += `\n**TEXT-BASED EVIDENCE (${textFiles.length} file(s)):**\n`;
       textFiles.forEach((file, idx) => {
-        prompt += `\n--- File ${idx + 1}: ${file.name} ---`;
+        textPrompt += `\n--- File ${idx + 1}: ${file.name} ---`;
         if (file.description) {
-          prompt += `\nDescription: ${file.description}`;
+          textPrompt += `\nDescription: ${file.description}`;
         }
-        prompt += `\nMIME Type: ${file.mimeType}\n`;
-        prompt += `Content:\n${file.data.substring(0, 15000)}${file.data.length > 15000 ? '\n...[content truncated for length]' : ''}\n`;
+        textPrompt += `\nMIME Type: ${file.mimeType}\n`;
+        textPrompt += `Content:\n${file.data.substring(0, 15000)}${file.data.length > 15000 ? '\n...[content truncated]' : ''}\n`;
       });
     }
 
-    // Add binary files information
+    // Note about binary files that will be attached
     if (binaryFiles.length > 0) {
-      prompt += `\n**DOCUMENT FILES SUBMITTED (${binaryFiles.length} file(s)):**\n`;
+      textPrompt += `\n**ATTACHED DOCUMENT FILES (${binaryFiles.length} file(s)):**\n`;
+      textPrompt += `The following files are attached as binary data for your analysis:\n`;
       binaryFiles.forEach((file, idx) => {
-        prompt += `\n${idx + 1}. **${file.name}**`;
+        textPrompt += `${idx + 1}. ${file.name} (${file.mimeType})`;
         if (file.description) {
-          prompt += `\n   Description: ${file.description}`;
+          textPrompt += ` - ${file.description}`;
         }
-        prompt += `\n   MIME Type: ${file.mimeType}`;
-        if (file.size) {
-          prompt += `\n   Size: ${(file.size / 1024).toFixed(2)} KB`;
-        }
-        prompt += `\n   Status: File submitted and available for review`;
-        
-        if (file.mimeType === 'application/pdf') {
-          prompt += `\n   Note: PDF document submitted - manual review recommended`;
-        }
-        prompt += `\n`;
+        textPrompt += `\n`;
       });
+      textPrompt += `\n**IMPORTANT:** Please analyze the ACTUAL CONTENT of these attached files, not just their names.\n`;
     }
 
     if (files.length === 0) {
-      prompt += `\nNo evidence files were submitted.\n`;
+      textPrompt += `\nNo evidence files were submitted.\n`;
     }
 
-    prompt += `\n**EVALUATION TASK:**
-Based on the context and evidence provided, conduct a thorough compliance evaluation. Consider:
+    textPrompt += `
+**EVALUATION TASK:**
+Based on the context and evidence provided (including any attached documents), conduct a thorough compliance evaluation. Consider:
 1. Completeness and quality of evidence
 2. Alignment with requirements/standards
 3. Gaps, weaknesses, or areas of concern
@@ -179,8 +179,58 @@ Return a JSON object with this structure:
 
 **CRITICAL:** Return ONLY the JSON object. No markdown code blocks, no additional text.`;
 
-    return prompt;
+    // Add text prompt as first part
+    parts.push({ text: textPrompt });
+
+    // Add binary files as inline data parts
+    for (const file of binaryFiles) {
+      try {
+        // Gemini expects inlineData format for binary content
+        const mimeType = file.mimeType || 'application/octet-stream';
+        
+        // Supported mime types for Gemini
+        const supportedTypes = [
+          'application/pdf',
+          'image/png',
+          'image/jpeg', 
+          'image/webp',
+          'image/gif',
+          'image/heic',
+          'image/heif',
+          'text/plain',
+          'text/html',
+          'text/css',
+          'text/javascript',
+          'application/javascript',
+          'text/x-python',
+          'application/x-python-code',
+          'text/markdown',
+          'text/csv',
+          'application/json',
+          'application/xml',
+          'text/xml'
+        ];
+
+        if (supportedTypes.some(t => mimeType.startsWith(t.split('/')[0]) || mimeType === t)) {
+          parts.push({
+            inlineData: {
+              mimeType: mimeType,
+              data: file.data // base64 encoded
+            }
+          });
+          console.log(`📎 Added ${file.name} (${mimeType}) as inline data`);
+        } else {
+          console.warn(`⚠️ Skipping unsupported file type: ${file.name} (${mimeType})`);
+        }
+      } catch (fileError) {
+        console.error(`❌ Error adding file ${file.name}:`, fileError.message);
+      }
+    }
+
+    return parts;
   }
+
+  // buildPrompt method removed - now using buildMultimodalParts instead
 
   /**
    * Parse Gemini's response
