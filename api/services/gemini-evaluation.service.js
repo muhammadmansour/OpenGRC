@@ -11,7 +11,7 @@ class GeminiEvaluationService {
   constructor() {
     this.genAI = null;
     this.model = null;
-    this.currentModelName = 'gemini-1.5-flash-latest';
+    this.currentModelName = 'gemini-2.0-flash-exp';
     this.initializeGemini();
   }
 
@@ -28,6 +28,8 @@ class GeminiEvaluationService {
 
     // Try different model names in order of preference
     const modelNames = [
+      'gemini-2.0-flash-exp',
+      'gemini-exp-1206',
       'gemini-1.5-flash-latest',
       'gemini-1.5-flash',
       'gemini-1.5-pro-latest',
