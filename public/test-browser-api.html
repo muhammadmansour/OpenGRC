@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser API Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #fff;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #console {
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 4px;
+            min-height: 400px;
+            overflow-y: auto;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        .error { color: #f44336; }
+        .success { color: #4CAF50; }
+        .info { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Browser API Connection Test</h1>
+        <p>Current page: <span id="current-url"></span></p>
+        
+        <div>
+            <button onclick="testWithFetch()">Test with Fetch (Current Method)</button>
+            <button onclick="testWithXHR()">Test with XMLHttpRequest</button>
+            <button onclick="testCORS()">Test CORS Preflight</button>
+            <button onclick="clearConsole()">Clear Console</button>
+        </div>
+        
+        <div id="console"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://muraji-api.wathbahs.com/api/evaluations/audit-item';
+        const consoleEl = document.getElementById('console');
+        
+        document.getElementById('current-url').textContent = window.location.href;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+            const span = document.createElement('div');
+            span.className = type;
+            span.textContent = `[${timestamp}] ${message}`;
+            consoleEl.appendChild(span);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearConsole() {
+            consoleEl.innerHTML = '';
+        }
+        
+        async function testWithFetch() {
+            log('═══════════════════════════════════════', 'info');
+            log('🧪 Testing with Fetch API (Current Method)', 'info');
+            log('═══════════════════════════════════════', 'info');
+            log(`Target: ${API_URL}`, 'info');
+            log(`Origin: ${window.location.origin}`, 'info');
+            log('', 'info');
+            
+            const testData = {
+                title: "Test Control from Browser",
+                code: "BROWSER-TEST-001",
+                description: "Testing browser API connection",
+                discussion: "This is a test from the browser",
+                applicability: "applicable",
+                fileNames: ["test-browser.pdf"],
+                fileContents: ["Test content from browser"]
+            };
+            
+            log('📦 Request payload:', 'info');
+            log(JSON.stringify(testData, null, 2), 'info');
+            log('', 'info');
+            
+            try {
+                log('🚀 Sending fetch request...', 'info');
+                
+                const startTime = performance.now();
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(testData),
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                const endTime = performance.now();
+                
+                log(`✅ Response received in ${Math.round(endTime - startTime)}ms`, 'success');
+                log(`📥 Status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                log('', 'info');
+                
+                log('📋 Response Headers:', 'info');
+                for (let [key, value] of response.headers.entries()) {
+                    log(`  ${key}: ${value}`, 'info');
+                }
+                log('', 'info');
+                
+                const text = await response.text();
+                log('📄 Raw Response:', 'info');
+                log(text.substring(0, 500), 'info');
+                log('', 'info');
+                
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success && data.evaluation) {
+                        log('✅ SUCCESS! Evaluation received:', 'success');
+                        log(`  Score: ${data.evaluation.score}/100`, 'success');
+                        log(`  Status: ${data.evaluation.compliance_status}`, 'success');
+                        log(`  Summary: ${data.evaluation.summary}`, 'success');
+                    } else {
+                        log('⚠️ Response OK but unexpected format', 'error');
+                        log(JSON.stringify(data, null, 2), 'error');
+                    }
+                } catch (e) {
+                    log('❌ Failed to parse JSON: ' + e.message, 'error');
+                }
+                
+            } catch (error) {
+                log('❌ FETCH FAILED!', 'error');
+                log(`Error type: ${error.name}`, 'error');
+                log(`Error message: ${error.message}`, 'error');
+                log(`Error stack: ${error.stack}`, 'error');
+                log('', 'info');
+                
+                if (error.message === 'Failed to fetch') {
+                    log('🔍 Diagnosis: "Failed to fetch" typically means:', 'error');
+                    log('  1. CORS preflight request was blocked', 'error');
+                    log('  2. Network error (DNS, firewall, SSL)', 'error');
+                    log('  3. Browser security policy blocking request', 'error');
+                    log('', 'info');
+                    log('💡 Try opening browser DevTools Network tab and check:', 'info');
+                    log('  • Is there an OPTIONS request before POST?', 'info');
+                    log('  • What is the status of the OPTIONS request?', 'info');
+                    log('  • Are there any CORS errors in Console?', 'info');
+                }
+            }
+        }
+        
+        async function testWithXHR() {
+            log('═══════════════════════════════════════', 'info');
+            log('🧪 Testing with XMLHttpRequest (Alternative)', 'info');
+            log('═══════════════════════════════════════', 'info');
+            
+            const testData = {
+                title: "XHR Test",
+                code: "XHR-TEST-001",
+                description: "Testing with XMLHttpRequest",
+                discussion: "Alternative method test",
+                applicability: "applicable",
+                fileNames: [],
+                fileContents: []
+            };
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.onload = function() {
+                log(`✅ XHR Response received`, 'success');
+                log(`Status: ${xhr.status} ${xhr.statusText}`, 'success');
+                log(`Response: ${xhr.responseText.substring(0, 500)}`, 'success');
+            };
+            
+            xhr.onerror = function() {
+                log(`❌ XHR Error occurred`, 'error');
+                log(`Status: ${xhr.status}`, 'error');
+                log(`Ready State: ${xhr.readyState}`, 'error');
+            };
+            
+            xhr.open('POST', API_URL);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(testData));
+            
+            log('🚀 XHR request sent...', 'info');
+        }
+        
+        async function testCORS() {
+            log('═══════════════════════════════════════', 'info');
+            log('🧪 Testing CORS Preflight (OPTIONS)', 'info');
+            log('═══════════════════════════════════════', 'info');
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                
+                log(`✅ OPTIONS Response: ${response.status}`, 'success');
+                log('📋 CORS Headers:', 'info');
+                for (let [key, value] of response.headers.entries()) {
+                    if (key.toLowerCase().includes('access-control')) {
+                        log(`  ${key}: ${value}`, 'success');
+                    }
+                }
+                
+            } catch (error) {
+                log('❌ OPTIONS request failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Auto-log page info
+        log('═══════════════════════════════════════', 'info');
+        log('🌐 Browser Information', 'info');
+        log('═══════════════════════════════════════', 'info');
+        log(`Current URL: ${window.location.href}`, 'info');
+        log(`Origin: ${window.location.origin}`, 'info');
+        log(`Protocol: ${window.location.protocol}`, 'info');
+        log(`User Agent: ${navigator.userAgent}`, 'info');
+        log(`Online: ${navigator.onLine}`, 'info');
+        log('', 'info');
+        log('👆 Click a button above to test', 'info');
+    </script>
+</body>
+</html>
