@@ -278,20 +278,29 @@ class EditAuditItem extends EditRecord
     }
 
 
-    public function saveGeminiEvaluation(array $evaluation): void
+    public function saveGeminiEvaluation($evaluation): void
     {
         try {
+            // Convert to array if it's not already
+            if (!is_array($evaluation)) {
+                $evaluation = json_decode(json_encode($evaluation), true);
+            }
+            
             \Log::info('📥 Received evaluation data', [
                 'audit_item_id' => $this->record->id,
-                'evaluation_keys' => array_keys($evaluation),
+                'evaluation_keys' => is_array($evaluation) ? array_keys($evaluation) : 'not_array',
                 'score' => $evaluation['score'] ?? null,
             ]);
 
-            $this->record->update([
-                'ai_evaluation' => json_encode($evaluation),
-                'ai_evaluation_score' => $evaluation['score'] ?? null,
-                'ai_evaluation_at' => now(),
-            ]);
+            // Use query builder directly to avoid any model issues
+            \DB::table('audit_items')
+                ->where('id', $this->record->id)
+                ->update([
+                    'ai_evaluation' => json_encode($evaluation, JSON_UNESCAPED_UNICODE),
+                    'ai_evaluation_score' => (int) ($evaluation['score'] ?? 0),
+                    'ai_evaluation_at' => now(),
+                    'updated_at' => now(),
+                ]);
 
             $this->geminiEvaluation = $evaluation;
 
@@ -300,8 +309,6 @@ class EditAuditItem extends EditRecord
                 'score' => $evaluation['score'] ?? null,
             ]);
 
-            $this->dispatch('evaluationSaved');
-            
             Notification::make()
                 ->title('تم حفظ التحليل بنجاح')
                 ->success()
@@ -319,6 +326,8 @@ class EditAuditItem extends EditRecord
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
+                
+            throw $e; // Re-throw to see the error in the browser
         }
     }
 }
