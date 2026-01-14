@@ -35,8 +35,6 @@
             };
 
             @php
-                use Illuminate\Support\Facades\Storage;
-                
                 $fileNames = [];
                 $fileContents = [];
                 
@@ -59,8 +57,8 @@
                                             $fileNames[] = $fileName;
                                             
                                             // Try to read file content from storage
-                                            if (Storage::exists($filePath)) {
-                                                $content = Storage::get($filePath);
+                                            if (\Illuminate\Support\Facades\Storage::exists($filePath)) {
+                                                $content = \Illuminate\Support\Facades\Storage::get($filePath);
                                                 
                                                 // Check file extension to determine how to handle it
                                                 $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
@@ -70,7 +68,7 @@
                                                     $fileContents[] = $content;
                                                 } elseif (in_array($extension, ['pdf', 'doc', 'docx', 'xls', 'xlsx'])) {
                                                     // Binary/document files - send metadata
-                                                    $fileSize = Storage::size($filePath);
+                                                    $fileSize = \Illuminate\Support\Facades\Storage::size($filePath);
                                                     $fileContents[] = "Document file: {$fileName} (Size: " . number_format($fileSize / 1024, 2) . " KB)\nNote: This is a {$extension} document. Content extraction may be limited.";
                                                 } elseif (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
                                                     // Image files - send base64 for Gemini Vision
@@ -78,7 +76,7 @@
                                                     $fileContents[] = "Image file: {$fileName}\nBase64 data available for visual analysis.";
                                                 } else {
                                                     // Other files - send basic info
-                                                    $fileSize = Storage::size($filePath);
+                                                    $fileSize = \Illuminate\Support\Facades\Storage::size($filePath);
                                                     $fileContents[] = "File: {$fileName} (Type: {$extension}, Size: " . number_format($fileSize / 1024, 2) . " KB)";
                                                 }
                                             } else {
