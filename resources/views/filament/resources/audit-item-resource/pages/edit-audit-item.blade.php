@@ -37,6 +37,9 @@
     @endif
 
     <script>
+        // Get Livewire component ID for calling methods
+        const livewireComponentId = '{{ $this->getId() }}';
+        
         // Make function globally available
         window.startGeminiEvaluation = function() {
             console.log('🤖 Starting Gemini AI Evaluation...');
@@ -217,14 +220,22 @@ Please evaluate this audit item based on the information and evidence provided a
                     const evaluation = data.response;
                     console.log(`✅ Success! Score: ${evaluation.score}/100 - ${evaluation.compliance_status}`);
                     
-                    // Save to database
-                    $wire.call('saveGeminiEvaluation', evaluation).then(() => {
-                        // Reload the page to show latest results
-                        console.log('🔄 Reloading page to show latest analysis...');
+                    // Save to database using Livewire
+                    const livewireComponent = Livewire.find(livewireComponentId);
+                    if (livewireComponent) {
+                        livewireComponent.call('saveGeminiEvaluation', evaluation).then(() => {
+                            // Reload the page to show latest results
+                            console.log('🔄 Reloading page to show latest analysis...');
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        });
+                    } else {
+                        console.error('❌ Livewire component not found, reloading page...');
                         setTimeout(() => {
                             window.location.reload();
                         }, 1000);
-                    });
+                    }
 
                     // Show success notification
                     new FilamentNotification()
