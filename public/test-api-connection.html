@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 API Connection Diagnostic</h1>
+        <p>This page tests if <code>muraji-api.wathbahs.com</code> is accessible from your browser.</p>
+
+        <div class="test-section">
+            <h3>Test 1: Health Check</h3>
+            <button onclick="testHealth()">Test Health Endpoint</button>
+            <div id="health-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Status Check</h3>
+            <button onclick="testStatus()">Test Status Endpoint</button>
+            <div id="status-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Full Evaluation</h3>
+            <button onclick="testEvaluation()">Test Evaluation Endpoint</button>
+            <div id="evaluation-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 4: Network Info</h3>
+            <button onclick="showNetworkInfo()">Show Network Info</button>
+            <div id="network-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://muraji-api.wathbahs.com';
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.className = 'result ' + type;
+            element.textContent = message;
+        }
+
+        async function testHealth() {
+            const resultId = 'health-result';
+            showResult(resultId, 'Testing...', 'info');
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${API_BASE}/health`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                const endTime = Date.now();
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(
+                        resultId,
+                        `✅ SUCCESS!\n\n` +
+                        `Status: ${response.status}\n` +
+                        `Time: ${endTime - startTime}ms\n\n` +
+                        `Response:\n${JSON.stringify(data, null, 2)}`,
+                        'success'
+                    );
+                } else {
+                    showResult(
+                        resultId,
+                        `⚠️ Got response but status is ${response.status}\n\n` +
+                        `Response:\n${JSON.stringify(data, null, 2)}`,
+                        'warning'
+                    );
+                }
+            } catch (error) {
+                showResult(
+                    resultId,
+                    `❌ FAILED!\n\n` +
+                    `Error: ${error.message}\n` +
+                    `Name: ${error.name}\n\n` +
+                    `Possible causes:\n` +
+                    `• API server not running\n` +
+                    `• Nginx not configured to proxy to port 2020\n` +
+                    `• DNS not pointing to server\n` +
+                    `• Firewall blocking connection\n` +
+                    `• SSL certificate issue`,
+                    'error'
+                );
+            }
+        }
+
+        async function testStatus() {
+            const resultId = 'status-result';
+            showResult(resultId, 'Testing...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/evaluations/status`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(
+                        resultId,
+                        `✅ SUCCESS!\n\n` +
+                        `Response:\n${JSON.stringify(data, null, 2)}`,
+                        'success'
+                    );
+                } else {
+                    showResult(
+                        resultId,
+                        `⚠️ Status: ${response.status}\n\n` +
+                        `Response:\n${JSON.stringify(data, null, 2)}`,
+                        'warning'
+                    );
+                }
+            } catch (error) {
+                showResult(
+                    resultId,
+                    `❌ FAILED!\n\n` +
+                    `Error: ${error.message}`,
+                    'error'
+                );
+            }
+        }
+
+        async function testEvaluation() {
+            const resultId = 'evaluation-result';
+            showResult(resultId, 'Testing...', 'info');
+
+            const testData = {
+                title: "Test Control",
+                code: "TEST-001",
+                description: "Test description",
+                discussion: "Test discussion",
+                applicability: "applicable",
+                fileNames: ["test.pdf"],
+                fileContents: ["Test content"]
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/evaluations/audit-item`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    mode: 'cors',
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(
+                        resultId,
+                        `✅ SUCCESS!\n\n` +
+                        `Score: ${data.evaluation?.score || 'N/A'}\n\n` +
+                        `Response:\n${JSON.stringify(data, null, 2)}`,
+                        'success'
+                    );
+                } else {
+                    showResult(
+                        resultId,
+                        `⚠️ Status: ${response.status}\n\n` +
+                        `Response:\n${JSON.stringify(data, null, 2)}`,
+                        'warning'
+                    );
+                }
+            } catch (error) {
+                showResult(
+                    resultId,
+                    `❌ FAILED!\n\n` +
+                    `Error: ${error.message}`,
+                    'error'
+                );
+            }
+        }
+
+        function showNetworkInfo() {
+            const resultId = 'network-result';
+            
+            const info = `
+Current Page URL: ${window.location.href}
+Current Domain: ${window.location.hostname}
+Protocol: ${window.location.protocol}
+
+Target API URL: ${API_BASE}
+
+Browser: ${navigator.userAgent}
+
+Online Status: ${navigator.onLine ? '✅ Online' : '❌ Offline'}
+
+Time: ${new Date().toISOString()}
+            `.trim();
+
+            showResult(resultId, info, 'info');
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            console.log('API Connection Test Page Loaded');
+            console.log('Target API:', API_BASE);
+        });
+    </script>
+</body>
+</html>
