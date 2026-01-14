@@ -7,25 +7,27 @@
         </div>
     @endif
 
-    @script
     <script>
-        // Use $wire to listen for Livewire events
-        $wire.on('start-gemini-evaluation', () => {
-            console.log('🎬 Received start-gemini-evaluation event');
-            startGeminiEvaluation();
-        });
-
-        console.log('✅ Gemini evaluation listeners registered');
-
-        function startGeminiEvaluation() {
-            console.log('🚀 Starting Gemini Evaluation');
+        // Make function globally available
+        window.startGeminiEvaluation = function() {
+            console.log('═══════════════════════════════════════');
+            console.log('🚀 Starting Gemini Evaluation from Filament');
+            console.log('═══════════════════════════════════════');
+            console.log('Function called at:', new Date().toISOString());
+            console.log('');
             
             // Show loading notification
-            new FilamentNotification()
-                .title('Starting AI Analysis...')
-                .body('This may take 10-30 seconds. Please wait.')
-                .info()
-                .send();
+            try {
+                new FilamentNotification()
+                    .title('🤖 Starting AI Analysis...')
+                    .body('Analyzing audit item with Gemini AI. This may take 10-30 seconds.')
+                    .info()
+                    .duration(30000)
+                    .send();
+                console.log('✅ Loading notification shown');
+            } catch (e) {
+                console.error('❌ Failed to show notification:', e);
+            }
 
             // Prepare the request data
             const auditItemId = {{ $record->id }};
@@ -70,8 +72,13 @@
 
             console.log('📡 API URL:', apiUrl);
             console.log('📦 Request Data:', requestData);
+            console.log('📦 File count:', requestData.fileNames.length);
+            console.log('');
+            console.log('🚀 Sending fetch request...');
 
-            // Make the API call
+            const startTime = performance.now();
+
+            // Make the API call (same as test page)
             fetch(apiUrl, {
                 method: 'POST',
                 headers: {
@@ -83,50 +90,78 @@
                 credentials: 'omit'
             })
             .then(async response => {
-                console.log('📥 Response Status:', response.status);
-                console.log('📥 Response Headers:', [...response.headers.entries()]);
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
                 
-                const contentType = response.headers.get('content-type');
-                console.log('📥 Content-Type:', contentType);
+                console.log('');
+                console.log(`✅ Response received in ${duration}ms`);
+                console.log('📥 Status:', response.status, response.statusText);
+                console.log('📥 OK:', response.ok);
+                console.log('');
+                console.log('📋 Response Headers:');
+                for (let [key, value] of response.headers.entries()) {
+                    console.log(`  ${key}: ${value}`);
+                }
+                console.log('');
                 
                 let data;
                 try {
                     const text = await response.text();
-                    console.log('📥 Raw Response:', text);
+                    console.log('📄 Raw Response (first 500 chars):');
+                    console.log(text.substring(0, 500));
+                    console.log('');
                     data = JSON.parse(text);
+                    console.log('✅ JSON parsed successfully');
                 } catch (e) {
-                    console.error('❌ Failed to parse response:', e);
+                    console.error('❌ Failed to parse JSON:', e);
                     throw new Error('Invalid JSON response from server');
                 }
                 
                 return {
                     status: response.status,
                     ok: response.ok,
-                    data: data
+                    data: data,
+                    duration: duration
                 };
             })
-            .then(({status, ok, data}) => {
-                console.log('📊 Parsed Response Data:', data);
+            .then(({status, ok, data, duration}) => {
+                console.log('');
+                console.log('📊 Processing Response Data...');
+                console.log('Data structure:', Object.keys(data));
+                console.log('');
 
                 if (ok && data.success && data.evaluation) {
                     const evaluation = data.evaluation;
-                    console.log('✅ Evaluation received:', evaluation);
+                    console.log('✅ SUCCESS! Evaluation received');
+                    console.log('  Score:', evaluation.score);
+                    console.log('  Compliance Status:', evaluation.compliance_status);
+                    console.log('  Summary:', evaluation.summary?.substring(0, 100) + '...');
+                    console.log('  Strengths:', evaluation.strengths?.length || 0);
+                    console.log('  Weaknesses:', evaluation.weaknesses?.length || 0);
+                    console.log('  Recommendations:', evaluation.recommendations?.length || 0);
+                    console.log('');
                     
                     // Save via Livewire
+                    console.log('💾 Saving evaluation to database via Livewire...');
                     $wire.call('saveGeminiEvaluation', evaluation);
 
                     // Show success
                     new FilamentNotification()
-                        .title('✅ AI Evaluation Complete!')
+                        .title(`✅ AI Evaluation Complete! (${Math.round(duration/1000)}s)`)
                         .success()
-                        .body(`Score: ${evaluation.score || 'N/A'}/100\n${evaluation.summary || ''}`)
-                        .duration(10000)
+                        .body(`Score: ${evaluation.score}/100 - ${evaluation.compliance_status}\n\n${evaluation.summary?.substring(0, 150)}...`)
+                        .duration(15000)
                         .send();
+                    
+                    console.log('✅ All done!');
+                    console.log('═══════════════════════════════════════');
                     
                 } else if (ok && data.evaluation) {
                     // Handle case where success flag might be missing
                     const evaluation = data.evaluation;
-                    console.log('✅ Evaluation received (no success flag):', evaluation);
+                    console.log('✅ Evaluation received (no success flag)');
+                    console.log('Score:', evaluation.score);
+                    console.log('');
                     
                     $wire.call('saveGeminiEvaluation', evaluation);
 
@@ -137,38 +172,63 @@
                         .duration(10000)
                         .send();
                 } else {
-                    console.error('❌ API Error:', data);
+                    console.error('❌ Unexpected response format');
+                    console.error('Response data:', data);
+                    console.log('═══════════════════════════════════════');
+                    
                     new FilamentNotification()
                         .title('❌ Evaluation Failed')
                         .danger()
-                        .body(data.message || data.error || 'Failed to get evaluation from AI service')
+                        .body(data.message || data.error || 'Unexpected response format from AI service')
                         .duration(8000)
                         .send();
                 }
             })
             .catch(error => {
-                console.error('❌ Fetch Error:', error);
+                console.log('');
+                console.error('❌ FETCH FAILED!');
+                console.error('Error type:', error.name);
+                console.error('Error message:', error.message);
                 console.error('Error stack:', error.stack);
+                console.log('═══════════════════════════════════════');
                 
                 let errorMessage = error.message;
                 let errorTitle = '❌ Network Error';
                 
                 if (error.message === 'Failed to fetch') {
-                    errorTitle = '❌ Connection Error';
-                    errorMessage = `Cannot reach API server.\n\nAPI URL: ${apiUrl}\n\nPossible causes:\n• API server not running\n• Nginx not configured\n• CORS issue\n• Firewall blocking`;
+                    errorTitle = '❌ Cannot Reach API';
+                    errorMessage = `Failed to connect to AI service.\n\n` +
+                                  `URL: ${apiUrl}\n\n` +
+                                  `This usually means:\n` +
+                                  `• CORS preflight blocked\n` +
+                                  `• Network/firewall issue\n` +
+                                  `• API server stopped\n\n` +
+                                  `Check browser Console for details.`;
+                    
+                    console.error('💡 Diagnosis: "Failed to fetch" typically means:');
+                    console.error('  1. CORS preflight request was blocked');
+                    console.error('  2. Network error (DNS, firewall, SSL)');
+                    console.error('  3. Browser security policy blocking request');
+                    console.error('');
+                    console.error('💡 Check Network tab for:');
+                    console.error('  • OPTIONS request status');
+                    console.error('  • CORS headers in response');
+                    console.error('  • Any blocked requests');
+                    
                 } else if (error.message.includes('JSON')) {
-                    errorTitle = '❌ Response Error';
-                    errorMessage = `Server returned invalid response.\n\nError: ${error.message}`;
+                    errorTitle = '❌ Invalid Response';
+                    errorMessage = `Server returned invalid JSON.\n\nError: ${error.message}`;
                 }
                 
                 new FilamentNotification()
                     .title(errorTitle)
                     .danger()
                     .body(errorMessage)
-                    .duration(10000)
+                    .duration(15000)
                     .send();
             });
-        }
+        };
+        
+        console.log('✅ Gemini evaluation script loaded - window.startGeminiEvaluation() is ready');
     </script>
-    @endscript
 </x-filament-panels::page>
