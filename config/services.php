@@ -31,4 +31,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'evaluation_api' => [
+        'url' => env('EVALUATION_API_URL', 'https://muraji-api.wathbahs.com'),
+        'timeout' => env('EVALUATION_API_TIMEOUT', 60),
+    ],
+
 ];

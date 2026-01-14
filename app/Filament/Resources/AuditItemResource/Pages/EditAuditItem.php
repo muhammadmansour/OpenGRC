@@ -25,6 +25,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Facades\Http;
 
 class EditAuditItem extends EditRecord
 {
@@ -34,6 +35,10 @@ class EditAuditItem extends EditRecord
     protected static string $resource = AuditItemResource::class;
 
     public ?string $aiSuggestion = null;
+
+    public ?array $geminiEvaluation = null;
+
+    public bool $isEvaluating = false;
 
     public function getRedirectUrl(): string
     {
@@ -47,6 +52,126 @@ class EditAuditItem extends EditRecord
                 ->label('Back to Audit')
                 ->icon('heroicon-m-arrow-left')
                 ->url(route('filament.app.resources.audits.view', $this->record->audit_id)),
+            Action::make('gemini_evaluation')
+                ->label('بدأ التحليل')
+                ->icon('heroicon-o-sparkles')
+                ->color('success')
+                ->requiresConfirmation()
+                ->modalHeading('Gemini AI Evaluation')
+                ->modalDescription('This will analyze the audit item and evidence using AI. This may take 10-30 seconds.')
+                ->modalSubmitActionLabel('Start Analysis')
+                ->action(function () {
+                    $this->isEvaluating = true;
+                    
+                    try {
+                        // Gather audit item data
+                        $auditable = $this->record->auditable;
+                        $fileContents = [];
+                        $fileNames = [];
+                        
+                        // Get evidence from data requests that have responses with attachments
+                        foreach ($this->record->dataRequests as $request) {
+                            foreach ($request->responses as $response) {
+                                if ($response->status === ResponseStatus::RESPONDED) {
+                                    // Add response text as evidence
+                                    if (!empty($response->response)) {
+                                        $fileNames[] = "Response to {$request->code}";
+                                        $fileContents[] = strip_tags($response->response);
+                                    }
+                                    
+                                    // Add file attachments info
+                                    if (!empty($response->files)) {
+                                        $files = json_decode($response->files, true);
+                                        if (is_array($files)) {
+                                            foreach ($files as $file) {
+                                                $fileNames[] = basename($file);
+                                                $fileContents[] = "File submitted: " . basename($file);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Prepare request data
+                        $requestData = [
+                            'title' => $auditable->title ?? 'N/A',
+                            'code' => $auditable->code ?? 'N/A',
+                            'description' => strip_tags($auditable->description ?? ''),
+                            'discussion' => strip_tags($auditable->discussion ?? ''),
+                            'applicability' => $this->record->applicability?->value ?? 'Not specified',
+                            'fileNames' => $fileNames,
+                            'fileContents' => $fileContents,
+                        ];
+                        
+                        // Call Gemini API
+                        $response = Http::timeout(60)
+                            ->withHeaders([
+                                'Authorization' => 'Bearer ' . (auth()->user()->api_token ?? ''),
+                                'userid' => auth()->id(),
+                            ])
+                            ->post(config('services.evaluation_api.url', 'https://muraji-api.wathbahs.com') . '/api/evaluations/audit-item', $requestData);
+                        
+                        if ($response->successful()) {
+                            $data = $response->json();
+                            $this->geminiEvaluation = $data['evaluation'] ?? null;
+                            
+                            // Save evaluation to audit item
+                            if ($this->geminiEvaluation) {
+                                $this->record->update([
+                                    'ai_evaluation' => json_encode($this->geminiEvaluation),
+                                    'ai_evaluation_score' => $this->geminiEvaluation['score'] ?? null,
+                                    'ai_evaluation_at' => now(),
+                                ]);
+                            }
+                            
+                            Notification::make()
+                                ->title('AI Evaluation Complete')
+                                ->success()
+                                ->body('Score: ' . ($this->geminiEvaluation['score'] ?? 'N/A') . '/100')
+                                ->send();
+                                
+                        } else {
+                            Notification::make()
+                                ->title('Evaluation Failed')
+                                ->danger()
+                                ->body($response->json()['message'] ?? 'Failed to get evaluation from AI service')
+                                ->send();
+                        }
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Evaluation Error')
+                            ->danger()
+                            ->body('Error: ' . $e->getMessage())
+                            ->send();
+                    } finally {
+                        $this->isEvaluating = false;
+                    }
+                })
+                ->after(function () {
+                    if ($this->geminiEvaluation) {
+                        // Show results modal
+                        $this->dispatch('open-modal', id: 'gemini-results');
+                    }
+                }),
+            Action::make('view_gemini_results')
+                ->label('View AI Results')
+                ->icon('heroicon-o-document-text')
+                ->color('info')
+                ->hidden(fn () => empty($this->record->ai_evaluation))
+                ->modalHeading('Gemini AI Evaluation Results')
+                ->modalContent(function () {
+                    $evaluation = json_decode($this->record->ai_evaluation, true);
+                    if (!$evaluation) {
+                        return view('filament.components.no-evaluation');
+                    }
+                    
+                    return view('filament.components.gemini-evaluation-results', [
+                        'evaluation' => $evaluation,
+                    ]);
+                })
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Close'),
             Action::make('ai_suggestions')
                 ->label(__('Get AI Suggestions'))
                 ->icon('heroicon-o-sparkles')

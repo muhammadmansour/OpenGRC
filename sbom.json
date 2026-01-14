@@ -2,10 +2,10 @@
     "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
     "bomFormat": "CycloneDX",
     "specVersion": "1.5",
-    "serialNumber": "urn:uuid:03b9dbb8-af8a-4c50-8bf0-34fd86f21b55",
+    "serialNumber": "urn:uuid:ecbac760-f86b-4dca-9af4-3da0f58ad651",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-01-13T08:43:31Z",
+        "timestamp": "2026-01-14T12:44:32Z",
         "tools": [
             {
                 "name": "composer",
@@ -85,7 +85,7 @@
             "bom-ref": "laravel/laravel-dev-main",
             "type": "application",
             "name": "laravel",
-            "version": "dev-main c487b9e",
+            "version": "dev-main 4442662",
             "group": "laravel",
             "description": "The skeleton application for the Laravel framework.",
             "licenses": [
@@ -95,15 +95,15 @@
                     }
                 }
             ],
-            "purl": "pkg:composer/laravel/laravel@dev-main%20c487b9e",
+            "purl": "pkg:composer/laravel/laravel@dev-main%204442662",
             "properties": [
                 {
                     "name": "cdx:composer:package:distReference",
-                    "value": "c487b9ebf5e47c8b23a587cb90d3dae3e8857e17"
+                    "value": "444266261ee244971b3a2da62336ec4d59564e5f"
                 },
                 {
                     "name": "cdx:composer:package:sourceReference",
-                    "value": "c487b9ebf5e47c8b23a587cb90d3dae3e8857e17"
+                    "value": "444266261ee244971b3a2da62336ec4d59564e5f"
                 },
                 {
                     "name": "cdx:composer:package:type",
