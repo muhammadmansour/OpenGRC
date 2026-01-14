@@ -3,7 +3,7 @@
     <div class="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
         <div class="flex items-center justify-between">
             <div>
-                <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Compliance Score</h4>
+                <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">درجة الامتثال</h4>
                 <p class="mt-2 text-4xl font-bold text-blue-600 dark:text-blue-400">{{ $evaluation['score'] ?? 'N/A' }}/100</p>
             </div>
             <div class="text-right">
@@ -26,7 +26,7 @@
     {{-- Summary --}}
     @if(!empty($evaluation['summary']))
     <div>
-        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Summary</h4>
+        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">الملخص</h4>
         <p class="text-gray-700 dark:text-gray-300">{{ $evaluation['summary'] }}</p>
     </div>
     @endif
@@ -34,7 +34,7 @@
     {{-- Detailed Analysis --}}
     @if(!empty($evaluation['detailedAnalysis']))
     <div>
-        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Detailed Analysis</h4>
+        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">التحليل المفصل</h4>
         <div class="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
             {!! nl2br(e($evaluation['detailedAnalysis'])) !!}
         </div>
@@ -48,7 +48,7 @@
             <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
-            Strengths
+            نقاط القوة
         </h4>
         <ul class="space-y-2">
             @foreach($evaluation['strengths'] as $strength)
@@ -70,7 +70,7 @@
             <svg class="w-5 h-5 text-yellow-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
             </svg>
-            Areas for Improvement
+            نقاط الضعف والتحسين
         </h4>
         <ul class="space-y-2">
             @foreach($evaluation['weaknesses'] as $weakness)
@@ -92,7 +92,7 @@
             <svg class="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
             </svg>
-            Recommendations
+            التوصيات
         </h4>
         <ul class="space-y-2">
             @foreach($evaluation['recommendations'] as $recommendation)
@@ -110,7 +110,7 @@
     {{-- Next Steps --}}
     @if(!empty($evaluation['nextSteps']) && is_array($evaluation['nextSteps']))
     <div>
-        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Next Steps</h4>
+        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">الخطوات التالية</h4>
         <ol class="space-y-2 list-decimal list-inside">
             @foreach($evaluation['nextSteps'] as $step)
             <li class="text-gray-700 dark:text-gray-300">{{ $step }}</li>
@@ -124,28 +124,28 @@
         <div class="grid grid-cols-2 gap-4 text-sm">
             @if(!empty($evaluation['evidenceQuality']))
             <div>
-                <span class="text-gray-500 dark:text-gray-400">Evidence Quality:</span>
+                <span class="text-gray-500 dark:text-gray-400">جودة الأدلة:</span>
                 <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $evaluation['evidenceQuality'] }}</span>
             </div>
             @endif
             
             @if(!empty($evaluation['riskAssessment']))
             <div>
-                <span class="text-gray-500 dark:text-gray-400">Risk Assessment:</span>
+                <span class="text-gray-500 dark:text-gray-400">تقييم المخاطر:</span>
                 <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ ucfirst($evaluation['riskAssessment']) }}</span>
             </div>
             @endif
             
-            @if(!empty($evaluation['evaluatedAt']))
+            @if(!empty($evaluation['timestamp']) || !empty($evaluation['evaluatedAt']))
             <div>
-                <span class="text-gray-500 dark:text-gray-400">Evaluated:</span>
-                <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ \Carbon\Carbon::parse($evaluation['evaluatedAt'])->diffForHumans() }}</span>
+                <span class="text-gray-500 dark:text-gray-400">وقت التقييم:</span>
+                <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ \Carbon\Carbon::parse($evaluation['timestamp'] ?? $evaluation['evaluatedAt'])->diffForHumans() }}</span>
             </div>
             @endif
             
             @if(!empty($evaluation['aiModel']))
             <div>
-                <span class="text-gray-500 dark:text-gray-400">AI Model:</span>
+                <span class="text-gray-500 dark:text-gray-400">نموذج الذكاء الاصطناعي:</span>
                 <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $evaluation['aiModel'] }}</span>
             </div>
             @endif

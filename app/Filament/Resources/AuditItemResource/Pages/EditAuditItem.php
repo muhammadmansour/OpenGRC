@@ -40,6 +40,16 @@ class EditAuditItem extends EditRecord
 
     public ?array $geminiEvaluation = null;
 
+    public function mount(): void
+    {
+        parent::mount();
+        
+        // Load existing AI evaluation if available
+        if ($this->record->ai_evaluation) {
+            $this->geminiEvaluation = json_decode($this->record->ai_evaluation, true);
+        }
+    }
+
     public bool $isEvaluating = false;
 
     public function getRedirectUrl(): string

@@ -1,9 +1,38 @@
 <x-filament-panels::page>
     {{ $this->form }}
 
-    @if($geminiEvaluation)
-        <div class="mt-4">
-            @include('filament.components.gemini-evaluation-results', ['evaluation' => $geminiEvaluation])
+    {{-- Display Latest AI Analysis Results --}}
+    @php
+        $latestEvaluation = null;
+        if ($this->geminiEvaluation) {
+            $latestEvaluation = $this->geminiEvaluation;
+        } elseif ($record->ai_evaluation) {
+            $latestEvaluation = json_decode($record->ai_evaluation, true);
+        }
+    @endphp
+
+    @if($latestEvaluation)
+        <div class="mt-6">
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+                            <svg class="w-6 h-6 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            نتائج التحليل بالذكاء الاصطناعي
+                        </h3>
+                        @if(!empty($latestEvaluation['timestamp']) || !empty($latestEvaluation['evaluatedAt']))
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            آخر تحديث: {{ \Carbon\Carbon::parse($latestEvaluation['timestamp'] ?? $latestEvaluation['evaluatedAt'])->diffForHumans() }}
+                        </span>
+                        @endif
+                    </div>
+                </div>
+                <div class="p-6">
+                    @include('filament.components.gemini-evaluation-results', ['evaluation' => $latestEvaluation])
+                </div>
+            </div>
         </div>
     @endif
 
@@ -184,19 +213,25 @@ Please evaluate this audit item based on the information and evidence provided a
                 };
             })
             .then(({status, ok, data, duration}) => {
-                if (ok && data.evaluation) {
-                    const evaluation = data.evaluation;
+                if (ok && data.response) {
+                    const evaluation = data.response;
                     console.log(`✅ Success! Score: ${evaluation.score}/100 - ${evaluation.compliance_status}`);
                     
                     // Save to database
-                    $wire.call('saveGeminiEvaluation', evaluation);
+                    $wire.call('saveGeminiEvaluation', evaluation).then(() => {
+                        // Reload the page to show latest results
+                        console.log('🔄 Reloading page to show latest analysis...');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    });
 
                     // Show success notification
                     new FilamentNotification()
                         .title(`✅ اكتمل التحليل! (${Math.round(duration/1000)}s)`)
                         .success()
-                        .body(`النتيجة: ${evaluation.score}/100 - ${evaluation.compliance_status}\n\n${evaluation.summary?.substring(0, 100)}...`)
-                        .duration(15000)
+                        .body(`النتيجة: ${evaluation.score}/100 - ${evaluation.compliance_status}\n\nجاري تحديث الصفحة...`)
+                        .duration(3000)
                         .send();
                     
                 } else {
