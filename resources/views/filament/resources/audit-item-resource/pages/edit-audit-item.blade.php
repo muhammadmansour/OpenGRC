@@ -35,21 +35,60 @@
             };
 
             @php
+                use Illuminate\Support\Facades\Storage;
+                
                 $fileNames = [];
                 $fileContents = [];
+                
                 foreach ($record->dataRequests as $request) {
                     foreach ($request->responses as $response) {
                         if ($response->status === \App\Enums\ResponseStatus::RESPONDED) {
+                            // Add text response as evidence
                             if (!empty($response->response)) {
                                 $fileNames[] = "Response to {$request->code}";
                                 $fileContents[] = strip_tags($response->response);
                             }
+                            
+                            // Add actual file contents
                             if (!empty($response->files)) {
                                 $files = json_decode($response->files, true);
                                 if (is_array($files)) {
-                                    foreach ($files as $file) {
-                                        $fileNames[] = basename($file);
-                                        $fileContents[] = "File submitted: " . basename($file);
+                                    foreach ($files as $filePath) {
+                                        try {
+                                            $fileName = basename($filePath);
+                                            $fileNames[] = $fileName;
+                                            
+                                            // Try to read file content from storage
+                                            if (Storage::exists($filePath)) {
+                                                $content = Storage::get($filePath);
+                                                
+                                                // Check file extension to determine how to handle it
+                                                $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                                                
+                                                if (in_array($extension, ['txt', 'md', 'json', 'xml', 'csv'])) {
+                                                    // Text files - send as-is
+                                                    $fileContents[] = $content;
+                                                } elseif (in_array($extension, ['pdf', 'doc', 'docx', 'xls', 'xlsx'])) {
+                                                    // Binary/document files - send metadata
+                                                    $fileSize = Storage::size($filePath);
+                                                    $fileContents[] = "Document file: {$fileName} (Size: " . number_format($fileSize / 1024, 2) . " KB)\nNote: This is a {$extension} document. Content extraction may be limited.";
+                                                } elseif (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                                    // Image files - send base64 for Gemini Vision
+                                                    $base64 = base64_encode($content);
+                                                    $fileContents[] = "Image file: {$fileName}\nBase64 data available for visual analysis.";
+                                                } else {
+                                                    // Other files - send basic info
+                                                    $fileSize = Storage::size($filePath);
+                                                    $fileContents[] = "File: {$fileName} (Type: {$extension}, Size: " . number_format($fileSize / 1024, 2) . " KB)";
+                                                }
+                                            } else {
+                                                // File not found in storage
+                                                $fileContents[] = "File not found in storage: {$fileName}";
+                                            }
+                                        } catch (\Exception $e) {
+                                            // Error reading file
+                                            $fileContents[] = "Error reading file {$fileName}: " . $e->getMessage();
+                                        }
                                     }
                                 }
                             }
@@ -62,8 +101,16 @@
             requestData.fileContents = @js($fileContents);
 
             console.log('📡 API:', apiUrl);
-            console.log('📦 Data:', requestData.title, '-', requestData.code);
-            console.log('📄 Evidence files:', requestData.fileNames.length);
+            console.log('📦 Audit Item:', requestData.title, '-', requestData.code);
+            console.log('📄 Evidence count:', requestData.fileNames.length);
+            
+            if (requestData.fileNames.length > 0) {
+                console.log('📂 Files being sent:');
+                requestData.fileNames.forEach((name, index) => {
+                    const contentPreview = requestData.fileContents[index]?.substring(0, 100);
+                    console.log(`  ${index + 1}. ${name} (${requestData.fileContents[index]?.length || 0} chars)`);
+                });
+            }
 
             const startTime = performance.now();
 
