@@ -53,14 +53,16 @@
         console.log('🚀 Starting Gemini Evaluation:', requestData);
         console.log('📡 API URL:', apiUrl);
 
-        // Make the API call
+        // Make the API call with better error handling
         fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
             },
-            body: JSON.stringify(requestData)
+            body: JSON.stringify(requestData),
+            mode: 'cors', // Explicitly set CORS mode
+            credentials: 'omit' // Don't send credentials for now
         })
         .then(response => {
             console.log('📥 Response Status:', response.status);
@@ -102,11 +104,28 @@
         })
         .catch(error => {
             console.error('❌ Fetch Error:', error);
+            console.error('Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
+            
+            // Try to diagnose the issue
+            let errorMessage = 'Failed to connect to AI service: ' + error.message;
+            
+            if (error.message === 'Failed to fetch') {
+                errorMessage = 'Cannot reach API server. Possible causes:\n' +
+                               '• CORS not configured\n' +
+                               '• API server not running\n' +
+                               '• Network/firewall blocking request\n' +
+                               '• SSL certificate issue';
+            }
+            
             new FilamentNotification()
                 .title('❌ Network Error')
                 .danger()
-                .body('Failed to connect to AI service: ' + error.message)
-                .duration(8000)
+                .body(errorMessage)
+                .duration(10000)
                 .send();
         });
     }

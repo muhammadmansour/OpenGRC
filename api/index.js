@@ -49,15 +49,43 @@ const corsOrigins = process.env.CORS_ORIGINS
     ];
 
 app.use(cors({
-  origin: corsOrigins,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow all wathbahs.com subdomains
+    if (origin.endsWith('.wathbahs.com') || origin === 'https://wathbahs.com') {
+      return callback(null, true);
+    }
+    
+    // Allow configured origins
+    if (corsOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    // Allow localhost for development
+    if (origin.includes('localhost')) {
+      return callback(null, true);
+    }
+    
+    return callback(null, true); // Allow all for now
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'userid', 'X-From']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'userid', 'X-From', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // 24 hours
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Body parsing
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files from public directory
+app.use(express.static('public'));
 
 // Request logging (development only)
 if (process.env.NODE_ENV !== 'production') {
