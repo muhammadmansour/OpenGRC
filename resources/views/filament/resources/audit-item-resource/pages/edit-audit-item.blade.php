@@ -1,15 +1,15 @@
 <x-filament-panels::page>
     {{-- DEBUG: Direct test button --}}
-    <div style="margin: 20px 0; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 4px;">
-        <p style="margin: 0 0 10px 0; font-weight: bold;">🧪 DEBUG: Direct API Test</p>
+    <div style="margin: 20px 0; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 4px; direction: rtl; text-align: right;">
+        <p style="margin: 0 0 10px 0; font-weight: bold;">🧪 اختبار: فحص الاتصال المباشر بالـ API</p>
         <button 
             type="button"
             onclick="testDirectFetch()"
-            style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-            🔥 Test Direct Fetch (Bypass Filament)
+            style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">
+            🔥 اختبار الاتصال المباشر
         </button>
         <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
-            This tests if fetch works on this exact page. Check Console for results.
+            هذا الزر يختبر إذا كان الاتصال يعمل على هذه الصفحة. تحقق من Console للنتائج.
         </p>
     </div>
 
