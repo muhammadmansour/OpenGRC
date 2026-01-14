@@ -321,6 +321,22 @@ Please evaluate this audit item based on the information and evidence provided a
                         </span>
                     </div>
                     
+                    <!-- Files Analyzed -->
+                    ${eval.filesAnalyzed && eval.filesAnalyzed.length > 0 ? `
+                    <div class="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4">
+                        <h4 class="font-bold text-lg mb-3 text-indigo-900 dark:text-indigo-100">📁 الملفات التي تم تحليلها</h4>
+                        <div class="space-y-3">
+                            ${eval.filesAnalyzed.map(f => `
+                                <div class="bg-white dark:bg-gray-800 rounded-lg p-3 border border-indigo-200 dark:border-indigo-700">
+                                    <div class="font-medium text-indigo-800 dark:text-indigo-200">📄 ${f.filename}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1"><strong>المحتوى:</strong> ${f.description}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400"><strong>الصلة:</strong> ${f.relevance}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
                     <!-- Summary -->
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                         <h4 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">📋 الملخص</h4>

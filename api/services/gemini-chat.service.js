@@ -142,7 +142,7 @@ ${context}
         }
         textPrompt += `\n`;
       });
-      textPrompt += `\n**IMPORTANT:** Please analyze the ACTUAL CONTENT of these attached files, not just their names.\n`;
+      textPrompt += `\n**CRITICAL:** You MUST read and analyze the ACTUAL CONTENT of these attached PDF/image files. For each file, describe what you found in it.\n`;
     }
 
     if (files.length === 0) {
@@ -166,12 +166,16 @@ Return a JSON object with this structure:
   "effectiveness": "Highly Effective" | "Effective" | "Partially Effective" | "Ineffective" | "Not Applicable",
   "score": <number 0-100>,
   "complianceLevel": "high" | "medium" | "low",
+  "filesAnalyzed": [
+    {"filename": "file1.pdf", "description": "Brief description of what this file contains", "relevance": "How relevant is this file to the audit requirement"},
+    ...
+  ],
   "strengths": ["strength 1", "strength 2", ...],
   "weaknesses": ["weakness 1", "weakness 2", ...],
   "recommendations": ["recommendation 1", "recommendation 2", ...],
   "evidenceQuality": "Excellent" | "Good" | "Adequate" | "Poor",
   "summary": "Brief 2-3 sentence overall assessment",
-  "detailedAnalysis": "Comprehensive 3-5 paragraph analysis of findings",
+  "detailedAnalysis": "Comprehensive 3-5 paragraph analysis of findings, MUST mention specific content found in each file",
   "riskAssessment": "low" | "medium" | "high",
   "nextSteps": ["step 1", "step 2", ...],
   "note": "Any important notes or caveats"
