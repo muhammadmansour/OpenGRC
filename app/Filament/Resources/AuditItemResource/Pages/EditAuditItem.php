@@ -40,9 +40,9 @@ class EditAuditItem extends EditRecord
 
     public ?array $geminiEvaluation = null;
 
-    public function mount(): void
+    public function mount(int | string $record): void
     {
-        parent::mount();
+        parent::mount($record);
         
         // Load existing AI evaluation if available
         if ($this->record->ai_evaluation) {
