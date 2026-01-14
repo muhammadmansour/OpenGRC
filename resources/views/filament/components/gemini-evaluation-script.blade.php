@@ -1,5 +1,16 @@
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Listen for Livewire event
+        Livewire.on('start-gemini-evaluation', function() {
+            console.log('🎬 Livewire event received: start-gemini-evaluation');
+            startGeminiEvaluation();
+        });
+
+        console.log('✅ Gemini evaluation script loaded and ready');
+    });
+
     function startGeminiEvaluation() {
+        console.log('🚀 startGeminiEvaluation() called');
         // Show loading notification
         const loadingNotification = new FilamentNotification()
             .title('Starting AI Analysis...')

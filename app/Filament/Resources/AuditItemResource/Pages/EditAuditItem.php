@@ -58,9 +58,14 @@ class EditAuditItem extends EditRecord
                 ->label('بدأ التحليل')
                 ->icon('heroicon-o-sparkles')
                 ->color('success')
-                ->extraAttributes([
-                    'x-on:click' => 'startGeminiEvaluation()',
-                ]),
+                ->requiresConfirmation()
+                ->modalHeading('Start AI Analysis?')
+                ->modalDescription('This will analyze the audit item using Gemini AI. This may take 10-30 seconds.')
+                ->modalSubmitActionLabel('Start Analysis')
+                ->action(function () {
+                    // Trigger the JavaScript evaluation via Livewire event
+                    $this->dispatch('start-gemini-evaluation');
+                }),
             Action::make('view_gemini_results')
                 ->label('View AI Results')
                 ->icon('heroicon-o-document-text')
