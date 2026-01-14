@@ -24,13 +24,33 @@
             const auditItemId = {{ $record->id }};
             const apiUrl = '{{ config('services.evaluation_api.url', 'https://muraji-api.wathbahs.com') }}/api/evaluations/audit-item';
 
+            // Build context string
+            const title = @js($record->auditable->title ?? 'N/A');
+            const code = @js($record->auditable->code ?? 'N/A');
+            const description = @js(strip_tags($record->auditable->description ?? ''));
+            const discussion = @js(strip_tags($record->auditable->discussion ?? ''));
+            const applicability = @js($record->applicability?->value ?? 'Not specified');
+
+            const context = `
+**AUDIT ITEM INFORMATION:**
+
+Code: ${code}
+Title: ${title}
+Applicability: ${applicability}
+
+**Description:**
+${description || 'No description provided'}
+
+**Discussion:**
+${discussion || 'No discussion provided'}
+
+**Requirements:**
+Please evaluate this audit item based on the information and evidence provided above.
+`.trim();
+
             const requestData = {
-                title: @js($record->auditable->title ?? 'N/A'),
-                code: @js($record->auditable->code ?? 'N/A'),
-                description: @js(strip_tags($record->auditable->description ?? '')),
-                discussion: @js(strip_tags($record->auditable->discussion ?? '')),
-                applicability: @js($record->applicability?->value ?? 'Not specified'),
-                files: [] // Will contain {name, mimeType, data} objects
+                context: context,
+                files: [] // Will contain {name, mimeType, data, encoding} objects
             };
 
             @php
@@ -118,8 +138,9 @@
             requestData.files = @js($files);
 
             console.log('📡 API:', apiUrl);
-            console.log('📦 Audit Item:', requestData.title, '-', requestData.code);
-            console.log('📄 Evidence files:', requestData.files.length);
+            console.log('📦 Item:', code, '-', title);
+            console.log('📄 Context length:', context.length, 'chars');
+            console.log('📎 Files:', requestData.files.length);
             
             if (requestData.files.length > 0) {
                 console.log('📂 Files being sent to Gemini:');

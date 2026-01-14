@@ -13,23 +13,13 @@ const { asyncHandler } = require('../middleware/error.middleware');
  * Evaluate a single audit item with evidence files
  */
 router.post('/audit-item', asyncHandler(async (req, res) => {
-  const { 
-    title, 
-    code, 
-    description, 
-    discussion, 
-    applicability, 
-    files,
-    // Backward compatibility with old format
-    fileNames, 
-    fileContents 
-  } = req.body;
+  const { context, files = [] } = req.body;
 
   // Validation
-  if (!title || !code) {
+  if (!context) {
     return res.status(400).json({
       error: 'Validation Error',
-      message: 'title and code are required fields'
+      message: 'context is required'
     });
   }
 
@@ -41,37 +31,27 @@ router.post('/audit-item', asyncHandler(async (req, res) => {
     });
   }
 
-  console.log(`📝 Evaluating audit item: ${code} - ${title}`);
-  console.log(`📎 Files received: ${(files || []).length}`);
+  console.log(`📝 Starting evaluation...`);
+  console.log(`📄 Context length: ${context.length} characters`);
+  console.log(`📎 Files received: ${files.length}`);
   
-  if (files && files.length > 0) {
+  if (files.length > 0) {
     files.forEach((file, index) => {
       console.log(`   ${index + 1}. ${file.name} (${file.mimeType}) [${file.encoding}]`);
     });
   }
 
-  // Prepare item data
-  const itemData = {
-    title,
-    code,
-    description,
-    discussion,
-    applicability,
-    files: files || [] // New format with file objects {name, mimeType, data, encoding}
-  };
-
   try {
-    // Get AI evaluation with files
-    const evaluation = await geminiService.evaluateAuditItemWithFiles(itemData);
+    // Get AI evaluation
+    const evaluation = await geminiService.evaluate(context, files);
 
     res.status(200).json({
       success: true,
       evaluation,
       metadata: {
-        itemCode: code,
-        itemTitle: title,
         evaluatedAt: new Date().toISOString(),
-        filesAnalyzed: (files || []).length
+        contextLength: context.length,
+        filesAnalyzed: files.length
       }
     });
   } catch (error) {
