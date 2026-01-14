@@ -34,6 +34,8 @@ class EditAuditItem extends EditRecord
     // set title to Assess Audit Item
     protected static string $resource = AuditItemResource::class;
 
+    protected static string $view = 'filament.resources.audit-item-resource.pages.edit-audit-item';
+
     public ?string $aiSuggestion = null;
 
     public ?array $geminiEvaluation = null;
@@ -56,127 +58,9 @@ class EditAuditItem extends EditRecord
                 ->label('بدأ التحليل')
                 ->icon('heroicon-o-sparkles')
                 ->color('success')
-                ->requiresConfirmation()
-                ->modalHeading('Gemini AI Evaluation')
-                ->modalDescription('This will analyze the audit item and evidence using AI. This may take 10-30 seconds.')
-                ->modalSubmitActionLabel('Start Analysis')
-                ->action(function () {
-                    \Log::info('Gemini Evaluation Started');
-                    $this->isEvaluating = true;
-                    
-                    try {
-                        \Log::info('Preparing evaluation data...');
-                        // Gather audit item data
-                        $auditable = $this->record->auditable;
-                        $fileContents = [];
-                        $fileNames = [];
-                        
-                        // Get evidence from data requests that have responses with attachments
-                        foreach ($this->record->dataRequests as $request) {
-                            foreach ($request->responses as $response) {
-                                if ($response->status === ResponseStatus::RESPONDED) {
-                                    // Add response text as evidence
-                                    if (!empty($response->response)) {
-                                        $fileNames[] = "Response to {$request->code}";
-                                        $fileContents[] = strip_tags($response->response);
-                                    }
-                                    
-                                    // Add file attachments info
-                                    if (!empty($response->files)) {
-                                        $files = json_decode($response->files, true);
-                                        if (is_array($files)) {
-                                            foreach ($files as $file) {
-                                                $fileNames[] = basename($file);
-                                                $fileContents[] = "File submitted: " . basename($file);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Prepare request data
-                        $requestData = [
-                            'title' => $auditable->title ?? 'N/A',
-                            'code' => $auditable->code ?? 'N/A',
-                            'description' => strip_tags($auditable->description ?? ''),
-                            'discussion' => strip_tags($auditable->discussion ?? ''),
-                            'applicability' => $this->record->applicability?->value ?? 'Not specified',
-                            'fileNames' => $fileNames,
-                            'fileContents' => $fileContents,
-                        ];
-                        
-                        $apiUrl = config('services.evaluation_api.url', 'https://muraji-api.wathbahs.com') . '/api/evaluations/audit-item';
-                        
-                        \Log::info('Calling Gemini API', [
-                            'url' => $apiUrl,
-                            'title' => $requestData['title'],
-                            'code' => $requestData['code'],
-                            'evidence_count' => count($fileNames),
-                        ]);
-                        
-                        // Call Gemini API
-                        $response = Http::timeout(60)
-                            ->withHeaders([
-                                'Content-Type' => 'application/json',
-                                'Accept' => 'application/json',
-                            ])
-                            ->withOptions([
-                                'verify' => false, // Disable SSL verification (temporary fix)
-                            ])
-                            ->post($apiUrl, $requestData);
-                        
-                        \Log::info('API Response Status', ['status' => $response->status()]);
-                        
-                        if ($response->successful()) {
-                            $data = $response->json();
-                            $this->geminiEvaluation = $data['evaluation'] ?? null;
-                            
-                            \Log::info('Evaluation received', ['score' => $this->geminiEvaluation['score'] ?? 'N/A']);
-                            
-                            // Save evaluation to audit item
-                            if ($this->geminiEvaluation) {
-                                $this->record->update([
-                                    'ai_evaluation' => json_encode($this->geminiEvaluation),
-                                    'ai_evaluation_score' => $this->geminiEvaluation['score'] ?? null,
-                                    'ai_evaluation_at' => now(),
-                                ]);
-                            }
-                            
-                            Notification::make()
-                                ->title('AI Evaluation Complete')
-                                ->success()
-                                ->body('Score: ' . ($this->geminiEvaluation['score'] ?? 'N/A') . '/100')
-                                ->send();
-                                
-                        } else {
-                            \Log::error('API call failed', [
-                                'status' => $response->status(),
-                                'body' => $response->body(),
-                            ]);
-                            
-                            Notification::make()
-                                ->title('Evaluation Failed')
-                                ->danger()
-                                ->body('Status: ' . $response->status() . ' - ' . ($response->json()['message'] ?? 'Failed to get evaluation from AI service'))
-                                ->send();
-                        }
-                    } catch (\Exception $e) {
-                        \Log::error('Evaluation exception', [
-                            'message' => $e->getMessage(),
-                            'trace' => $e->getTraceAsString(),
-                        ]);
-                        
-                        Notification::make()
-                            ->title('Evaluation Error')
-                            ->danger()
-                            ->body('Error: ' . $e->getMessage())
-                            ->send();
-                    } finally {
-                        $this->isEvaluating = false;
-                        \Log::info('Evaluation process completed');
-                    }
-                }),
+                ->extraAttributes([
+                    'x-on:click' => 'startGeminiEvaluation()',
+                ]),
             Action::make('view_gemini_results')
                 ->label('View AI Results')
                 ->icon('heroicon-o-document-text')
@@ -381,5 +265,30 @@ class EditAuditItem extends EditRecord
                     ])
                     ->collapsible(true),
             ]);
+    }
+
+
+    public function saveGeminiEvaluation(array $evaluation): void
+    {
+        try {
+            $this->record->update([
+                'ai_evaluation' => json_encode($evaluation),
+                'ai_evaluation_score' => $evaluation['score'] ?? null,
+                'ai_evaluation_at' => now(),
+            ]);
+
+            $this->geminiEvaluation = $evaluation;
+
+            \Log::info('✅ Gemini evaluation saved', [
+                'audit_item_id' => $this->record->id,
+                'score' => $evaluation['score'] ?? null,
+            ]);
+
+            $this->dispatch('evaluationSaved');
+        } catch (\Exception $e) {
+            \Log::error('❌ Failed to save evaluation', [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
