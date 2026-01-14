@@ -82,19 +82,35 @@
                 mode: 'cors',
                 credentials: 'omit'
             })
-            .then(response => {
+            .then(async response => {
                 console.log('📥 Response Status:', response.status);
-                return response.json().then(data => ({
+                console.log('📥 Response Headers:', [...response.headers.entries()]);
+                
+                const contentType = response.headers.get('content-type');
+                console.log('📥 Content-Type:', contentType);
+                
+                let data;
+                try {
+                    const text = await response.text();
+                    console.log('📥 Raw Response:', text);
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('❌ Failed to parse response:', e);
+                    throw new Error('Invalid JSON response from server');
+                }
+                
+                return {
                     status: response.status,
                     ok: response.ok,
                     data: data
-                }));
+                };
             })
             .then(({status, ok, data}) => {
-                console.log('📊 Response Data:', data);
+                console.log('📊 Parsed Response Data:', data);
 
-                if (ok && data.evaluation) {
+                if (ok && data.success && data.evaluation) {
                     const evaluation = data.evaluation;
+                    console.log('✅ Evaluation received:', evaluation);
                     
                     // Save via Livewire
                     $wire.call('saveGeminiEvaluation', evaluation);
@@ -103,31 +119,50 @@
                     new FilamentNotification()
                         .title('✅ AI Evaluation Complete!')
                         .success()
-                        .body(`Score: ${evaluation.score || 'N/A'}/100`)
+                        .body(`Score: ${evaluation.score || 'N/A'}/100\n${evaluation.summary || ''}`)
                         .duration(10000)
                         .send();
                     
+                } else if (ok && data.evaluation) {
+                    // Handle case where success flag might be missing
+                    const evaluation = data.evaluation;
+                    console.log('✅ Evaluation received (no success flag):', evaluation);
+                    
+                    $wire.call('saveGeminiEvaluation', evaluation);
+
+                    new FilamentNotification()
+                        .title('✅ AI Evaluation Complete!')
+                        .success()
+                        .body(`Score: ${evaluation.score || 'N/A'}/100`)
+                        .duration(10000)
+                        .send();
                 } else {
                     console.error('❌ API Error:', data);
                     new FilamentNotification()
                         .title('❌ Evaluation Failed')
                         .danger()
-                        .body(data.message || 'Failed to get evaluation from AI service')
+                        .body(data.message || data.error || 'Failed to get evaluation from AI service')
                         .duration(8000)
                         .send();
                 }
             })
             .catch(error => {
                 console.error('❌ Fetch Error:', error);
+                console.error('Error stack:', error.stack);
                 
-                let errorMessage = 'Failed to connect to AI service: ' + error.message;
+                let errorMessage = error.message;
+                let errorTitle = '❌ Network Error';
                 
                 if (error.message === 'Failed to fetch') {
-                    errorMessage = 'Cannot reach API server at ' + apiUrl;
+                    errorTitle = '❌ Connection Error';
+                    errorMessage = `Cannot reach API server.\n\nAPI URL: ${apiUrl}\n\nPossible causes:\n• API server not running\n• Nginx not configured\n• CORS issue\n• Firewall blocking`;
+                } else if (error.message.includes('JSON')) {
+                    errorTitle = '❌ Response Error';
+                    errorMessage = `Server returned invalid response.\n\nError: ${error.message}`;
                 }
                 
                 new FilamentNotification()
-                    .title('❌ Network Error')
+                    .title(errorTitle)
                     .danger()
                     .body(errorMessage)
                     .duration(10000)
