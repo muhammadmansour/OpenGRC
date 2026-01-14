@@ -37,9 +37,6 @@
     @endif
 
     <script>
-        // Get Livewire component ID for calling methods
-        const livewireComponentId = '{{ $this->getId() }}';
-        
         // Make function globally available
         window.startGeminiEvaluation = function() {
             console.log('🤖 Starting Gemini AI Evaluation...');
@@ -221,20 +218,26 @@ Please evaluate this audit item based on the information and evidence provided a
                     console.log(`✅ Success! Score: ${evaluation.score}/100 - ${evaluation.compliance_status}`);
                     
                     // Save to database using Livewire
-                    const livewireComponent = Livewire.find(livewireComponentId);
-                    if (livewireComponent) {
-                        livewireComponent.call('saveGeminiEvaluation', evaluation).then(() => {
-                            // Reload the page to show latest results
-                            console.log('🔄 Reloading page to show latest analysis...');
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1000);
-                        });
-                    } else {
-                        console.error('❌ Livewire component not found, reloading page...');
-                        setTimeout(() => {
+                    // Find the Livewire component from the page
+                    const livewireEl = document.querySelector('[wire\\:id]');
+                    if (livewireEl) {
+                        const componentId = livewireEl.getAttribute('wire:id');
+                        const livewireComponent = Livewire.find(componentId);
+                        if (livewireComponent) {
+                            livewireComponent.call('saveGeminiEvaluation', evaluation).then(() => {
+                                // Reload the page to show latest results
+                                console.log('🔄 Reloading page to show latest analysis...');
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1000);
+                            });
+                        } else {
+                            console.log('⚠️ Component not found, saving via reload');
                             window.location.reload();
-                        }, 1000);
+                        }
+                    } else {
+                        console.log('⚠️ No Livewire element found, reloading page...');
+                        window.location.reload();
                     }
 
                     // Show success notification
