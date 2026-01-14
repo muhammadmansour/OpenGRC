@@ -16,7 +16,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -153,13 +152,7 @@ class UserResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-    }
+    // Soft deletes disabled - users are permanently deleted
 
     public static function createDefaultPassword(): string
     {
