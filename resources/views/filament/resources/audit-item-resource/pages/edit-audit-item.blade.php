@@ -1,18 +1,4 @@
 <x-filament-panels::page>
-    {{-- DEBUG: Direct test button --}}
-    <div style="margin: 20px 0; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 4px; direction: rtl; text-align: right;">
-        <p style="margin: 0 0 10px 0; font-weight: bold;">🧪 اختبار: فحص الاتصال المباشر بالـ API</p>
-        <button 
-            type="button"
-            onclick="testDirectFetch()"
-            style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">
-            🔥 اختبار الاتصال المباشر
-        </button>
-        <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
-            هذا الزر يختبر إذا كان الاتصال يعمل على هذه الصفحة. تحقق من Console للنتائج.
-        </p>
-    </div>
-
     {{ $this->form }}
 
     @if($geminiEvaluation)
@@ -24,35 +10,15 @@
     <script>
         // Make function globally available
         window.startGeminiEvaluation = function() {
-            console.log('');
-            console.log('═══════════════════════════════════════');
-            console.log('🚀 GEMINI EVALUATION STARTED');
-            console.log('═══════════════════════════════════════');
-            console.log('Called at:', new Date().toISOString());
-            console.log('Called from:', new Error().stack);
-            console.log('');
-            
-            // Check environment
-            console.log('🔍 Environment Check:');
-            console.log('  Page URL:', window.location.href);
-            console.log('  fetch available:', typeof fetch);
-            console.log('  FilamentNotification available:', typeof FilamentNotification);
-            console.log('  $wire available:', typeof $wire);
-            console.log('');
+            console.log('🤖 Starting Gemini AI Evaluation...');
             
             // Show loading notification
-            try {
-                new FilamentNotification()
-                    .title('🤖 Starting AI Analysis...')
-                    .body('Analyzing audit item with Gemini AI. This may take 10-30 seconds.')
-                    .info()
-                    .duration(30000)
-                    .send();
-                console.log('✅ Loading notification shown');
-            } catch (e) {
-                console.error('❌ Failed to show notification:', e);
-            }
-            console.log('');
+            new FilamentNotification()
+                .title('🤖 جاري تحليل العنصر...')
+                .body('يتم تحليل العنصر باستخدام Gemini AI. قد يستغرق 10-30 ثانية.')
+                .info()
+                .duration(30000)
+                .send();
 
             // Prepare the request data
             const auditItemId = {{ $record->id }};
@@ -95,11 +61,9 @@
             requestData.fileNames = @js($fileNames);
             requestData.fileContents = @js($fileContents);
 
-            console.log('📡 API URL:', apiUrl);
-            console.log('📦 Request Data:', requestData);
-            console.log('📦 File count:', requestData.fileNames.length);
-            console.log('');
-            console.log('🚀 Sending fetch request...');
+            console.log('📡 API:', apiUrl);
+            console.log('📦 Data:', requestData.title, '-', requestData.code);
+            console.log('📄 Evidence files:', requestData.fileNames.length);
 
             const startTime = performance.now();
 
@@ -118,29 +82,9 @@
                 const endTime = performance.now();
                 const duration = Math.round(endTime - startTime);
                 
-                console.log('');
-                console.log(`✅ Response received in ${duration}ms`);
-                console.log('📥 Status:', response.status, response.statusText);
-                console.log('📥 OK:', response.ok);
-                console.log('');
-                console.log('📋 Response Headers:');
-                for (let [key, value] of response.headers.entries()) {
-                    console.log(`  ${key}: ${value}`);
-                }
-                console.log('');
+                console.log(`✅ Response: ${response.status} in ${duration}ms`);
                 
-                let data;
-                try {
-                    const text = await response.text();
-                    console.log('📄 Raw Response (first 500 chars):');
-                    console.log(text.substring(0, 500));
-                    console.log('');
-                    data = JSON.parse(text);
-                    console.log('✅ JSON parsed successfully');
-                } catch (e) {
-                    console.error('❌ Failed to parse JSON:', e);
-                    throw new Error('Invalid JSON response from server');
-                }
+                const data = await response.json();
                 
                 return {
                     status: response.status,
@@ -150,167 +94,44 @@
                 };
             })
             .then(({status, ok, data, duration}) => {
-                console.log('');
-                console.log('📊 Processing Response Data...');
-                console.log('Data structure:', Object.keys(data));
-                console.log('');
-
-                if (ok && data.success && data.evaluation) {
+                if (ok && data.evaluation) {
                     const evaluation = data.evaluation;
-                    console.log('✅ SUCCESS! Evaluation received');
-                    console.log('  Score:', evaluation.score);
-                    console.log('  Compliance Status:', evaluation.compliance_status);
-                    console.log('  Summary:', evaluation.summary?.substring(0, 100) + '...');
-                    console.log('  Strengths:', evaluation.strengths?.length || 0);
-                    console.log('  Weaknesses:', evaluation.weaknesses?.length || 0);
-                    console.log('  Recommendations:', evaluation.recommendations?.length || 0);
-                    console.log('');
+                    console.log(`✅ Success! Score: ${evaluation.score}/100 - ${evaluation.compliance_status}`);
                     
-                    // Save via Livewire
-                    console.log('💾 Saving evaluation to database via Livewire...');
+                    // Save to database
                     $wire.call('saveGeminiEvaluation', evaluation);
 
-                    // Show success
+                    // Show success notification
                     new FilamentNotification()
-                        .title(`✅ AI Evaluation Complete! (${Math.round(duration/1000)}s)`)
+                        .title(`✅ اكتمل التحليل! (${Math.round(duration/1000)}s)`)
                         .success()
-                        .body(`Score: ${evaluation.score}/100 - ${evaluation.compliance_status}\n\n${evaluation.summary?.substring(0, 150)}...`)
+                        .body(`النتيجة: ${evaluation.score}/100 - ${evaluation.compliance_status}\n\n${evaluation.summary?.substring(0, 100)}...`)
                         .duration(15000)
                         .send();
                     
-                    console.log('✅ All done!');
-                    console.log('═══════════════════════════════════════');
-                    
-                } else if (ok && data.evaluation) {
-                    // Handle case where success flag might be missing
-                    const evaluation = data.evaluation;
-                    console.log('✅ Evaluation received (no success flag)');
-                    console.log('Score:', evaluation.score);
-                    console.log('');
-                    
-                    $wire.call('saveGeminiEvaluation', evaluation);
-
-                    new FilamentNotification()
-                        .title('✅ AI Evaluation Complete!')
-                        .success()
-                        .body(`Score: ${evaluation.score || 'N/A'}/100`)
-                        .duration(10000)
-                        .send();
                 } else {
-                    console.error('❌ Unexpected response format');
-                    console.error('Response data:', data);
-                    console.log('═══════════════════════════════════════');
+                    console.error('❌ فشل التحليل:', data.message || data.error);
                     
                     new FilamentNotification()
-                        .title('❌ Evaluation Failed')
+                        .title('❌ فشل التحليل')
                         .danger()
-                        .body(data.message || data.error || 'Unexpected response format from AI service')
+                        .body(data.message || data.error || 'حدث خطأ في الحصول على التحليل')
                         .duration(8000)
                         .send();
                 }
             })
             .catch(error => {
-                console.log('');
-                console.error('❌ FETCH FAILED!');
-                console.error('Error type:', error.name);
-                console.error('Error message:', error.message);
-                console.error('Error stack:', error.stack);
-                console.log('═══════════════════════════════════════');
-                
-                let errorMessage = error.message;
-                let errorTitle = '❌ Network Error';
-                
-                if (error.message === 'Failed to fetch') {
-                    errorTitle = '❌ Cannot Reach API';
-                    errorMessage = `Failed to connect to AI service.\n\n` +
-                                  `URL: ${apiUrl}\n\n` +
-                                  `This usually means:\n` +
-                                  `• CORS preflight blocked\n` +
-                                  `• Network/firewall issue\n` +
-                                  `• API server stopped\n\n` +
-                                  `Check browser Console for details.`;
-                    
-                    console.error('💡 Diagnosis: "Failed to fetch" typically means:');
-                    console.error('  1. CORS preflight request was blocked');
-                    console.error('  2. Network error (DNS, firewall, SSL)');
-                    console.error('  3. Browser security policy blocking request');
-                    console.error('');
-                    console.error('💡 Check Network tab for:');
-                    console.error('  • OPTIONS request status');
-                    console.error('  • CORS headers in response');
-                    console.error('  • Any blocked requests');
-                    
-                } else if (error.message.includes('JSON')) {
-                    errorTitle = '❌ Invalid Response';
-                    errorMessage = `Server returned invalid JSON.\n\nError: ${error.message}`;
-                }
+                console.error('❌ خطأ:', error.message);
                 
                 new FilamentNotification()
-                    .title(errorTitle)
+                    .title('❌ خطأ في الاتصال')
                     .danger()
-                    .body(errorMessage)
-                    .duration(15000)
+                    .body(`فشل الاتصال بخدمة الذكاء الاصطناعي.\n\nالخطأ: ${error.message}`)
+                    .duration(10000)
                     .send();
             });
         };
         
-        console.log('✅ Gemini evaluation script loaded - window.startGeminiEvaluation() is ready');
-        
-        // DEBUG: Direct test function
-        window.testDirectFetch = function() {
-            console.log('');
-            console.log('🔥🔥🔥 DIRECT FETCH TEST 🔥🔥🔥');
-            console.log('Testing if fetch works on this page...');
-            console.log('');
-            
-            const testUrl = 'https://muraji-api.wathbahs.com/api/evaluations/audit-item';
-            const testData = {
-                title: "Direct Test",
-                code: "DIRECT-001",
-                description: "Testing direct fetch",
-                discussion: "Test",
-                applicability: "applicable",
-                fileNames: [],
-                fileContents: []
-            };
-            
-            console.log('URL:', testUrl);
-            console.log('Payload:', testData);
-            console.log('');
-            console.log('Sending request...');
-            
-            fetch(testUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(testData),
-                mode: 'cors',
-                credentials: 'omit'
-            })
-            .then(response => {
-                console.log('✅ DIRECT FETCH SUCCESS!');
-                console.log('Status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('✅ Data received:', data);
-                alert('✅ DIRECT FETCH WORKS!\n\nScore: ' + (data.evaluation?.score || 'N/A'));
-            })
-            .catch(error => {
-                console.error('❌ DIRECT FETCH FAILED!');
-                console.error('Error:', error);
-                alert('❌ DIRECT FETCH FAILED!\n\nError: ' + error.message);
-            });
-        };
-        
-        // DEBUG: Check if fetch is available
-        console.log('🔍 Checking environment:');
-        console.log('  typeof fetch:', typeof fetch);
-        console.log('  window.fetch:', typeof window.fetch);
-        console.log('  Location:', window.location.href);
-        console.log('  Origin:', window.location.origin);
-        console.log('  Protocol:', window.location.protocol);
+        console.log('✅ Gemini evaluation script loaded and ready');
     </script>
 </x-filament-panels::page>
