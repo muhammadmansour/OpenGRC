@@ -47,47 +47,46 @@
                                 $fileContents[] = strip_tags($response->response);
                             }
                             
-                            // Add actual file contents
-                            if (!empty($response->files)) {
-                                $files = json_decode($response->files, true);
-                                if (is_array($files)) {
-                                    foreach ($files as $filePath) {
-                                        try {
-                                            $fileName = basename($filePath);
-                                            $fileNames[] = $fileName;
-                                            
-                                            // Try to read file content from storage
-                                            if (\Illuminate\Support\Facades\Storage::exists($filePath)) {
-                                                $content = \Illuminate\Support\Facades\Storage::get($filePath);
-                                                
-                                                // Check file extension to determine how to handle it
-                                                $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-                                                
-                                                if (in_array($extension, ['txt', 'md', 'json', 'xml', 'csv'])) {
-                                                    // Text files - send as-is
-                                                    $fileContents[] = $content;
-                                                } elseif (in_array($extension, ['pdf', 'doc', 'docx', 'xls', 'xlsx'])) {
-                                                    // Binary/document files - send metadata
-                                                    $fileSize = \Illuminate\Support\Facades\Storage::size($filePath);
-                                                    $fileContents[] = "Document file: {$fileName} (Size: " . number_format($fileSize / 1024, 2) . " KB)\nNote: This is a {$extension} document. Content extraction may be limited.";
-                                                } elseif (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                                                    // Image files - send base64 for Gemini Vision
-                                                    $base64 = base64_encode($content);
-                                                    $fileContents[] = "Image file: {$fileName}\nBase64 data available for visual analysis.";
-                                                } else {
-                                                    // Other files - send basic info
-                                                    $fileSize = \Illuminate\Support\Facades\Storage::size($filePath);
-                                                    $fileContents[] = "File: {$fileName} (Type: {$extension}, Size: " . number_format($fileSize / 1024, 2) . " KB)";
-                                                }
-                                            } else {
-                                                // File not found in storage
-                                                $fileContents[] = "File not found in storage: {$fileName}";
-                                            }
-                                        } catch (\Exception $e) {
-                                            // Error reading file
-                                            $fileContents[] = "Error reading file {$fileName}: " . $e->getMessage();
+                            // Add actual file contents from attachments
+                            foreach ($response->attachments as $attachment) {
+                                try {
+                                    $filePath = $attachment->file_path;
+                                    $fileName = $attachment->file_name ?? basename($filePath);
+                                    $fileDescription = $attachment->description ?? '';
+                                    
+                                    $fileNames[] = $fileName;
+                                    
+                                    // Get storage disk
+                                    $disk = \Illuminate\Support\Facades\Storage::disk(setting('storage.driver', config('filesystems.default')));
+                                    
+                                    // Try to read file content from storage
+                                    if ($disk->exists($filePath)) {
+                                        $content = $disk->get($filePath);
+                                        $fileSize = $disk->size($filePath);
+                                        
+                                        // Check file extension to determine how to handle it
+                                        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                                        
+                                        if (in_array($extension, ['txt', 'md', 'json', 'xml', 'csv'])) {
+                                            // Text files - send as-is
+                                            $fileContents[] = "File: {$fileName}\nDescription: {$fileDescription}\n\nContent:\n{$content}";
+                                        } elseif (in_array($extension, ['pdf', 'doc', 'docx', 'xls', 'xlsx'])) {
+                                            // Binary/document files - send metadata + description
+                                            $fileContents[] = "Document: {$fileName}\nType: {$extension}\nSize: " . number_format($fileSize / 1024, 2) . " KB\nDescription: {$fileDescription}\n\nNote: This is a {$extension} document submitted as evidence. The actual document content cannot be extracted automatically, but the file has been uploaded and is available for manual review.";
+                                        } elseif (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                            // Image files - send description only (Gemini can't process images via text API)
+                                            $fileContents[] = "Image: {$fileName}\nType: {$extension}\nSize: " . number_format($fileSize / 1024, 2) . " KB\nDescription: {$fileDescription}\n\nNote: This is an image file submitted as evidence.";
+                                        } else {
+                                            // Other files - send basic info
+                                            $fileContents[] = "File: {$fileName}\nType: {$extension}\nSize: " . number_format($fileSize / 1024, 2) . " KB\nDescription: {$fileDescription}";
                                         }
+                                    } else {
+                                        // File not found in storage
+                                        $fileContents[] = "File: {$fileName}\nStatus: Not found in storage\nDescription: {$fileDescription}";
                                     }
+                                } catch (\Exception $e) {
+                                    // Error reading file
+                                    $fileContents[] = "File: {$fileName}\nError: " . $e->getMessage();
                                 }
                             }
                         }
