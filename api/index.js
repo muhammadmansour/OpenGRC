@@ -21,7 +21,6 @@ const projectRoutes = require('./routes/project.routes');
 const domainRoutes = require('./routes/domain.routes');
 const adminRoutes = require('./routes/admin.routes');
 const extractionRoutes = require('./routes/extraction.routes');
-const chatRoutes = require('./routes/chat.routes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
@@ -150,7 +149,6 @@ app.use('/api/chat', chatRoutes); // Public for internal use
 
 // Protected routes (auth required)
 app.use('/api/files', authMiddleware, fileRoutes);
-app.use('/api/chat', authMiddleware, chatRoutes);
 app.use('/api/users', authMiddleware, userRoutes);
 app.use('/api/experts', authMiddleware, expertRoutes);
 app.use('/api/standards', authMiddleware, standardsRoutes);
