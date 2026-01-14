@@ -1,4 +1,18 @@
 <x-filament-panels::page>
+    {{-- DEBUG: Direct test button --}}
+    <div style="margin: 20px 0; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 4px;">
+        <p style="margin: 0 0 10px 0; font-weight: bold;">🧪 DEBUG: Direct API Test</p>
+        <button 
+            type="button"
+            onclick="testDirectFetch()"
+            style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+            🔥 Test Direct Fetch (Bypass Filament)
+        </button>
+        <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
+            This tests if fetch works on this exact page. Check Console for results.
+        </p>
+    </div>
+
     {{ $this->form }}
 
     @if($geminiEvaluation)
@@ -10,10 +24,20 @@
     <script>
         // Make function globally available
         window.startGeminiEvaluation = function() {
+            console.log('');
             console.log('═══════════════════════════════════════');
-            console.log('🚀 Starting Gemini Evaluation from Filament');
+            console.log('🚀 GEMINI EVALUATION STARTED');
             console.log('═══════════════════════════════════════');
-            console.log('Function called at:', new Date().toISOString());
+            console.log('Called at:', new Date().toISOString());
+            console.log('Called from:', new Error().stack);
+            console.log('');
+            
+            // Check environment
+            console.log('🔍 Environment Check:');
+            console.log('  Page URL:', window.location.href);
+            console.log('  fetch available:', typeof fetch);
+            console.log('  FilamentNotification available:', typeof FilamentNotification);
+            console.log('  $wire available:', typeof $wire);
             console.log('');
             
             // Show loading notification
@@ -28,6 +52,7 @@
             } catch (e) {
                 console.error('❌ Failed to show notification:', e);
             }
+            console.log('');
 
             // Prepare the request data
             const auditItemId = {{ $record->id }};
@@ -230,5 +255,62 @@
         };
         
         console.log('✅ Gemini evaluation script loaded - window.startGeminiEvaluation() is ready');
+        
+        // DEBUG: Direct test function
+        window.testDirectFetch = function() {
+            console.log('');
+            console.log('🔥🔥🔥 DIRECT FETCH TEST 🔥🔥🔥');
+            console.log('Testing if fetch works on this page...');
+            console.log('');
+            
+            const testUrl = 'https://muraji-api.wathbahs.com/api/evaluations/audit-item';
+            const testData = {
+                title: "Direct Test",
+                code: "DIRECT-001",
+                description: "Testing direct fetch",
+                discussion: "Test",
+                applicability: "applicable",
+                fileNames: [],
+                fileContents: []
+            };
+            
+            console.log('URL:', testUrl);
+            console.log('Payload:', testData);
+            console.log('');
+            console.log('Sending request...');
+            
+            fetch(testUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(testData),
+                mode: 'cors',
+                credentials: 'omit'
+            })
+            .then(response => {
+                console.log('✅ DIRECT FETCH SUCCESS!');
+                console.log('Status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('✅ Data received:', data);
+                alert('✅ DIRECT FETCH WORKS!\n\nScore: ' + (data.evaluation?.score || 'N/A'));
+            })
+            .catch(error => {
+                console.error('❌ DIRECT FETCH FAILED!');
+                console.error('Error:', error);
+                alert('❌ DIRECT FETCH FAILED!\n\nError: ' + error.message);
+            });
+        };
+        
+        // DEBUG: Check if fetch is available
+        console.log('🔍 Checking environment:');
+        console.log('  typeof fetch:', typeof fetch);
+        console.log('  window.fetch:', typeof window.fetch);
+        console.log('  Location:', window.location.href);
+        console.log('  Origin:', window.location.origin);
+        console.log('  Protocol:', window.location.protocol);
     </script>
 </x-filament-panels::page>
