@@ -11,6 +11,7 @@ class GeminiEvaluationService {
   constructor() {
     this.genAI = null;
     this.model = null;
+    this.currentModelName = 'gemini-1.5-flash-latest';
     this.initializeGemini();
   }
 
@@ -25,18 +26,41 @@ class GeminiEvaluationService {
       return;
     }
 
+    // Try different model names in order of preference
+    const modelNames = [
+      'gemini-1.5-flash-latest',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro-latest',
+      'gemini-1.5-pro',
+      'gemini-pro'
+    ];
+
     try {
       this.genAI = new GoogleGenerativeAI(apiKey);
-      this.model = this.genAI.getGenerativeModel({ 
-        model: 'gemini-pro', // Using stable gemini-pro model
-        generationConfig: {
-          temperature: 0.4,
-          topP: 0.95,
-          topK: 40,
-          maxOutputTokens: 8192,
+      
+      // Try the first available model
+      for (const modelName of modelNames) {
+        try {
+          this.model = this.genAI.getGenerativeModel({ 
+            model: modelName,
+            generationConfig: {
+              temperature: 0.4,
+              topP: 0.95,
+              topK: 40,
+              maxOutputTokens: 8192,
+            }
+          });
+          this.currentModelName = modelName;
+          console.log(`✅ Gemini AI initialized successfully with ${modelName}`);
+          break;
+        } catch (modelError) {
+          console.warn(`⚠️  Model ${modelName} not available: ${modelError.message}`);
         }
-      });
-      console.log('✅ Gemini AI initialized successfully with gemini-pro model');
+      }
+      
+      if (!this.model) {
+        throw new Error('No Gemini models available');
+      }
     } catch (error) {
       console.error('❌ Failed to initialize Gemini AI:', error.message);
     }
@@ -152,7 +176,7 @@ Please provide a structured evaluation in the following JSON format:
 
       // Add metadata
       evaluation.evaluatedAt = new Date().toISOString();
-      evaluation.aiModel = 'gemini-pro';
+      evaluation.aiModel = this.currentModelName || 'gemini-1.5-flash-latest';
       evaluation.itemCode = itemData.code;
       evaluation.itemTitle = itemData.title;
 
@@ -176,7 +200,7 @@ Please provide a structured evaluation in the following JSON format:
         riskAssessment: 'medium',
         nextSteps: ['Conduct manual review', 'Request additional evidence if needed'],
         evaluatedAt: new Date().toISOString(),
-        aiModel: 'gemini-pro',
+        aiModel: this.currentModelName || 'gemini-1.5-flash-latest',
         itemCode: itemData.code,
         itemTitle: itemData.title,
         parseError: true
