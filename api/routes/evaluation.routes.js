@@ -19,6 +19,8 @@ router.post('/audit-item', asyncHandler(async (req, res) => {
     description, 
     discussion, 
     applicability, 
+    files,
+    // Backward compatibility with old format
     fileNames, 
     fileContents 
   } = req.body;
@@ -40,6 +42,13 @@ router.post('/audit-item', asyncHandler(async (req, res) => {
   }
 
   console.log(`📝 Evaluating audit item: ${code} - ${title}`);
+  console.log(`📎 Files received: ${(files || []).length}`);
+  
+  if (files && files.length > 0) {
+    files.forEach((file, index) => {
+      console.log(`   ${index + 1}. ${file.name} (${file.mimeType}) [${file.encoding}]`);
+    });
+  }
 
   // Prepare item data
   const itemData = {
@@ -48,13 +57,12 @@ router.post('/audit-item', asyncHandler(async (req, res) => {
     description,
     discussion,
     applicability,
-    fileNames: fileNames || [],
-    fileContents: fileContents || []
+    files: files || [] // New format with file objects {name, mimeType, data, encoding}
   };
 
   try {
-    // Get AI evaluation
-    const evaluation = await geminiService.evaluateAuditItem(itemData, fileContents || []);
+    // Get AI evaluation with files
+    const evaluation = await geminiService.evaluateAuditItemWithFiles(itemData);
 
     res.status(200).json({
       success: true,
@@ -63,11 +71,11 @@ router.post('/audit-item', asyncHandler(async (req, res) => {
         itemCode: code,
         itemTitle: title,
         evaluatedAt: new Date().toISOString(),
-        filesAnalyzed: (fileNames || []).length
+        filesAnalyzed: (files || []).length
       }
     });
   } catch (error) {
-    console.error('Evaluation error:', error);
+    console.error('❌ Evaluation error:', error);
     res.status(500).json({
       error: 'Evaluation Failed',
       message: error.message,

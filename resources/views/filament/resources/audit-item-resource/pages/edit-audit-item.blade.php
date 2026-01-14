@@ -30,21 +30,24 @@
                 description: @js(strip_tags($record->auditable->description ?? '')),
                 discussion: @js(strip_tags($record->auditable->discussion ?? '')),
                 applicability: @js($record->applicability?->value ?? 'Not specified'),
-                fileNames: [],
-                fileContents: []
+                files: [] // Will contain {name, mimeType, data} objects
             };
 
             @php
-                $fileNames = [];
-                $fileContents = [];
+                $files = [];
                 
                 foreach ($record->dataRequests as $request) {
                     foreach ($request->responses as $response) {
                         if ($response->status === \App\Enums\ResponseStatus::RESPONDED) {
-                            // Add text response as evidence
+                            // Add text response as evidence (as a virtual "file")
                             if (!empty($response->response)) {
-                                $fileNames[] = "Response to {$request->code}";
-                                $fileContents[] = strip_tags($response->response);
+                                $files[] = [
+                                    'name' => "Response to {$request->code}.txt",
+                                    'mimeType' => 'text/plain',
+                                    'description' => "Text response to data request {$request->code}",
+                                    'data' => strip_tags($response->response),
+                                    'encoding' => 'text'
+                                ];
                             }
                             
                             // Add actual file contents from attachments
@@ -54,8 +57,6 @@
                                     $fileName = $attachment->file_name ?? basename($filePath);
                                     $fileDescription = $attachment->description ?? '';
                                     
-                                    $fileNames[] = $fileName;
-                                    
                                     // Get storage disk
                                     $disk = \Illuminate\Support\Facades\Storage::disk(setting('storage.driver', config('filesystems.default')));
                                     
@@ -63,30 +64,50 @@
                                     if ($disk->exists($filePath)) {
                                         $content = $disk->get($filePath);
                                         $fileSize = $disk->size($filePath);
+                                        $mimeType = $disk->mimeType($filePath);
                                         
-                                        // Check file extension to determine how to handle it
+                                        // Check file extension
                                         $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
                                         
                                         if (in_array($extension, ['txt', 'md', 'json', 'xml', 'csv'])) {
-                                            // Text files - send as-is
-                                            $fileContents[] = "File: {$fileName}\nDescription: {$fileDescription}\n\nContent:\n{$content}";
-                                        } elseif (in_array($extension, ['pdf', 'doc', 'docx', 'xls', 'xlsx'])) {
-                                            // Binary/document files - send metadata + description
-                                            $fileContents[] = "Document: {$fileName}\nType: {$extension}\nSize: " . number_format($fileSize / 1024, 2) . " KB\nDescription: {$fileDescription}\n\nNote: This is a {$extension} document submitted as evidence. The actual document content cannot be extracted automatically, but the file has been uploaded and is available for manual review.";
-                                        } elseif (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                                            // Image files - send description only (Gemini can't process images via text API)
-                                            $fileContents[] = "Image: {$fileName}\nType: {$extension}\nSize: " . number_format($fileSize / 1024, 2) . " KB\nDescription: {$fileDescription}\n\nNote: This is an image file submitted as evidence.";
+                                            // Text files - send as text
+                                            $files[] = [
+                                                'name' => $fileName,
+                                                'mimeType' => $mimeType,
+                                                'description' => $fileDescription,
+                                                'data' => $content,
+                                                'encoding' => 'text'
+                                            ];
                                         } else {
-                                            // Other files - send basic info
-                                            $fileContents[] = "File: {$fileName}\nType: {$extension}\nSize: " . number_format($fileSize / 1024, 2) . " KB\nDescription: {$fileDescription}";
+                                            // Binary files (PDF, images, etc) - send as base64
+                                            $files[] = [
+                                                'name' => $fileName,
+                                                'mimeType' => $mimeType,
+                                                'description' => $fileDescription,
+                                                'data' => base64_encode($content),
+                                                'size' => $fileSize,
+                                                'encoding' => 'base64'
+                                            ];
                                         }
                                     } else {
-                                        // File not found in storage
-                                        $fileContents[] = "File: {$fileName}\nStatus: Not found in storage\nDescription: {$fileDescription}";
+                                        // File not found - send error info
+                                        $files[] = [
+                                            'name' => $fileName,
+                                            'mimeType' => 'text/plain',
+                                            'description' => $fileDescription,
+                                            'data' => "ERROR: File not found in storage: {$filePath}",
+                                            'encoding' => 'text'
+                                        ];
                                     }
                                 } catch (\Exception $e) {
-                                    // Error reading file
-                                    $fileContents[] = "File: {$fileName}\nError: " . $e->getMessage();
+                                    // Error reading file - send error info
+                                    $files[] = [
+                                        'name' => $fileName ?? 'unknown',
+                                        'mimeType' => 'text/plain',
+                                        'description' => $fileDescription ?? '',
+                                        'data' => "ERROR: " . $e->getMessage(),
+                                        'encoding' => 'text'
+                                    ];
                                 }
                             }
                         }
@@ -94,18 +115,22 @@
                 }
             @endphp
 
-            requestData.fileNames = @js($fileNames);
-            requestData.fileContents = @js($fileContents);
+            requestData.files = @js($files);
 
             console.log('📡 API:', apiUrl);
             console.log('📦 Audit Item:', requestData.title, '-', requestData.code);
-            console.log('📄 Evidence count:', requestData.fileNames.length);
+            console.log('📄 Evidence files:', requestData.files.length);
             
-            if (requestData.fileNames.length > 0) {
-                console.log('📂 Files being sent:');
-                requestData.fileNames.forEach((name, index) => {
-                    const contentPreview = requestData.fileContents[index]?.substring(0, 100);
-                    console.log(`  ${index + 1}. ${name} (${requestData.fileContents[index]?.length || 0} chars)`);
+            if (requestData.files.length > 0) {
+                console.log('📂 Files being sent to Gemini:');
+                requestData.files.forEach((file, index) => {
+                    const sizeInfo = file.size ? ` (${(file.size / 1024).toFixed(2)} KB)` : '';
+                    const encodingInfo = file.encoding === 'base64' ? ' [BASE64]' : ' [TEXT]';
+                    console.log(`  ${index + 1}. ${file.name}${sizeInfo}${encodingInfo}`);
+                    console.log(`      Type: ${file.mimeType}`);
+                    if (file.description) {
+                        console.log(`      Desc: ${file.description}`);
+                    }
                 });
             }
 

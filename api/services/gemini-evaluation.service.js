@@ -69,7 +69,39 @@ class GeminiEvaluationService {
   }
 
   /**
-   * Evaluate audit item with Gemini AI
+   * Evaluate audit item with Gemini AI (with files support)
+   */
+  async evaluateAuditItemWithFiles(itemData) {
+    if (!this.model) {
+      throw new Error('Gemini AI not initialized. Please set GEMINI_API_KEY in environment variables');
+    }
+
+    try {
+      const { files = [] } = itemData;
+      
+      console.log('🤖 Sending evaluation request to Gemini AI with files...');
+      console.log(`📎 Processing ${files.length} file(s)`);
+      
+      // Build prompt with file information
+      const prompt = this.buildPromptWithFiles(itemData);
+      
+      // Send to Gemini
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const evaluation = response.text();
+
+      console.log('✅ Received evaluation from Gemini AI');
+      
+      // Parse the evaluation response
+      return this.parseEvaluation(evaluation, itemData);
+    } catch (error) {
+      console.error('❌ Gemini AI evaluation error:', error.message);
+      throw new Error(`AI Evaluation failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Evaluate audit item with Gemini AI (legacy method for backward compatibility)
    */
   async evaluateAuditItem(itemData, fileContents = []) {
     if (!this.model) {
@@ -95,7 +127,106 @@ class GeminiEvaluationService {
   }
 
   /**
-   * Build evaluation prompt for Gemini
+   * Build evaluation prompt with file support for Gemini
+   */
+  buildPromptWithFiles(itemData) {
+    const { title, code, description, discussion, applicability, files = [] } = itemData;
+
+    // Separate text and binary files
+    const textFiles = files.filter(f => f.encoding === 'text');
+    const binaryFiles = files.filter(f => f.encoding === 'base64');
+
+    let prompt = `You are an expert audit evaluator analyzing compliance evidence. You will be provided with audit item details and submitted evidence files.
+
+**AUDIT ITEM INFORMATION:**
+- Code: ${code || 'N/A'}
+- Title: ${title || 'N/A'}
+- Description: ${description || 'No description provided'}
+- Discussion: ${discussion || 'No discussion provided'}
+- Applicability: ${applicability || 'Not specified'}
+
+**SUBMITTED EVIDENCE (${files.length} file(s)):**
+`;
+
+    // Add text files content
+    if (textFiles.length > 0) {
+      prompt += `\n**TEXT-BASED EVIDENCE:**\n`;
+      textFiles.forEach((file, idx) => {
+        prompt += `\n--- File ${idx + 1}: ${file.name} ---`;
+        if (file.description) {
+          prompt += `\nDescription: ${file.description}`;
+        }
+        prompt += `\nMIME Type: ${file.mimeType}\n`;
+        prompt += `Content:\n${file.data.substring(0, 15000)}${file.data.length > 15000 ? '\n...[content truncated for length]' : ''}\n`;
+      });
+    }
+
+    // Add binary files information
+    if (binaryFiles.length > 0) {
+      prompt += `\n**BINARY/DOCUMENT FILES SUBMITTED:**\n`;
+      binaryFiles.forEach((file, idx) => {
+        prompt += `\n${idx + 1}. **${file.name}**`;
+        if (file.description) {
+          prompt += `\n   Description: ${file.description}`;
+        }
+        prompt += `\n   MIME Type: ${file.mimeType}`;
+        if (file.size) {
+          prompt += `\n   Size: ${(file.size / 1024).toFixed(2)} KB`;
+        }
+        prompt += `\n   Status: File submitted and available`;
+        
+        // For PDFs, note that the file is available
+        if (file.mimeType === 'application/pdf') {
+          prompt += `\n   Note: This is a PDF document. While I cannot directly read the PDF content in this format, `;
+          prompt += `the file has been submitted as evidence. The audit team should manually review this document.`;
+        }
+        prompt += `\n`;
+      });
+    }
+
+    if (files.length === 0) {
+      prompt += `\nNo evidence files have been submitted for this audit item.\n`;
+    }
+
+    prompt += `\n**EVALUATION TASK:**
+Analyze the audit item and all submitted evidence to provide a comprehensive evaluation. Consider:
+1. The completeness and quality of submitted evidence
+2. Whether the evidence demonstrates compliance with the audit requirements
+3. Gaps or weaknesses in the evidence
+4. Specific recommendations for improvement
+
+**IMPORTANT NOTES:**
+- For binary files (PDFs, images, etc.), acknowledge their submission and note that manual review is needed
+- Base your evaluation on the text evidence provided and the fact that documents have been submitted
+- Provide actionable recommendations even if some evidence requires manual review
+
+**RESPONSE FORMAT:**
+Provide your evaluation as a JSON object with this exact structure:
+
+{
+  "status": "Fully Compliant" | "Partially Compliant" | "Non-Compliant" | "Not Applicable",
+  "compliance_status": "Fully Compliant" | "Partially Compliant" | "Non-Compliant" | "Not Applicable",
+  "effectiveness": "Highly Effective" | "Effective" | "Partially Effective" | "Ineffective" | "Not Applicable",
+  "score": <number 0-100>,
+  "complianceLevel": "high" | "medium" | "low",
+  "strengths": ["strength 1", "strength 2", ...],
+  "weaknesses": ["weakness 1", "weakness 2", ...],
+  "recommendations": ["recommendation 1", "recommendation 2", ...],
+  "evidenceQuality": "Excellent" | "Good" | "Adequate" | "Poor",
+  "summary": "2-3 sentence overall assessment",
+  "detailedAnalysis": "Comprehensive 3-5 paragraph analysis",
+  "riskAssessment": "low" | "medium" | "high",
+  "nextSteps": ["step 1", "step 2", ...],
+  "note": "Any important notes or caveats"
+}
+
+**CRITICAL:** Return ONLY the JSON object. No markdown formatting, no additional text.`;
+
+    return prompt;
+  }
+
+  /**
+   * Build evaluation prompt for Gemini (legacy)
    */
   buildEvaluationPrompt(itemData, fileContents) {
     const { title, code, description, discussion, applicability, fileNames } = itemData;
