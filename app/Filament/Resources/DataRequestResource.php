@@ -325,7 +325,6 @@ class DataRequestResource extends Resource
                         ->options(
                             User::query()
                                 ->whereNotNull('name')
-                                ->whereNull('deleted_at')
                                 ->pluck('name', 'id')
                                 ->toArray()
                         )
@@ -467,7 +466,6 @@ class DataRequestResource extends Resource
                         ->options(
                             User::query()
                                 ->whereNotNull('name')
-                                ->whereNull('deleted_at')
                                 ->pluck('name', 'id')
                                 ->toArray()
                         )
@@ -653,7 +651,6 @@ class DataRequestResource extends Resource
                         ->options(
                             User::query()
                                 ->whereNotNull('name')
-                                ->whereNull('deleted_at')
                                 ->pluck('name', 'id')
                                 ->toArray()
                         )

@@ -298,9 +298,9 @@ class EditAuditItem extends EditRecord
                 ->update([
                     'ai_evaluation' => json_encode($evaluation, JSON_UNESCAPED_UNICODE),
                     'ai_evaluation_score' => (int) ($evaluation['score'] ?? 0),
-                    'ai_evaluation_at' => now(),
+                'ai_evaluation_at' => now(),
                     'updated_at' => now(),
-                ]);
+            ]);
 
             $this->geminiEvaluation = $evaluation;
 
