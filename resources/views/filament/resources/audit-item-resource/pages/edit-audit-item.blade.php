@@ -103,13 +103,14 @@ Please evaluate this audit item based on the information and evidence provided a
                 foreach ($record->dataRequests as $request) {
                     foreach ($request->responses as $response) {
                         if ($response->status === \App\Enums\ResponseStatus::RESPONDED) {
-                            // Add text response as evidence (as a virtual "file")
-                            if (!empty($response->response)) {
+                            // Only include text responses if they're meaningful (more than 50 chars)
+                            $textResponse = strip_tags($response->response ?? '');
+                            if (!empty($textResponse) && strlen($textResponse) > 50) {
                                 $files[] = [
                                     'name' => "Response to {$request->code}.txt",
                                     'mimeType' => 'text/plain',
                                     'description' => "Text response to data request {$request->code}",
-                                    'data' => strip_tags($response->response),
+                                    'data' => $textResponse,
                                     'encoding' => 'text'
                                 ];
                             }
