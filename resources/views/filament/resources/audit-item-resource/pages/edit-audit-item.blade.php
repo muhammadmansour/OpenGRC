@@ -235,15 +235,25 @@ Please evaluate this audit item based on the information and evidence provided a
                     // Show results in modal
                     showAiResultsModal(evaluation, duration);
                     
-                    // Save evaluation to database via Livewire
+                    // Save evaluation to database via background fetch (no Livewire refresh)
                     console.log('💾 Saving evaluation to database...');
-                    @this.call('saveGeminiEvaluation', evaluation)
-                        .then(() => {
+                    fetch('{{ route('filament.app.resources.audit-items.save-evaluation', $record->id) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        },
+                        body: JSON.stringify({ evaluation: evaluation })
+                    })
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.success) {
                             console.log('✅ Evaluation saved to database');
-                        })
-                        .catch((error) => {
-                            console.error('❌ Failed to save evaluation:', error);
-                        });
+                        } else {
+                            console.error('❌ Failed to save:', result.error);
+                        }
+                    })
+                    .catch(error => console.error('❌ Save error:', error));
 
                     // Show success notification
                     new FilamentNotification()

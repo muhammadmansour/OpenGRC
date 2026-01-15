@@ -77,6 +77,7 @@ class EditAuditItem extends EditRecord
                 ->color('info')
                 ->hidden(fn () => empty($this->record->ai_evaluation))
                 ->modalHeading('نتائج تحليل الذكاء الاصطناعي')
+                ->modalWidth('5xl')
                 ->modalContent(function () {
                     $evaluation = json_decode($this->record->ai_evaluation, true);
                     if (!$evaluation) {
@@ -278,6 +279,7 @@ class EditAuditItem extends EditRecord
     }
 
 
+    #[\Livewire\Attributes\On('saveEvaluation')]
     public function saveGeminiEvaluation($evaluation): void
     {
         try {
@@ -288,46 +290,49 @@ class EditAuditItem extends EditRecord
             
             \Log::info('📥 Received evaluation data', [
                 'audit_item_id' => $this->record->id,
-                'evaluation_keys' => is_array($evaluation) ? array_keys($evaluation) : 'not_array',
                 'score' => $evaluation['score'] ?? null,
             ]);
 
-            // Use query builder directly to avoid any model issues
+            // Use query builder directly - silent save, no component refresh
             \DB::table('audit_items')
                 ->where('id', $this->record->id)
                 ->update([
                     'ai_evaluation' => json_encode($evaluation, JSON_UNESCAPED_UNICODE),
                     'ai_evaluation_score' => (int) ($evaluation['score'] ?? 0),
-                'ai_evaluation_at' => now(),
+                    'ai_evaluation_at' => now(),
                     'updated_at' => now(),
-            ]);
+                ]);
 
             $this->geminiEvaluation = $evaluation;
 
-            \Log::info('✅ Gemini evaluation saved', [
+            \Log::info('✅ Gemini evaluation saved silently', [
                 'audit_item_id' => $this->record->id,
                 'score' => $evaluation['score'] ?? null,
             ]);
-
-            Notification::make()
-                ->title('تم حفظ التحليل بنجاح')
-                ->success()
-                ->send();
                 
         } catch (\Exception $e) {
             \Log::error('❌ Failed to save evaluation', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
                 'audit_item_id' => $this->record->id ?? 'unknown',
             ]);
-            
-            Notification::make()
-                ->title('فشل في حفظ التحليل')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-                
-            throw $e; // Re-throw to see the error in the browser
+        }
+    }
+    
+    public function saveEvaluationSilent(array $evaluation): bool
+    {
+        try {
+            \DB::table('audit_items')
+                ->where('id', $this->record->id)
+                ->update([
+                    'ai_evaluation' => json_encode($evaluation, JSON_UNESCAPED_UNICODE),
+                    'ai_evaluation_score' => (int) ($evaluation['score'] ?? 0),
+                    'ai_evaluation_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Failed to save evaluation: ' . $e->getMessage());
+            return false;
         }
     }
 }

@@ -58,6 +58,26 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/app/reset-password', PasswordResetPage::class)->name('password-reset-page');
 
+    // Save AI evaluation for audit items (AJAX endpoint)
+    Route::post('/app/audit-items/{auditItem}/save-evaluation', function (\App\Models\AuditItem $auditItem, \Illuminate\Http\Request $request) {
+        try {
+            $evaluation = $request->input('evaluation');
+            
+            \DB::table('audit_items')
+                ->where('id', $auditItem->id)
+                ->update([
+                    'ai_evaluation' => json_encode($evaluation, JSON_UNESCAPED_UNICODE),
+                    'ai_evaluation_score' => (int) ($evaluation['score'] ?? 0),
+                    'ai_evaluation_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    })->name('filament.app.resources.audit-items.save-evaluation');
+
     Route::get('/app/priv-storage/{filepath}', function ($filepath) {
         return Storage::disk('private')->download($filepath);
     })->where('filepath', '.*')->name('priv-storage');
