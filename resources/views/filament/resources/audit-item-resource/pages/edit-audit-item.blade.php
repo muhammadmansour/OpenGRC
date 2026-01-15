@@ -224,6 +224,16 @@ Please evaluate this audit item based on the information and evidence provided a
                     
                     // Show results in modal
                     showAiResultsModal(evaluation, duration);
+                    
+                    // Save evaluation to database via Livewire
+                    console.log('💾 Saving evaluation to database...');
+                    @this.call('saveGeminiEvaluation', evaluation)
+                        .then(() => {
+                            console.log('✅ Evaluation saved to database');
+                        })
+                        .catch((error) => {
+                            console.error('❌ Failed to save evaluation:', error);
+                        });
 
                     // Show success notification
                     new FilamentNotification()
