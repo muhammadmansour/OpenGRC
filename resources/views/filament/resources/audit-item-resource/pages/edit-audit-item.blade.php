@@ -1,43 +1,50 @@
 <x-filament-panels::page>
     {{ $this->form }}
 
-    {{-- AI Evaluation Results Modal --}}
-    <div id="ai-results-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            {{-- Background overlay --}}
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAiModal()"></div>
-
-            {{-- Modal panel --}}
-            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-                {{-- Header --}}
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <button onclick="closeAiModal()" class="text-white hover:text-gray-200">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                        <h3 class="text-xl font-bold text-white flex items-center">
-                            <svg class="w-6 h-6 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    {{-- AI Evaluation Results Modal - Full Screen Government Style --}}
+    <div id="ai-results-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        {{-- Full screen container --}}
+        <div class="w-screen h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
+            {{-- Header Bar --}}
+            <header class="bg-gradient-to-l from-slate-800 via-slate-700 to-slate-800 border-b-4 border-amber-500 px-6 py-4 flex-shrink-0">
+                <div class="max-w-7xl mx-auto flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center shadow-lg">
+                            <svg class="w-7 h-7 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                             </svg>
-                            نتائج تحليل الذكاء الاصطناعي
-                        </h3>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-white tracking-wide">تقرير التحليل الآلي</h1>
+                            <p class="text-slate-300 text-sm">نظام تقييم الامتثال بالذكاء الاصطناعي</p>
+                        </div>
                     </div>
-                </div>
-
-                {{-- Content --}}
-                <div id="ai-results-content" class="px-6 py-4 max-h-[70vh] overflow-y-auto">
-                    {{-- Content will be injected by JavaScript --}}
-                </div>
-
-                {{-- Footer --}}
-                <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex justify-end">
-                    <button onclick="closeAiModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
-                        إغلاق
+                    <button onclick="closeAiModal()" class="flex items-center gap-2 px-5 py-2.5 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <span class="font-medium">إغلاق</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
                 </div>
-            </div>
+            </header>
+
+            {{-- Main Content Area --}}
+            <main id="ai-results-content" class="flex-1 overflow-y-auto px-6 py-8">
+                {{-- Content will be injected by JavaScript --}}
+            </main>
+
+            {{-- Footer Bar --}}
+            <footer class="bg-slate-800 border-t border-slate-700 px-6 py-3 flex-shrink-0">
+                <div class="max-w-7xl mx-auto flex items-center justify-between text-slate-400 text-sm">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <span>تحليل آمن ومشفر</span>
+                    </div>
+                    <div id="modal-timestamp" class="text-slate-500"></div>
+                </div>
+            </footer>
         </div>
     </div>
 
@@ -293,128 +300,322 @@ Please evaluate this audit item based on the information and evidence provided a
         });
         
         function generateEvaluationHTML(eval, duration) {
-            const scoreColor = eval.score >= 80 ? 'green' : eval.score >= 50 ? 'yellow' : 'red';
-            const scoreColorClass = {
-                green: 'from-green-500 to-green-600',
-                yellow: 'from-yellow-500 to-yellow-600', 
-                red: 'from-red-500 to-red-600'
+            const scoreColor = eval.score >= 80 ? 'emerald' : eval.score >= 50 ? 'amber' : 'red';
+            const scoreConfig = {
+                emerald: { bg: 'from-emerald-600 to-emerald-700', ring: 'ring-emerald-400', text: 'text-emerald-400' },
+                amber: { bg: 'from-amber-500 to-amber-600', ring: 'ring-amber-400', text: 'text-amber-400' },
+                red: { bg: 'from-red-600 to-red-700', ring: 'ring-red-400', text: 'text-red-400' }
             }[scoreColor];
             
-            const statusBadge = {
-                'Compliant': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-                'Partially Compliant': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-                'Non-Compliant': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-            }[eval.compliance_status] || 'bg-gray-100 text-gray-800';
+            const statusConfig = {
+                'Compliant': { bg: 'bg-emerald-500', text: 'ممتثل', icon: '✓' },
+                'Partially Compliant': { bg: 'bg-amber-500', text: 'ممتثل جزئياً', icon: '◐' },
+                'Non-Compliant': { bg: 'bg-red-500', text: 'غير ممتثل', icon: '✗' }
+            }[eval.compliance_status] || { bg: 'bg-slate-500', text: eval.compliance_status, icon: '?' };
+
+            // Update timestamp in footer
+            document.getElementById('modal-timestamp').textContent = new Date().toLocaleString('ar-SA');
 
             return `
-                <div class="space-y-6" dir="rtl">
-                    <!-- Score Card -->
-                    <div class="bg-gradient-to-r ${scoreColorClass} rounded-xl p-6 text-white text-center">
-                        <div class="text-6xl font-bold mb-2">${eval.score}<span class="text-3xl">/100</span></div>
-                        <div class="text-xl">${eval.compliance_status}</div>
-                        <div class="text-sm opacity-80 mt-2">تم التحليل في ${Math.round(duration/1000)} ثانية</div>
-                    </div>
-                    
-                    <!-- Status Badges -->
-                    <div class="flex flex-wrap gap-3 justify-center">
-                        <span class="px-4 py-2 rounded-full text-sm font-medium ${statusBadge}">
-                            ${eval.compliance_status}
-                        </span>
-                        <span class="px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                            الفعالية: ${eval.effectiveness || 'N/A'}
-                        </span>
-                        <span class="px-4 py-2 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
-                            جودة الأدلة: ${eval.evidenceQuality || 'N/A'}
-                        </span>
-                        <span class="px-4 py-2 rounded-full text-sm font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
-                            المخاطر: ${eval.riskAssessment || 'N/A'}
-                        </span>
-                    </div>
-                    
-                    <!-- Files Analyzed -->
-                    ${eval.filesAnalyzed && eval.filesAnalyzed.length > 0 ? `
-                    <div class="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4">
-                        <h4 class="font-bold text-lg mb-3 text-indigo-900 dark:text-indigo-100">📁 الملفات التي تم تحليلها</h4>
-                        <div class="space-y-3">
-                            ${eval.filesAnalyzed.map(f => `
-                                <div class="bg-white dark:bg-gray-800 rounded-lg p-3 border border-indigo-200 dark:border-indigo-700">
-                                    <div class="font-medium text-indigo-800 dark:text-indigo-200">📄 ${f.filename}</div>
-                                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1"><strong>المحتوى:</strong> ${f.description}</div>
-                                    <div class="text-sm text-gray-600 dark:text-gray-400"><strong>الصلة:</strong> ${f.relevance}</div>
+                <div class="max-w-7xl mx-auto" dir="rtl">
+                    <!-- Top Stats Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Main Score Card -->
+                        <div class="lg:col-span-1">
+                            <div class="bg-gradient-to-br ${scoreConfig.bg} rounded-2xl p-6 text-white shadow-2xl h-full flex flex-col justify-center">
+                                <div class="text-center">
+                                    <div class="inline-flex items-center justify-center w-32 h-32 rounded-full bg-white/10 backdrop-blur ring-4 ${scoreConfig.ring} mb-4">
+                                        <span class="text-5xl font-black">${eval.score}</span>
+                                    </div>
+                                    <div class="text-lg font-semibold opacity-90">من 100 نقطة</div>
+                                    <div class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full text-sm font-medium">
+                                        <span class="text-lg">${statusConfig.icon}</span>
+                                        <span>${statusConfig.text}</span>
+                                    </div>
+                                    <div class="mt-4 text-xs opacity-70 flex items-center justify-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        تم التحليل في ${Math.round(duration/1000)} ثانية
+                                    </div>
                                 </div>
-                            `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats Cards -->
+                        <div class="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-lg border border-slate-200 dark:border-slate-700">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">الفعالية</span>
+                                </div>
+                                <div class="text-lg font-bold text-slate-800 dark:text-white">${eval.effectiveness || 'غير محدد'}</div>
+                            </div>
+
+                            <div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-lg border border-slate-200 dark:border-slate-700">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">جودة الأدلة</span>
+                                </div>
+                                <div class="text-lg font-bold text-slate-800 dark:text-white">${eval.evidenceQuality || 'غير محدد'}</div>
+                            </div>
+
+                            <div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-lg border border-slate-200 dark:border-slate-700">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">مستوى المخاطر</span>
+                                </div>
+                                <div class="text-lg font-bold text-slate-800 dark:text-white">${eval.riskAssessment || 'غير محدد'}</div>
+                            </div>
+
+                            <div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-lg border border-slate-200 dark:border-slate-700">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900/50 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">الملفات المحللة</span>
+                                </div>
+                                <div class="text-lg font-bold text-slate-800 dark:text-white">${eval.filesAnalyzed?.length || 0} ملف</div>
+                            </div>
                         </div>
                     </div>
-                    ` : ''}
-                    
-                    <!-- Summary -->
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <h4 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">📋 الملخص</h4>
-                        <p class="text-gray-700 dark:text-gray-300">${eval.summary || 'لا يوجد ملخص'}</p>
-                    </div>
-                    
-                    <!-- Detailed Analysis -->
-                    ${eval.detailedAnalysis ? `
-                    <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
-                        <h4 class="font-bold text-lg mb-2 text-blue-900 dark:text-blue-100">🔍 التحليل التفصيلي</h4>
-                        <p class="text-blue-800 dark:text-blue-200">${eval.detailedAnalysis}</p>
-                    </div>
-                    ` : ''}
-                    
-                    <!-- Two Column Layout -->
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <!-- Strengths -->
-                        <div class="bg-green-50 dark:bg-green-900/30 rounded-lg p-4">
-                            <h4 class="font-bold text-lg mb-3 text-green-900 dark:text-green-100">✅ نقاط القوة</h4>
-                            ${eval.strengths && eval.strengths.length > 0 ? `
-                                <ul class="space-y-2">
-                                    ${eval.strengths.map(s => `<li class="flex items-start"><span class="text-green-500 ml-2">•</span><span class="text-green-800 dark:text-green-200">${s}</span></li>`).join('')}
-                                </ul>
-                            ` : '<p class="text-green-600 dark:text-green-400 italic">لم يتم تحديد نقاط قوة</p>'}
+
+                    <!-- Main Content Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Right Column (2/3) -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Summary Section -->
+                            <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                <div class="bg-slate-100 dark:bg-slate-700 px-6 py-4 border-b border-slate-200 dark:border-slate-600">
+                                    <h2 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-600 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        الملخص التنفيذي
+                                    </h2>
+                                </div>
+                                <div class="p-6">
+                                    <p class="text-slate-700 dark:text-slate-300 leading-relaxed text-base">${eval.summary || 'لا يوجد ملخص متاح'}</p>
+                                </div>
+                            </section>
+
+                            <!-- Detailed Analysis -->
+                            ${eval.detailedAnalysis ? `
+                            <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                <div class="bg-blue-50 dark:bg-blue-900/30 px-6 py-4 border-b border-blue-100 dark:border-blue-800">
+                                    <h2 class="text-lg font-bold text-blue-900 dark:text-blue-100 flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                        </div>
+                                        التحليل التفصيلي
+                                    </h2>
+                                </div>
+                                <div class="p-6">
+                                    <p class="text-slate-700 dark:text-slate-300 leading-relaxed">${eval.detailedAnalysis}</p>
+                                </div>
+                            </section>
+                            ` : ''}
+
+                            <!-- Strengths & Weaknesses Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Strengths -->
+                                <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                    <div class="bg-emerald-50 dark:bg-emerald-900/30 px-6 py-4 border-b border-emerald-100 dark:border-emerald-800">
+                                        <h2 class="text-lg font-bold text-emerald-900 dark:text-emerald-100 flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            نقاط القوة
+                                        </h2>
+                                    </div>
+                                    <div class="p-6">
+                                        ${eval.strengths && eval.strengths.length > 0 ? `
+                                            <ul class="space-y-3">
+                                                ${eval.strengths.map(s => `
+                                                    <li class="flex items-start gap-3">
+                                                        <span class="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                            <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        </span>
+                                                        <span class="text-slate-700 dark:text-slate-300">${s}</span>
+                                                    </li>
+                                                `).join('')}
+                                            </ul>
+                                        ` : '<p class="text-slate-500 italic">لم يتم تحديد نقاط قوة</p>'}
+                                    </div>
+                                </section>
+
+                                <!-- Weaknesses -->
+                                <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                    <div class="bg-red-50 dark:bg-red-900/30 px-6 py-4 border-b border-red-100 dark:border-red-800">
+                                        <h2 class="text-lg font-bold text-red-900 dark:text-red-100 flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                            </div>
+                                            نقاط الضعف
+                                        </h2>
+                                    </div>
+                                    <div class="p-6">
+                                        ${eval.weaknesses && eval.weaknesses.length > 0 ? `
+                                            <ul class="space-y-3">
+                                                ${eval.weaknesses.map(w => `
+                                                    <li class="flex items-start gap-3">
+                                                        <span class="w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                            <svg class="w-3 h-3 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                        </span>
+                                                        <span class="text-slate-700 dark:text-slate-300">${w}</span>
+                                                    </li>
+                                                `).join('')}
+                                            </ul>
+                                        ` : '<p class="text-slate-500 italic">لم يتم تحديد نقاط ضعف</p>'}
+                                    </div>
+                                </section>
+                            </div>
+
+                            <!-- Recommendations -->
+                            <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                <div class="bg-amber-50 dark:bg-amber-900/30 px-6 py-4 border-b border-amber-100 dark:border-amber-800">
+                                    <h2 class="text-lg font-bold text-amber-900 dark:text-amber-100 flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                            </svg>
+                                        </div>
+                                        التوصيات
+                                    </h2>
+                                </div>
+                                <div class="p-6">
+                                    ${eval.recommendations && eval.recommendations.length > 0 ? `
+                                        <div class="space-y-4">
+                                            ${eval.recommendations.map((r, i) => `
+                                                <div class="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                                                    <span class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold flex-shrink-0">${i+1}</span>
+                                                    <p class="text-slate-700 dark:text-slate-300 pt-1">${r}</p>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    ` : '<p class="text-slate-500 italic">لا توجد توصيات</p>'}
+                                </div>
+                            </section>
                         </div>
-                        
-                        <!-- Weaknesses -->
-                        <div class="bg-red-50 dark:bg-red-900/30 rounded-lg p-4">
-                            <h4 class="font-bold text-lg mb-3 text-red-900 dark:text-red-100">⚠️ نقاط الضعف</h4>
-                            ${eval.weaknesses && eval.weaknesses.length > 0 ? `
-                                <ul class="space-y-2">
-                                    ${eval.weaknesses.map(w => `<li class="flex items-start"><span class="text-red-500 ml-2">•</span><span class="text-red-800 dark:text-red-200">${w}</span></li>`).join('')}
-                                </ul>
-                            ` : '<p class="text-red-600 dark:text-red-400 italic">لم يتم تحديد نقاط ضعف</p>'}
+
+                        <!-- Left Column (1/3) - Sidebar -->
+                        <div class="space-y-6">
+                            <!-- Files Analyzed -->
+                            ${eval.filesAnalyzed && eval.filesAnalyzed.length > 0 ? `
+                            <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                <div class="bg-indigo-50 dark:bg-indigo-900/30 px-6 py-4 border-b border-indigo-100 dark:border-indigo-800">
+                                    <h2 class="text-lg font-bold text-indigo-900 dark:text-indigo-100 flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        الملفات المحللة
+                                    </h2>
+                                </div>
+                                <div class="p-4 space-y-3">
+                                    ${eval.filesAnalyzed.map(f => `
+                                        <div class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <div class="w-8 h-8 rounded bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+                                                    <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                                <span class="font-medium text-slate-800 dark:text-white text-sm truncate">${f.filename}</span>
+                                            </div>
+                                            <p class="text-xs text-slate-600 dark:text-slate-400 mb-2">${f.description}</p>
+                                            <span class="inline-block px-2 py-1 text-xs rounded-full ${f.relevance?.includes('High') || f.relevance?.includes('عالي') ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : f.relevance?.includes('Low') || f.relevance?.includes('منخفض') ? 'bg-slate-100 text-slate-600 dark:bg-slate-600 dark:text-slate-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'}">
+                                                الصلة: ${f.relevance}
+                                            </span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </section>
+                            ` : ''}
+
+                            <!-- Next Steps -->
+                            ${eval.nextSteps && eval.nextSteps.length > 0 ? `
+                            <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                <div class="bg-violet-50 dark:bg-violet-900/30 px-6 py-4 border-b border-violet-100 dark:border-violet-800">
+                                    <h2 class="text-lg font-bold text-violet-900 dark:text-violet-100 flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                            </svg>
+                                        </div>
+                                        الخطوات التالية
+                                    </h2>
+                                </div>
+                                <div class="p-4">
+                                    <div class="space-y-3">
+                                        ${eval.nextSteps.map((s, i) => `
+                                            <div class="flex items-start gap-3">
+                                                <span class="w-6 h-6 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">${i+1}</span>
+                                                <p class="text-sm text-slate-700 dark:text-slate-300">${s}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </section>
+                            ` : ''}
+
+                            <!-- Note -->
+                            ${eval.note ? `
+                            <section class="bg-slate-100 dark:bg-slate-700 rounded-2xl p-5 border-r-4 border-slate-500">
+                                <div class="flex items-start gap-3">
+                                    <svg class="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p class="text-sm text-slate-700 dark:text-slate-300">${eval.note}</p>
+                                </div>
+                            </section>
+                            ` : ''}
+
+                            <!-- AI Model Info -->
+                            <div class="bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl p-5 text-white">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm text-slate-400">تم التحليل بواسطة</div>
+                                        <div class="font-bold">${eval.aiModel || 'Gemini AI'}</div>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-slate-400">
+                                    ${eval.timestamp ? new Date(eval.timestamp).toLocaleString('ar-SA') : new Date().toLocaleString('ar-SA')}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Recommendations -->
-                    <div class="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-4">
-                        <h4 class="font-bold text-lg mb-3 text-yellow-900 dark:text-yellow-100">💡 التوصيات</h4>
-                        ${eval.recommendations && eval.recommendations.length > 0 ? `
-                            <ul class="space-y-2">
-                                ${eval.recommendations.map((r, i) => `<li class="flex items-start"><span class="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm ml-2 flex-shrink-0">${i+1}</span><span class="text-yellow-800 dark:text-yellow-200">${r}</span></li>`).join('')}
-                            </ul>
-                        ` : '<p class="text-yellow-600 dark:text-yellow-400 italic">لا توجد توصيات</p>'}
-                    </div>
-                    
-                    <!-- Next Steps -->
-                    ${eval.nextSteps && eval.nextSteps.length > 0 ? `
-                    <div class="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-4">
-                        <h4 class="font-bold text-lg mb-3 text-purple-900 dark:text-purple-100">📌 الخطوات التالية</h4>
-                        <ul class="space-y-2">
-                            ${eval.nextSteps.map((s, i) => `<li class="flex items-start"><span class="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm ml-2 flex-shrink-0">${i+1}</span><span class="text-purple-800 dark:text-purple-200">${s}</span></li>`).join('')}
-                        </ul>
-                    </div>
-                    ` : ''}
-                    
-                    <!-- Note -->
-                    ${eval.note ? `
-                    <div class="bg-gray-100 dark:bg-gray-600 rounded-lg p-4 border-r-4 border-gray-500">
-                        <p class="text-gray-700 dark:text-gray-200"><strong>ملاحظة:</strong> ${eval.note}</p>
-                    </div>
-                    ` : ''}
-                    
-                    <!-- Footer Info -->
-                    <div class="text-center text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-600">
-                        <p>🤖 تم التحليل بواسطة: ${eval.aiModel || 'Gemini AI'}</p>
-                        <p>🕐 ${eval.timestamp ? new Date(eval.timestamp).toLocaleString('ar-SA') : new Date().toLocaleString('ar-SA')}</p>
                     </div>
                 </div>
             `;
