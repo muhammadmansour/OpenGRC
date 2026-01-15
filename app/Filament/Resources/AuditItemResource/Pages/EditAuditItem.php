@@ -76,20 +76,9 @@ class EditAuditItem extends EditRecord
                 ->icon('heroicon-o-document-text')
                 ->color('info')
                 ->hidden(fn () => empty($this->record->ai_evaluation))
-                ->modalHeading('نتائج تحليل الذكاء الاصطناعي')
-                ->modalWidth('5xl')
-                ->modalContent(function () {
-                    $evaluation = json_decode($this->record->ai_evaluation, true);
-                    if (!$evaluation) {
-                        return view('filament.components.no-evaluation');
-                    }
-                    
-                    return view('filament.components.gemini-evaluation-results', [
-                        'evaluation' => $evaluation,
-                    ]);
-                })
-                ->modalSubmitAction(false)
-                ->modalCancelActionLabel('إغلاق'),
+                ->extraAttributes([
+                    'onclick' => 'window.showSavedEvaluation(); return false;',
+                ]),
             Action::make('ai_suggestions')
                 ->label(__('Get AI Suggestions'))
                 ->icon('heroicon-o-sparkles')

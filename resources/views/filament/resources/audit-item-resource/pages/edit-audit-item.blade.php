@@ -287,6 +287,26 @@ Please evaluate this audit item based on the information and evidence provided a
             });
         };
         
+        // Function to show saved evaluation in full-screen modal
+        window.showSavedEvaluation = function() {
+            @php
+                $savedEvaluation = $record->ai_evaluation ? json_decode($record->ai_evaluation, true) : null;
+            @endphp
+            
+            const savedEvaluation = @js($savedEvaluation);
+            
+            if (!savedEvaluation) {
+                new FilamentNotification()
+                    .title('لا توجد نتائج محفوظة')
+                    .warning()
+                    .send();
+                return;
+            }
+            
+            console.log('📊 Showing saved evaluation:', savedEvaluation);
+            showAiResultsModal(savedEvaluation, 0);
+        };
+        
         console.log('✅ Gemini evaluation script loaded and ready');
         
         // Modal functions
@@ -338,7 +358,7 @@ Please evaluate this audit item based on the information and evidence provided a
                                 ${statusText}
                             </div>
                             <div style="margin-top: 16px; font-size: 12px; opacity: 0.7;">
-                                ⏱ تم التحليل في ${Math.round(duration/1000)} ثانية
+                                ${duration > 0 ? `⏱ تم التحليل في ${Math.round(duration/1000)} ثانية` : '📁 نتائج محفوظة مسبقاً'}
                             </div>
                         </div>
 
