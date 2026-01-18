@@ -175,6 +175,7 @@ class StandardsService {
 
   /**
    * Store standard criteria (bundles) to database
+   * Supports hierarchical structure with parent_code
    * @param {Array} criteria - Array of standard criteria objects
    * @returns {Promise<{success: boolean, stored: number, errors: Array}>}
    */
@@ -191,12 +192,29 @@ class StandardsService {
 
     const results = { success: true, stored: 0, updated: 0, errors: [] };
 
-    for (const item of criteria) {
+    // Sort criteria so parents are processed first (shorter codes first)
+    const sortedCriteria = [...criteria].sort((a, b) => 
+      (a.code || '').length - (b.code || '').length
+    );
+
+    for (const item of sortedCriteria) {
       try {
         // Validate required fields
         if (!item.code || !item.name) {
           results.errors.push({ code: item.code, error: 'Missing required fields (code, name)' });
           continue;
+        }
+
+        // Look up parent_id if parent_code is provided
+        let parentId = null;
+        if (item.parent_code) {
+          const parentResult = await db.query(
+            'SELECT id FROM standard_criteria WHERE code = $1',
+            [item.parent_code]
+          );
+          if (parentResult.rows.length > 0) {
+            parentId = parentResult.rows[0].id;
+          }
         }
 
         // Check if criteria already exists
@@ -214,29 +232,32 @@ class StandardsService {
               description = $3,
               version = $4,
               url = $5,
+              parent_id = $6,
               updated_at = NOW()
-            WHERE code = $6
+            WHERE code = $7
           `, [
             item.name,
             item.authority || null,
             item.description || null,
             item.version || null,
             item.url || null,
+            parentId,
             item.code
           ]);
           results.updated++;
         } else {
           // Insert new
           await db.query(`
-            INSERT INTO standard_criteria (code, name, authority, description, version, url, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+            INSERT INTO standard_criteria (code, name, authority, description, version, url, parent_id, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
           `, [
             item.code,
             item.name,
             item.authority || null,
             item.description || null,
             item.version || null,
-            item.url || null
+            item.url || null,
+            parentId
           ]);
           results.stored++;
         }
@@ -252,7 +273,7 @@ class StandardsService {
   }
 
   /**
-   * Get all stored standard criteria
+   * Get all stored standard criteria with hierarchy info
    * @returns {Promise<Array>}
    */
   async getAllCriteria() {
@@ -261,11 +282,50 @@ class StandardsService {
     }
 
     const result = await db.query(`
-      SELECT * FROM standard_criteria
-      ORDER BY authority, name
+      SELECT 
+        c.*,
+        p.code as parent_code,
+        p.name as parent_name
+      FROM standard_criteria c
+      LEFT JOIN standard_criteria p ON c.parent_id = p.id
+      ORDER BY c.code
     `);
 
     return result.rows;
+  }
+
+  /**
+   * Get criteria with children (hierarchical structure)
+   * @returns {Promise<Array>}
+   */
+  async getCriteriaHierarchy() {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    // Get all parent criteria (no parent_id)
+    const parents = await db.query(`
+      SELECT * FROM standard_criteria
+      WHERE parent_id IS NULL
+      ORDER BY code
+    `);
+
+    // For each parent, get children
+    const hierarchy = [];
+    for (const parent of parents.rows) {
+      const children = await db.query(`
+        SELECT * FROM standard_criteria
+        WHERE parent_id = $1
+        ORDER BY code
+      `, [parent.id]);
+
+      hierarchy.push({
+        ...parent,
+        children: children.rows
+      });
+    }
+
+    return hierarchy;
   }
 
   /**

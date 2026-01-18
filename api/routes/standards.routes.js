@@ -35,6 +35,25 @@ router.get('/criteria', asyncHandler(async (req, res) => {
 
 /**
  * @swagger
+ * /api/standards/criteria/hierarchy:
+ *   get:
+ *     summary: Get criteria in hierarchical structure (parents with children)
+ *     tags: [Standards]
+ *     responses:
+ *       200:
+ *         description: Hierarchical list of criteria
+ */
+router.get('/criteria/hierarchy', asyncHandler(async (req, res) => {
+  const hierarchy = await standardsService.getCriteriaHierarchy();
+  res.json({
+    success: true,
+    count: hierarchy.length,
+    data: hierarchy
+  });
+}));
+
+/**
+ * @swagger
  * /api/standards/criteria:
  *   post:
  *     summary: Store standard criteria (bundles)
