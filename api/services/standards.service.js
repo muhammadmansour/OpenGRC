@@ -25,7 +25,7 @@ class StandardsService {
 
     const result = await db.query(`
       SELECT * FROM domain_references
-      WHERE expert_id = ?
+      WHERE expert_id = $1
       ORDER BY created_at DESC
     `, [trimmedExpertId]);
 
@@ -137,7 +137,7 @@ class StandardsService {
 
     // Delete existing standards for this expert first
     try {
-      await db.query('DELETE FROM audit_standards WHERE expert_id = ?', [expertId]);
+      await db.query('DELETE FROM audit_standards WHERE expert_id = $1', [expertId]);
     } catch (error) {
       console.warn('⚠️ Error deleting existing standards:', error.message);
     }
@@ -153,7 +153,7 @@ class StandardsService {
             complexity_level, estimated_time_hours, mandatory, type,
             requirements, evidence_documents, sub_standards, cross_domain_ids,
             created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW(), NOW())
         `, [
           record.expert_id, record.domain_id, record.category_id,
           record.category_name_ar, record.category_name_en,
@@ -201,7 +201,7 @@ class StandardsService {
 
         // Check if criteria already exists
         const existing = await db.query(
-          'SELECT id FROM standard_criteria WHERE code = ?',
+          'SELECT id FROM standard_criteria WHERE code = $1',
           [item.code]
         );
 
@@ -209,13 +209,13 @@ class StandardsService {
           // Update existing
           await db.query(`
             UPDATE standard_criteria SET
-              name = ?,
-              authority = ?,
-              description = ?,
-              version = ?,
-              url = ?,
+              name = $1,
+              authority = $2,
+              description = $3,
+              version = $4,
+              url = $5,
               updated_at = NOW()
-            WHERE code = ?
+            WHERE code = $6
           `, [
             item.name,
             item.authority || null,
@@ -229,7 +229,7 @@ class StandardsService {
           // Insert new
           await db.query(`
             INSERT INTO standard_criteria (code, name, authority, description, version, url, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
           `, [
             item.code,
             item.name,
@@ -279,7 +279,7 @@ class StandardsService {
     }
 
     const result = await db.query(
-      'SELECT * FROM standard_criteria WHERE code = ?',
+      'SELECT * FROM standard_criteria WHERE code = $1',
       [code]
     );
 
@@ -297,7 +297,7 @@ class StandardsService {
     }
 
     const result = await db.query(
-      'DELETE FROM standard_criteria WHERE code = ?',
+      'DELETE FROM standard_criteria WHERE code = $1',
       [code]
     );
 
@@ -336,19 +336,19 @@ class StandardsService {
 
       // Store the imported standard data
       const existing = await db.query(
-        'SELECT id FROM imported_standards WHERE code = ?',
+        'SELECT id FROM imported_standards WHERE code = $1',
         [code]
       );
 
       if (existing.rows.length > 0) {
         await db.query(`
           UPDATE imported_standards SET
-            name = ?,
-            authority = ?,
-            description = ?,
-            data = ?,
+            name = $1,
+            authority = $2,
+            description = $3,
+            data = $4,
             updated_at = NOW()
-          WHERE code = ?
+          WHERE code = $5
         `, [
           standardData.name || criteria.name,
           standardData.authority || criteria.authority,
@@ -359,7 +359,7 @@ class StandardsService {
       } else {
         await db.query(`
           INSERT INTO imported_standards (code, name, authority, description, data, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+          VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
         `, [
           code,
           standardData.name || criteria.name,
@@ -371,7 +371,7 @@ class StandardsService {
 
       // Update criteria status
       await db.query(
-        'UPDATE standard_criteria SET status = ?, imported_at = NOW() WHERE code = ?',
+        'UPDATE standard_criteria SET status = $1, imported_at = NOW() WHERE code = $2',
         ['imported', code]
       );
 
@@ -394,7 +394,7 @@ class StandardsService {
     }
 
     const result = await db.query(
-      'SELECT * FROM imported_standards WHERE code = ?',
+      'SELECT * FROM imported_standards WHERE code = $1',
       [code]
     );
 

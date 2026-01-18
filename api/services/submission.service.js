@@ -14,11 +14,12 @@ class SubmissionService {
       throw new Error('Database not configured');
     }
 
-    await db.query(`
+    const result = await db.query(`
       INSERT INTO sub_criteria_submissions (
         ministry_id, ministry_name, criteria_id, sub_criteria_id,
         file_ids, status, submitted_date, last_updated
-      ) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+      RETURNING id
     `, [
       params.ministryId || 'construction-audit',
       params.ministryName || 'Construction Audit',
@@ -28,12 +29,8 @@ class SubmissionService {
       'submitted'
     ]);
 
-    // Get the last inserted ID
-    const result = await db.query('SELECT LAST_INSERT_ID() as id');
-    const id = result.rows[0].id;
-
-    console.log(`Created submission ${id}`);
-    return id;
+    console.log(`Created submission ${result.rows[0].id}`);
+    return result.rows[0].id;
   }
 
   /**
@@ -48,9 +45,9 @@ class SubmissionService {
 
     await db.query(`
       UPDATE sub_criteria_submissions
-      SET ai_analysis_result = ?, score = ?, compliance_level = ?,
-          status = ?, last_updated = NOW()
-      WHERE id = ?
+      SET ai_analysis_result = $1, score = $2, compliance_level = $3,
+          status = $4, last_updated = NOW()
+      WHERE id = $5
     `, [
       JSON.stringify(aiAnalysisResult),
       score,
@@ -73,8 +70,8 @@ class SubmissionService {
 
     await db.query(`
       UPDATE sub_criteria_submissions
-      SET status = ?, last_updated = NOW()
-      WHERE id = ?
+      SET status = $1, last_updated = NOW()
+      WHERE id = $2
     `, [status, submissionId]);
 
     console.log('✅ Updated submission status to:', status);
@@ -91,7 +88,7 @@ class SubmissionService {
 
     const result = await db.query(`
       SELECT * FROM sub_criteria_submissions
-      WHERE id = ?
+      WHERE id = $1
     `, [submissionId]);
 
     return result.rows[0] || null;
@@ -107,7 +104,7 @@ class SubmissionService {
 
     const result = await db.query(`
       SELECT * FROM sub_criteria_submissions
-      WHERE ministry_id = ?
+      WHERE ministry_id = $1
       ORDER BY submitted_date DESC
     `, [ministryId]);
 
@@ -124,7 +121,7 @@ class SubmissionService {
 
     const result = await db.query(`
       SELECT * FROM sub_criteria_submissions
-      WHERE criteria_id = ?
+      WHERE criteria_id = $1
       ORDER BY submitted_date DESC
     `, [criteriaId]);
 
@@ -158,7 +155,7 @@ class SubmissionService {
     const result = await db.query(`
       SELECT * FROM sub_criteria_submissions
       ORDER BY last_updated DESC
-      LIMIT ?
+      LIMIT $1
     `, [limit]);
 
     return result.rows || [];

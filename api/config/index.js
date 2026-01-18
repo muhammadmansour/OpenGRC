@@ -19,16 +19,17 @@ const config = {
   // Default Collection
   defaultCollectionId: process.env.DEFAULT_COLLECTION_ID || '118',
   
-  // MySQL Database
-  mysql: {
-    host: process.env.DB_HOST || '127.0.0.1',
-    port: parseInt(process.env.DB_PORT || '3306'),
-    database: process.env.DB_DATABASE || 'opengrc',
-    user: process.env.DB_USERNAME || 'root',
-    password: process.env.DB_PASSWORD || '',
-    waitForConnections: true,
-    connectionLimit: parseInt(process.env.DB_POOL_MAX || '10'),
-    queueLimit: 0,
+  // PostgreSQL Database
+  postgres: {
+    host: process.env.PG_HOST || process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.PG_PORT || process.env.DB_PORT || '5432'),
+    database: process.env.PG_DATABASE || process.env.DB_DATABASE || 'opengrc',
+    user: process.env.PG_USER || process.env.DB_USERNAME || 'postgres',
+    password: process.env.PG_PASSWORD || process.env.DB_PASSWORD || '',
+    ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    max: parseInt(process.env.PG_POOL_MAX || '20'),
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
   },
   
   // JWT
