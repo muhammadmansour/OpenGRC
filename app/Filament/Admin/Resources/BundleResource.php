@@ -109,10 +109,12 @@ class BundleResource extends Resource
                     })
                     ->button()
                     ->requiresConfirmation()
-                    ->modalContent(function () {
-                        return new HtmlString('
-                                <div>This action will import the selected bundle into your WathbaGRC. If you already have
-                                content in WathbaGRC with the same codes, this will overwrite that data.</div>');
+                    ->modalContent(function ($record) {
+                        $isMuraji = str_starts_with($record->repo_url ?? '', 'muraji://');
+                        $source = $isMuraji ? 'Muraji API' : 'WathbaGRC repository';
+                        return new HtmlString("
+                                <div>This action will import the selected bundle from <strong>{$source}</strong> into your WathbaGRC. If you already have
+                                content in WathbaGRC with the same codes, this will overwrite that data.</div>");
                     })
                     ->visible(fn () => auth()->check() && auth()->user()->can('Manage Bundles'))
                     ->modalHeading('Bundle Import')
@@ -122,7 +124,13 @@ class BundleResource extends Resource
                             ->title('Import Started')
                             ->body("Importing bundle with code: $record->code")
                             ->send();
-                        BundleController::importBundle($record);
+                        
+                        // Check if it's a Muraji bundle
+                        if (str_starts_with($record->repo_url ?? '', 'muraji://')) {
+                            BundleController::importMurajiBundle($record);
+                        } else {
+                            BundleController::importBundle($record);
+                        }
                     }),
             ])
             ->headerActions([

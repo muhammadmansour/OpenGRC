@@ -77,9 +77,8 @@ class BundleController extends Controller
     }
 
     /**
-     * Fetch criteria from Muraji API (hierarchy endpoint) and save:
-     * - Criteria → Standards table (for audit dropdown)
-     * - Sub-criteria → Controls table (under the parent standard)
+     * Fetch criteria from Muraji API and add to Bundles page
+     * Users can then click "Import Bundle" to import them as Standards + Controls
      */
     public static function retrieveFromMurajiApi(): void
     {
@@ -102,56 +101,37 @@ class BundleController extends Controller
                 throw new \Exception('Invalid response format from Muraji API');
             }
 
-            $standardsCount = 0;
-            $controlsCount = 0;
+            $count = 0;
 
-            // Process each criteria and its sub-criteria
+            // Add each criteria to Bundles table (for display in Bundles page)
             foreach ($criteriaList as $criteria) {
                 if (empty($criteria['code']) || empty($criteria['name'])) {
                     continue;
                 }
 
-                // Save criteria as Standard
-                $standard = Standard::updateOrCreate(
+                // Count sub-criteria
+                $subCount = count($criteria['sub_criteria'] ?? []);
+
+                // Add to Bundles table
+                Bundle::updateOrCreate(
                     ['code' => $criteria['code']],
                     [
                         'code' => $criteria['code'],
                         'name' => $criteria['name'],
+                        'version' => $criteria['version'] ?? '1.0',
                         'authority' => $criteria['authority'] ?? 'Muraji',
-                        'description' => $criteria['description'] ?? '',
-                        'status' => 'In Scope',
+                        'description' => ($criteria['description'] ?? '') . "\n\n" . $subCount . ' معيار فرعي',
+                        'repo_url' => 'muraji://' . $criteria['code'], // Special URL scheme for Muraji
+                        'type' => 'Standard',
                     ]
                 );
-                $standardsCount++;
-                Log::info("Created/Updated Standard: {$criteria['code']} - {$criteria['name']}");
-
-                // Process sub-criteria if present
-                $subCriteria = $criteria['sub_criteria'] ?? [];
-                foreach ($subCriteria as $sub) {
-                    if (empty($sub['code']) || empty($sub['name'])) {
-                        continue;
-                    }
-
-                    Control::updateOrCreate(
-                        ['code' => $sub['code'], 'standard_id' => $standard->id],
-                        [
-                            'standard_id' => $standard->id,
-                            'code' => $sub['code'],
-                            'title' => $sub['name'],
-                            'description' => $sub['description'] ?? '',
-                            'type' => 'Other',
-                            'category' => 'Other',
-                            'enforcement' => 'Mandatory',
-                        ]
-                    );
-                    $controlsCount++;
-                    Log::info("Created/Updated Control: {$sub['code']} under Standard {$criteria['code']}");
-                }
+                $count++;
+                Log::info("Added to Bundles: {$criteria['code']} - {$criteria['name']}");
             }
 
             Notification::make()
                 ->title('Muraji API Sync Complete')
-                ->body("Imported {$standardsCount} standards and {$controlsCount} controls.")
+                ->body("Added {$count} criteria to Bundles. Click 'Import Bundle' to import them.")
                 ->success()
                 ->send();
 
@@ -166,6 +146,82 @@ class BundleController extends Controller
             Log::error('Muraji API error', ['error' => $e->getMessage()]);
             Notification::make()
                 ->title('Error Fetching from Muraji API')
+                ->body($e->getMessage())
+                ->color('danger')
+                ->send();
+        }
+    }
+
+    /**
+     * Import a Muraji criteria bundle (criteria → Standard, sub_criteria → Controls)
+     */
+    public static function importMurajiBundle(Bundle $bundle): void
+    {
+        $apiUrl = 'https://muraji-api.wathbahs.com/api/standards/criteria/' . $bundle->code;
+
+        try {
+            // Fetch the specific criteria with sub-criteria
+            $response = Http::get($apiUrl)->throw();
+            $result = json_decode($response->body(), true);
+            
+            $criteria = $result['data'] ?? $result;
+            
+            if (empty($criteria['code'])) {
+                throw new \Exception('Invalid criteria data from Muraji API');
+            }
+
+            // Create Standard from criteria
+            $standard = Standard::updateOrCreate(
+                ['code' => $criteria['code']],
+                [
+                    'code' => $criteria['code'],
+                    'name' => $criteria['name'],
+                    'authority' => $criteria['authority'] ?? 'Muraji',
+                    'description' => $criteria['description'] ?? '',
+                    'status' => 'In Scope',
+                ]
+            );
+            Log::info("Created Standard: {$criteria['code']}");
+
+            // Fetch sub-criteria
+            $subResponse = Http::get('https://muraji-api.wathbahs.com/api/standards/criteria/' . $bundle->code . '/sub')->throw();
+            $subResult = json_decode($subResponse->body(), true);
+            $subCriteriaList = $subResult['data'] ?? [];
+
+            $controlsCount = 0;
+            foreach ($subCriteriaList as $sub) {
+                if (empty($sub['code']) || empty($sub['name'])) {
+                    continue;
+                }
+
+                Control::updateOrCreate(
+                    ['code' => $sub['code'], 'standard_id' => $standard->id],
+                    [
+                        'standard_id' => $standard->id,
+                        'code' => $sub['code'],
+                        'title' => $sub['name'],
+                        'description' => $sub['description'] ?? '',
+                        'type' => 'Other',
+                        'category' => 'Other',
+                        'enforcement' => 'Mandatory',
+                    ]
+                );
+                $controlsCount++;
+            }
+
+            // Mark bundle as imported
+            $bundle->update(['status' => 'imported']);
+
+            Notification::make()
+                ->title('Muraji Bundle Imported')
+                ->body("Created standard {$criteria['code']} with {$controlsCount} controls.")
+                ->success()
+                ->send();
+
+        } catch (\Exception $e) {
+            Log::error('Muraji bundle import failed', ['error' => $e->getMessage()]);
+            Notification::make()
+                ->title('Import Failed')
                 ->body($e->getMessage())
                 ->color('danger')
                 ->send();
