@@ -139,22 +139,6 @@ class BundleResource extends Resource
                     ->action(function () {
                         BundleController::retrieve();
                     }),
-                Tables\Actions\Action::make('fetchMuraji')
-                    ->label('Fetch Muraji API')
-                    ->button()
-                    ->color('success')
-                    ->icon('heroicon-o-cloud-arrow-down')
-                    ->visible(fn () => auth()->check() && auth()->user()->can('Manage Bundles'))
-                    ->modalContent(function () {
-                        return new HtmlString('
-                                <div>This action will fetch the latest criteria from the <strong>Muraji API</strong> and sync them with your bundles.</div>
-                                <div class="mt-2 text-sm text-gray-500">API: https://muraji-api.wathbahs.com/api/standards/criteria</div>');
-                    })
-                    ->modalHeading('Fetch from Muraji API')
-                    ->modalIconColor('success')
-                    ->action(function () {
-                        BundleController::retrieveFromMurajiApi();
-                    }),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('authority')
