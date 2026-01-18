@@ -77,6 +77,7 @@ class BundleController extends Controller
 
     /**
      * Fetch criteria from Muraji API and save as Standards for audit selection
+     * Only imports SUB-CRITERIA (items with parent_code), not parent categories
      */
     public static function retrieveFromMurajiApi(): void
     {
@@ -99,13 +100,22 @@ class BundleController extends Controller
             }
 
             $count = 0;
+            $skipped = 0;
             foreach ($criteria as $item) {
                 // Skip items without required fields
                 if (empty($item['code']) || empty($item['name'])) {
                     continue;
                 }
 
-                // Save to Standards table (for audit selection dropdown)
+                // ONLY import sub-criteria (items that have a parent)
+                // Skip parent categories (items without parent_code or parent_id)
+                if (empty($item['parent_code']) && empty($item['parent_id'])) {
+                    $skipped++;
+                    Log::info("Skipping parent category: {$item['code']} - {$item['name']}");
+                    continue;
+                }
+
+                // Save sub-criteria to Standards table (for audit selection dropdown)
                 Standard::updateOrCreate(
                     ['code' => $item['code']],
                     [
@@ -121,7 +131,7 @@ class BundleController extends Controller
 
             Notification::make()
                 ->title('Muraji API Sync Complete')
-                ->body("Successfully synced {$count} criteria as Standards for audit selection!")
+                ->body("Imported {$count} sub-criteria. Skipped {$skipped} parent categories.")
                 ->success()
                 ->send();
 
