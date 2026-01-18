@@ -20,7 +20,7 @@ class DomainService {
 
     const result = await db.query(`
       SELECT * FROM domain_references
-      WHERE expert_id = $1
+      WHERE expert_id = ?
       ORDER BY created_at DESC
     `, [expertId.trim()]);
 
@@ -37,7 +37,7 @@ class DomainService {
 
     const result = await db.query(`
       SELECT * FROM domain_references
-      WHERE domain_id = $1 AND expert_id = $2
+      WHERE domain_id = ? AND expert_id = ?
     `, [domainId.trim(), expertId.trim()]);
 
     return result.rows[0] || null;
@@ -63,26 +63,31 @@ class DomainService {
 
     // If referenceId is provided, update existing record
     if (referenceId) {
-      const result = await db.query(`
+      await db.query(`
         UPDATE domain_references
-        SET content = $1, name = $2, updated_at = NOW()
-        WHERE id = $3
-        RETURNING *
+        SET content = ?, name = ?, updated_at = NOW()
+        WHERE id = ?
       `, [trimmedContent, name?.trim() || null, referenceId]);
 
+      const result = await db.query('SELECT * FROM domain_references WHERE id = ?', [referenceId]);
       if (result.rows.length === 0) {
         throw new Error(`Reference ${referenceId} not found`);
       }
-
       return result.rows[0];
     }
 
     // Insert new record
-    const result = await db.query(`
+    await db.query(`
       INSERT INTO domain_references (domain_id, expert_id, content, name, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, NOW(), NOW())
-      RETURNING *
+      VALUES (?, ?, ?, ?, NOW(), NOW())
     `, [trimmedDomainId, trimmedExpertId, trimmedContent, name?.trim() || null]);
+
+    // Get the inserted record
+    const result = await db.query(`
+      SELECT * FROM domain_references 
+      WHERE domain_id = ? AND expert_id = ? 
+      ORDER BY created_at DESC LIMIT 1
+    `, [trimmedDomainId, trimmedExpertId]);
 
     console.log('✅ Domain reference saved successfully');
     return result.rows[0];
@@ -99,7 +104,7 @@ class DomainService {
     // Verify ownership if expertId is provided
     if (expertId) {
       const checkResult = await db.query(`
-        SELECT expert_id FROM domain_references WHERE id = $1
+        SELECT expert_id FROM domain_references WHERE id = ?
       `, [referenceId]);
 
       if (checkResult.rows.length === 0) {
@@ -111,7 +116,7 @@ class DomainService {
       }
     }
 
-    await db.query('DELETE FROM domain_references WHERE id = $1', [referenceId]);
+    await db.query('DELETE FROM domain_references WHERE id = ?', [referenceId]);
     console.log(`✅ Deleted reference ${referenceId}`);
     return true;
   }
@@ -126,7 +131,7 @@ class DomainService {
 
     const result = await db.query(`
       SELECT * FROM domain_templates
-      WHERE expert_id = $1
+      WHERE expert_id = ?
       ORDER BY created_at DESC
     `, [expertId.trim()]);
 
@@ -143,7 +148,7 @@ class DomainService {
 
     const result = await db.query(`
       SELECT * FROM domain_templates
-      WHERE domain_id = $1 AND expert_id = $2
+      WHERE domain_id = ? AND expert_id = ?
     `, [domainId.trim(), expertId.trim()]);
 
     return result.rows[0] || null;
@@ -169,42 +174,51 @@ class DomainService {
 
     // If templateId is provided, update existing record
     if (templateId) {
-      const result = await db.query(`
+      await db.query(`
         UPDATE domain_templates
-        SET content = $1, name = $2, updated_at = NOW()
-        WHERE id = $3
-        RETURNING *
+        SET content = ?, name = ?, updated_at = NOW()
+        WHERE id = ?
       `, [trimmedContent, name?.trim() || null, templateId]);
 
+      const result = await db.query('SELECT * FROM domain_templates WHERE id = ?', [templateId]);
       if (result.rows.length === 0) {
         throw new Error(`Template ${templateId} not found`);
       }
-
       return result.rows[0];
     }
 
-    // Upsert based on domain_id and expert_id
+    // Try update first based on domain_id and expert_id
     const updateResult = await db.query(`
-      UPDATE domain_templates
-      SET content = $1, name = $2, updated_at = NOW()
-      WHERE domain_id = $3 AND expert_id = $4
-      RETURNING *
-    `, [trimmedContent, name?.trim() || null, trimmedDomainId, trimmedExpertId]);
+      SELECT id FROM domain_templates WHERE domain_id = ? AND expert_id = ?
+    `, [trimmedDomainId, trimmedExpertId]);
 
     if (updateResult.rows.length > 0) {
+      await db.query(`
+        UPDATE domain_templates
+        SET content = ?, name = ?, updated_at = NOW()
+        WHERE domain_id = ? AND expert_id = ?
+      `, [trimmedContent, name?.trim() || null, trimmedDomainId, trimmedExpertId]);
+
+      const result = await db.query(`
+        SELECT * FROM domain_templates WHERE domain_id = ? AND expert_id = ?
+      `, [trimmedDomainId, trimmedExpertId]);
+
       console.log('✅ Domain template updated successfully');
-      return updateResult.rows[0];
+      return result.rows[0];
     }
 
     // Insert if not exists
-    const insertResult = await db.query(`
+    await db.query(`
       INSERT INTO domain_templates (domain_id, expert_id, content, name, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, NOW(), NOW())
-      RETURNING *
+      VALUES (?, ?, ?, ?, NOW(), NOW())
     `, [trimmedDomainId, trimmedExpertId, trimmedContent, name?.trim() || null]);
 
+    const result = await db.query(`
+      SELECT * FROM domain_templates WHERE domain_id = ? AND expert_id = ?
+    `, [trimmedDomainId, trimmedExpertId]);
+
     console.log('✅ Domain template saved successfully');
-    return insertResult.rows[0];
+    return result.rows[0];
   }
 
   /**
@@ -215,7 +229,7 @@ class DomainService {
       throw new Error('Database not configured');
     }
 
-    await db.query('DELETE FROM domain_templates WHERE id = $1', [templateId]);
+    await db.query('DELETE FROM domain_templates WHERE id = ?', [templateId]);
     return true;
   }
 }

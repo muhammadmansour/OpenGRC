@@ -5,6 +5,7 @@
 
 const yaml = require('js-yaml');
 const db = require('../config/database');
+// Using native fetch (Node 18+)
 
 class StandardsService {
   /**
@@ -24,7 +25,7 @@ class StandardsService {
 
     const result = await db.query(`
       SELECT * FROM domain_references
-      WHERE expert_id = $1
+      WHERE expert_id = ?
       ORDER BY created_at DESC
     `, [trimmedExpertId]);
 
@@ -136,7 +137,7 @@ class StandardsService {
 
     // Delete existing standards for this expert first
     try {
-      await db.query('DELETE FROM audit_standards WHERE expert_id = $1', [expertId]);
+      await db.query('DELETE FROM audit_standards WHERE expert_id = ?', [expertId]);
     } catch (error) {
       console.warn('⚠️ Error deleting existing standards:', error.message);
     }
@@ -152,7 +153,7 @@ class StandardsService {
             complexity_level, estimated_time_hours, mandatory, type,
             requirements, evidence_documents, sub_standards, cross_domain_ids,
             created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW(), NOW())
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         `, [
           record.expert_id, record.domain_id, record.category_id,
           record.category_name_ar, record.category_name_en,
@@ -170,6 +171,260 @@ class StandardsService {
     }
 
     return true;
+  }
+
+  /**
+   * Store standard criteria (bundles) to database
+   * @param {Array} criteria - Array of standard criteria objects
+   * @returns {Promise<{success: boolean, stored: number, errors: Array}>}
+   */
+  async storeCriteria(criteria) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    if (!Array.isArray(criteria)) {
+      throw new Error('Criteria must be an array');
+    }
+
+    console.log(`📦 Storing ${criteria.length} standard criteria...`);
+
+    const results = { success: true, stored: 0, updated: 0, errors: [] };
+
+    for (const item of criteria) {
+      try {
+        // Validate required fields
+        if (!item.code || !item.name) {
+          results.errors.push({ code: item.code, error: 'Missing required fields (code, name)' });
+          continue;
+        }
+
+        // Check if criteria already exists
+        const existing = await db.query(
+          'SELECT id FROM standard_criteria WHERE code = ?',
+          [item.code]
+        );
+
+        if (existing.rows.length > 0) {
+          // Update existing
+          await db.query(`
+            UPDATE standard_criteria SET
+              name = ?,
+              authority = ?,
+              description = ?,
+              version = ?,
+              url = ?,
+              updated_at = NOW()
+            WHERE code = ?
+          `, [
+            item.name,
+            item.authority || null,
+            item.description || null,
+            item.version || null,
+            item.url || null,
+            item.code
+          ]);
+          results.updated++;
+        } else {
+          // Insert new
+          await db.query(`
+            INSERT INTO standard_criteria (code, name, authority, description, version, url, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+          `, [
+            item.code,
+            item.name,
+            item.authority || null,
+            item.description || null,
+            item.version || null,
+            item.url || null
+          ]);
+          results.stored++;
+        }
+      } catch (error) {
+        console.error(`❌ Error storing criteria ${item.code}:`, error.message);
+        results.errors.push({ code: item.code, error: error.message });
+        results.success = false;
+      }
+    }
+
+    console.log(`✅ Stored: ${results.stored}, Updated: ${results.updated}, Errors: ${results.errors.length}`);
+    return results;
+  }
+
+  /**
+   * Get all stored standard criteria
+   * @returns {Promise<Array>}
+   */
+  async getAllCriteria() {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const result = await db.query(`
+      SELECT * FROM standard_criteria
+      ORDER BY authority, name
+    `);
+
+    return result.rows;
+  }
+
+  /**
+   * Get criteria by code
+   * @param {string} code - The standard code
+   * @returns {Promise<Object|null>}
+   */
+  async getCriteriaByCode(code) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const result = await db.query(
+      'SELECT * FROM standard_criteria WHERE code = ?',
+      [code]
+    );
+
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Delete criteria by code
+   * @param {string} code - The standard code
+   * @returns {Promise<boolean>}
+   */
+  async deleteCriteria(code) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const result = await db.query(
+      'DELETE FROM standard_criteria WHERE code = ?',
+      [code]
+    );
+
+    return result.rowCount > 0;
+  }
+
+  /**
+   * Import a standard from its URL (fetch and store the full standard data)
+   * @param {string} code - The standard code to import
+   * @returns {Promise<Object>}
+   */
+  async importStandardFromUrl(code) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    // Get the criteria to find the URL
+    const criteria = await this.getCriteriaByCode(code);
+    if (!criteria) {
+      throw new Error(`Standard criteria not found: ${code}`);
+    }
+
+    if (!criteria.url) {
+      throw new Error(`No URL defined for standard: ${code}`);
+    }
+
+    console.log(`📥 Importing standard ${code} from ${criteria.url}...`);
+
+    try {
+      const response = await fetch(criteria.url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+      }
+
+      const standardData = await response.json();
+
+      // Store the imported standard data
+      const existing = await db.query(
+        'SELECT id FROM imported_standards WHERE code = ?',
+        [code]
+      );
+
+      if (existing.rows.length > 0) {
+        await db.query(`
+          UPDATE imported_standards SET
+            name = ?,
+            authority = ?,
+            description = ?,
+            data = ?,
+            updated_at = NOW()
+          WHERE code = ?
+        `, [
+          standardData.name || criteria.name,
+          standardData.authority || criteria.authority,
+          standardData.description || criteria.description,
+          JSON.stringify(standardData),
+          code
+        ]);
+      } else {
+        await db.query(`
+          INSERT INTO imported_standards (code, name, authority, description, data, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+        `, [
+          code,
+          standardData.name || criteria.name,
+          standardData.authority || criteria.authority,
+          standardData.description || criteria.description,
+          JSON.stringify(standardData)
+        ]);
+      }
+
+      // Update criteria status
+      await db.query(
+        'UPDATE standard_criteria SET status = ?, imported_at = NOW() WHERE code = ?',
+        ['imported', code]
+      );
+
+      console.log(`✅ Successfully imported standard: ${code}`);
+      return { success: true, code, data: standardData };
+    } catch (error) {
+      console.error(`❌ Failed to import standard ${code}:`, error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get imported standard data
+   * @param {string} code - The standard code
+   * @returns {Promise<Object|null>}
+   */
+  async getImportedStandard(code) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const result = await db.query(
+      'SELECT * FROM imported_standards WHERE code = ?',
+      [code]
+    );
+
+    if (result.rows[0]) {
+      const row = result.rows[0];
+      return {
+        ...row,
+        data: typeof row.data === 'string' ? JSON.parse(row.data) : row.data
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Get all imported standards
+   * @returns {Promise<Array>}
+   */
+  async getAllImportedStandards() {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const result = await db.query(`
+      SELECT id, code, name, authority, description, created_at, updated_at
+      FROM imported_standards
+      ORDER BY authority, name
+    `);
+
+    return result.rows;
   }
 }
 

@@ -18,13 +18,12 @@ class ProjectService {
     const projectId = crypto.randomUUID();
     const now = new Date().toISOString();
 
-    const result = await db.query(`
+    await db.query(`
       INSERT INTO audit_projects (
         id, name, description, expert_type, domain_id, status,
         created_by, user_id, settings, selected_standards, uploaded_files,
         created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      RETURNING *
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       projectId,
       params.name,
@@ -41,6 +40,7 @@ class ProjectService {
       now
     ]);
 
+    const result = await db.query('SELECT * FROM audit_projects WHERE id = ?', [projectId]);
     console.log(`Created project ${result.rows[0].id}: ${result.rows[0].name}`);
     return result.rows[0];
   }
@@ -55,7 +55,7 @@ class ProjectService {
 
     const result = await db.query(`
       SELECT * FROM audit_projects
-      WHERE id = $1 AND user_id = $2
+      WHERE id = ? AND user_id = ?
     `, [projectId, userId]);
 
     return result.rows[0] || null;
@@ -95,15 +95,15 @@ class ProjectService {
       return val;
     });
 
-    const setClause = fieldsToUpdate.map((field, i) => `${field} = $${i + 1}`).join(', ');
+    const setClause = fieldsToUpdate.map(field => `${field} = ?`).join(', ');
 
-    const result = await db.query(`
+    await db.query(`
       UPDATE audit_projects
       SET ${setClause}, updated_at = NOW()
-      WHERE id = $${fieldsToUpdate.length + 1} AND user_id = $${fieldsToUpdate.length + 2}
-      RETURNING *
+      WHERE id = ? AND user_id = ?
     `, [...values, projectId, userId]);
 
+    const result = await db.query('SELECT * FROM audit_projects WHERE id = ? AND user_id = ?', [projectId, userId]);
     if (result.rows.length === 0) {
       throw new Error(`Project ${projectId} not found or access denied`);
     }
@@ -122,7 +122,7 @@ class ProjectService {
 
     const result = await db.query(`
       SELECT * FROM audit_projects
-      WHERE user_id = $1
+      WHERE user_id = ?
       ORDER BY created_at DESC
     `, [userId]);
 
@@ -139,7 +139,7 @@ class ProjectService {
 
     const result = await db.query(`
       DELETE FROM audit_projects
-      WHERE id = $1 AND user_id = $2
+      WHERE id = ? AND user_id = ?
     `, [projectId, userId]);
 
     if (result.rowCount === 0) {
@@ -158,33 +158,38 @@ class ProjectService {
       return false;
     }
 
-    // Upsert: try update first, then insert
-    const updateResult = await db.query(`
-      UPDATE standard_analyses
-      SET standard_name_ar = $1, standard_name_en = $2, analysis_result = $3,
-          raw_response = $4, score = $5, compliance_level = $6, status = $7, updated_at = NOW()
-      WHERE project_id = $8 AND standard_id = $9
-      RETURNING *
-    `, [
-      params.standardNameAr,
-      params.standardNameEn,
-      JSON.stringify(params.analysisResult),
-      params.rawResponse,
-      params.score,
-      params.complianceLevel,
-      params.status || 'completed',
-      params.projectId,
-      params.standardId
-    ]);
+    // Check if exists
+    const existingResult = await db.query(
+      'SELECT id FROM standard_analyses WHERE project_id = ? AND standard_id = ?',
+      [params.projectId, params.standardId]
+    );
 
-    if (updateResult.rows.length === 0) {
-      // Insert if not exists
+    if (existingResult.rows.length > 0) {
+      // Update existing
+      await db.query(`
+        UPDATE standard_analyses
+        SET standard_name_ar = ?, standard_name_en = ?, analysis_result = ?,
+            raw_response = ?, score = ?, compliance_level = ?, status = ?, updated_at = NOW()
+        WHERE project_id = ? AND standard_id = ?
+      `, [
+        params.standardNameAr,
+        params.standardNameEn,
+        JSON.stringify(params.analysisResult),
+        params.rawResponse,
+        params.score,
+        params.complianceLevel,
+        params.status || 'completed',
+        params.projectId,
+        params.standardId
+      ]);
+    } else {
+      // Insert new
       await db.query(`
         INSERT INTO standard_analyses (
           project_id, standard_id, standard_name_ar, standard_name_en,
           analysis_result, raw_response, score, compliance_level, status,
           created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
       `, [
         params.projectId,
         params.standardId,
@@ -212,7 +217,7 @@ class ProjectService {
 
     const result = await db.query(`
       SELECT * FROM standard_analyses
-      WHERE project_id = $1
+      WHERE project_id = ?
       ORDER BY created_at ASC
     `, [projectId]);
 

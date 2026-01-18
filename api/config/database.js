@@ -1,72 +1,71 @@
 /**
  * Database Configuration
- * PostgreSQL connection pool setup
+ * MySQL connection pool setup
  */
 
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 const config = require('./index');
 
-// Create PostgreSQL connection pool
+// Create MySQL connection pool
 let pool = null;
 let isDbConfigured = false;
 
-// Check if PostgreSQL is configured
-if (config.postgres.host && config.postgres.database) {
+// Check if MySQL is configured
+if (config.mysql.host && config.mysql.database) {
   try {
-    pool = new Pool(config.postgres);
+    pool = mysql.createPool(config.mysql);
     isDbConfigured = true;
     
     // Test connection on startup
-    pool.query('SELECT NOW()')
+    pool.query('SELECT 1')
       .then(() => {
-        console.log('✅ PostgreSQL connected successfully');
+        console.log('✅ MySQL connected successfully');
       })
       .catch(err => {
-        console.error('❌ PostgreSQL connection error:', err.message);
+        console.error('❌ MySQL connection error:', err.message);
         isDbConfigured = false;
       });
 
-    // Handle pool errors
-    pool.on('error', (err) => {
-      console.error('Unexpected PostgreSQL pool error:', err);
-    });
-
   } catch (err) {
-    console.error('❌ Failed to create PostgreSQL pool:', err.message);
+    console.error('❌ Failed to create MySQL pool:', err.message);
     isDbConfigured = false;
   }
 } else {
-  console.warn('⚠️ PostgreSQL not configured. Database operations will fail.');
+  console.warn('⚠️ MySQL not configured. Database operations will fail.');
 }
 
 /**
  * Execute a query with parameters
- * @param {string} text - SQL query
+ * @param {string} text - SQL query (uses ? placeholders)
  * @param {Array} params - Query parameters
  * @returns {Promise<{rows: Array, rowCount: number}>}
  */
-async function query(text, params) {
+async function query(text, params = []) {
   if (!pool) {
     throw new Error('Database not configured');
   }
   const start = Date.now();
-  const result = await pool.query(text, params);
+  const [rows, fields] = await pool.query(text, params);
   const duration = Date.now() - start;
   if (config.nodeEnv === 'development') {
-    console.log('Executed query', { text: text.substring(0, 50), duration, rows: result.rowCount });
+    console.log('Executed query', { text: text.substring(0, 50), duration, rows: Array.isArray(rows) ? rows.length : 0 });
   }
-  return result;
+  // Return in PostgreSQL-compatible format for easier migration
+  return { 
+    rows: Array.isArray(rows) ? rows : [rows], 
+    rowCount: Array.isArray(rows) ? rows.length : (rows.affectedRows || 0)
+  };
 }
 
 /**
- * Get a client from the pool for transactions
- * @returns {Promise<Client>}
+ * Get a connection from the pool for transactions
+ * @returns {Promise<Connection>}
  */
 async function getClient() {
   if (!pool) {
     throw new Error('Database not configured');
   }
-  return pool.connect();
+  return pool.getConnection();
 }
 
 /**
@@ -86,12 +85,15 @@ async function checkConnection() {
 async function insertOne(table, data) {
   const keys = Object.keys(data);
   const values = Object.values(data);
-  const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
+  const placeholders = keys.map(() => '?').join(', ');
   const columns = keys.join(', ');
   
-  const sql = `INSERT INTO ${table} (${columns}) VALUES (${placeholders}) RETURNING *`;
-  const result = await query(sql, values);
-  return result.rows[0];
+  const sql = `INSERT INTO ${table} (${columns}) VALUES (${placeholders})`;
+  const [result] = await pool.query(sql, values);
+  
+  // Fetch the inserted row
+  const [rows] = await pool.query(`SELECT * FROM ${table} WHERE id = ?`, [result.insertId]);
+  return rows[0];
 }
 
 /**
@@ -100,20 +102,23 @@ async function insertOne(table, data) {
 async function updateOne(table, id, data, idColumn = 'id') {
   const keys = Object.keys(data);
   const values = Object.values(data);
-  const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ');
+  const setClause = keys.map(key => `${key} = ?`).join(', ');
   
-  const sql = `UPDATE ${table} SET ${setClause} WHERE ${idColumn} = $${keys.length + 1} RETURNING *`;
-  const result = await query(sql, [...values, id]);
-  return result.rows[0];
+  const sql = `UPDATE ${table} SET ${setClause} WHERE ${idColumn} = ?`;
+  await pool.query(sql, [...values, id]);
+  
+  // Fetch the updated row
+  const [rows] = await pool.query(`SELECT * FROM ${table} WHERE ${idColumn} = ?`, [id]);
+  return rows[0];
 }
 
 /**
  * Helper: Find one by ID
  */
 async function findById(table, id, idColumn = 'id') {
-  const sql = `SELECT * FROM ${table} WHERE ${idColumn} = $1`;
-  const result = await query(sql, [id]);
-  return result.rows[0] || null;
+  const sql = `SELECT * FROM ${table} WHERE ${idColumn} = ?`;
+  const [rows] = await pool.query(sql, [id]);
+  return rows[0] || null;
 }
 
 /**
@@ -125,7 +130,7 @@ async function findAll(table, conditions = {}, orderBy = 'created_at DESC', limi
   
   const conditionKeys = Object.keys(conditions);
   if (conditionKeys.length > 0) {
-    const whereClause = conditionKeys.map((key, i) => `${key} = $${i + 1}`).join(' AND ');
+    const whereClause = conditionKeys.map(key => `${key} = ?`).join(' AND ');
     sql += ` WHERE ${whereClause}`;
     values.push(...Object.values(conditions));
   }
@@ -138,17 +143,17 @@ async function findAll(table, conditions = {}, orderBy = 'created_at DESC', limi
     sql += ` LIMIT ${parseInt(limit)}`;
   }
   
-  const result = await query(sql, values);
-  return result.rows;
+  const [rows] = await pool.query(sql, values);
+  return rows;
 }
 
 /**
  * Helper: Delete by ID
  */
 async function deleteById(table, id, idColumn = 'id') {
-  const sql = `DELETE FROM ${table} WHERE ${idColumn} = $1 RETURNING *`;
-  const result = await query(sql, [id]);
-  return result.rowCount > 0;
+  const sql = `DELETE FROM ${table} WHERE ${idColumn} = ?`;
+  const [result] = await pool.query(sql, [id]);
+  return result.affectedRows > 0;
 }
 
 /**
@@ -160,13 +165,13 @@ async function count(table, conditions = {}) {
   
   const conditionKeys = Object.keys(conditions);
   if (conditionKeys.length > 0) {
-    const whereClause = conditionKeys.map((key, i) => `${key} = $${i + 1}`).join(' AND ');
+    const whereClause = conditionKeys.map(key => `${key} = ?`).join(' AND ');
     sql += ` WHERE ${whereClause}`;
     values.push(...Object.values(conditions));
   }
   
-  const result = await query(sql, values);
-  return parseInt(result.rows[0].count);
+  const [rows] = await pool.query(sql, values);
+  return parseInt(rows[0].count);
 }
 
 module.exports = {

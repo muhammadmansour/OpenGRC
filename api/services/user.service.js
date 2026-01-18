@@ -17,7 +17,7 @@ class UserService {
     try {
       const result = await db.query(`
         SELECT * FROM user_settings
-        WHERE user_id = $1
+        WHERE user_id = ?
       `, [userId]);
 
       return result.rows[0] || null;
@@ -36,36 +36,43 @@ class UserService {
     }
 
     try {
-      // Try update first
-      const updateResult = await db.query(`
-        UPDATE user_settings
-        SET selected_expert_id = COALESCE($1, selected_expert_id),
-            preferences = COALESCE($2, preferences),
-            updated_at = NOW()
-        WHERE user_id = $3
-        RETURNING *
-      `, [
-        settings.selected_expert_id,
-        settings.preferences ? JSON.stringify(settings.preferences) : null,
-        userId
-      ]);
+      // Check if settings exist
+      const existingResult = await db.query(
+        'SELECT id FROM user_settings WHERE user_id = ?',
+        [userId]
+      );
 
-      if (updateResult.rows.length > 0) {
-        return updateResult.rows[0];
+      if (existingResult.rows.length > 0) {
+        // Update existing
+        await db.query(`
+          UPDATE user_settings
+          SET selected_expert_id = COALESCE(?, selected_expert_id),
+              preferences = COALESCE(?, preferences),
+              updated_at = NOW()
+          WHERE user_id = ?
+        `, [
+          settings.selected_expert_id,
+          settings.preferences ? JSON.stringify(settings.preferences) : null,
+          userId
+        ]);
+      } else {
+        // Insert new
+        await db.query(`
+          INSERT INTO user_settings (user_id, selected_expert_id, preferences, created_at, updated_at)
+          VALUES (?, ?, ?, NOW(), NOW())
+        `, [
+          userId,
+          settings.selected_expert_id || null,
+          JSON.stringify(settings.preferences || {})
+        ]);
       }
 
-      // Insert if not exists
-      const insertResult = await db.query(`
-        INSERT INTO user_settings (user_id, selected_expert_id, preferences, created_at, updated_at)
-        VALUES ($1, $2, $3, NOW(), NOW())
-        RETURNING *
-      `, [
-        userId,
-        settings.selected_expert_id || null,
-        JSON.stringify(settings.preferences || {})
-      ]);
-
-      return insertResult.rows[0];
+      // Return the updated/inserted row
+      const result = await db.query(
+        'SELECT * FROM user_settings WHERE user_id = ?',
+        [userId]
+      );
+      return result.rows[0];
     } catch (error) {
       console.error('Error upserting user settings:', error);
       return null;

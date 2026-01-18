@@ -49,7 +49,7 @@ class ExpertService {
 
     const result = await db.query(`
       SELECT * FROM experts
-      WHERE expert_id = $1
+      WHERE expert_id = ?
     `, [expertId]);
 
     return result.rows[0] || null;
@@ -63,13 +63,12 @@ class ExpertService {
       throw new Error('Database not configured');
     }
 
-    const result = await db.query(`
+    await db.query(`
       INSERT INTO experts (
         expert_id, name_ar, name_en, description, icon, domain_id,
         is_active, purpose, system_prompt, industry_focus, has_yaml,
         created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
-      RETURNING *
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
     `, [
       expert.expert_id,
       expert.name_ar,
@@ -84,6 +83,7 @@ class ExpertService {
       expert.has_yaml ?? false
     ]);
 
+    const result = await db.query('SELECT * FROM experts WHERE expert_id = ?', [expert.expert_id]);
     console.log('✅ Expert created successfully:', result.rows[0].expert_id);
     return result.rows[0];
   }
@@ -106,16 +106,16 @@ class ExpertService {
       throw new Error('No valid fields to update');
     }
 
-    const setClause = fieldsToUpdate.map((field, i) => `${field} = $${i + 1}`).join(', ');
+    const setClause = fieldsToUpdate.map(field => `${field} = ?`).join(', ');
     const values = fieldsToUpdate.map(field => updates[field]);
 
-    const result = await db.query(`
+    await db.query(`
       UPDATE experts
       SET ${setClause}, updated_at = NOW()
-      WHERE expert_id = $${fieldsToUpdate.length + 1}
-      RETURNING *
+      WHERE expert_id = ?
     `, [...values, expertId]);
 
+    const result = await db.query('SELECT * FROM experts WHERE expert_id = ?', [expertId]);
     if (result.rows.length === 0) {
       throw new Error(`Expert ${expertId} not found`);
     }
@@ -133,7 +133,7 @@ class ExpertService {
     }
 
     const result = await db.query(`
-      DELETE FROM experts WHERE expert_id = $1
+      DELETE FROM experts WHERE expert_id = ?
     `, [expertId]);
 
     if (result.rowCount === 0) {
@@ -155,7 +155,7 @@ class ExpertService {
     try {
       const refResult = await db.query(`
         SELECT * FROM domain_references
-        WHERE expert_id = $1
+        WHERE expert_id = ?
         ORDER BY created_at DESC
       `, [expertId]);
 
