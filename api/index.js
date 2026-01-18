@@ -146,12 +146,12 @@ app.get('/api/health', (req, res) => {
 // Public routes (no auth required)
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes); // Public for internal use
+app.use('/api/standards', standardsRoutes); // Public for standards/criteria
 
 // Protected routes (auth required)
 app.use('/api/files', authMiddleware, fileRoutes);
 app.use('/api/users', authMiddleware, userRoutes);
 app.use('/api/experts', authMiddleware, expertRoutes);
-app.use('/api/standards', authMiddleware, standardsRoutes);
 app.use('/api/submissions', authMiddleware, submissionRoutes);
 app.use('/api/projects', authMiddleware, projectRoutes);
 app.use('/api/domains', authMiddleware, domainRoutes);
