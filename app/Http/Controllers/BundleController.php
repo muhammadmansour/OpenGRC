@@ -75,6 +75,74 @@ class BundleController extends Controller
             ->send();
     }
 
+    /**
+     * Fetch bundles from Muraji API (criteria endpoint)
+     */
+    public static function retrieveFromMurajiApi(): void
+    {
+        $apiUrl = setting('general.muraji_api', 'https://muraji-api.wathbahs.com/api/standards/criteria');
+
+        try {
+            $response = Http::withHeaders([
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+            ])->get($apiUrl)->throw();
+            
+            $result = json_decode($response->body(), true);
+            
+            // Handle both direct array and {data: [...]} format
+            $criteria = isset($result['data']) ? $result['data'] : $result;
+            
+            if (!is_array($criteria)) {
+                throw new \Exception('Invalid response format from Muraji API');
+            }
+
+            $count = 0;
+            foreach ($criteria as $item) {
+                // Skip items without required fields
+                if (empty($item['code']) || empty($item['name'])) {
+                    continue;
+                }
+
+                Bundle::updateOrCreate(
+                    ['code' => $item['code']],
+                    [
+                        'code' => $item['code'],
+                        'name' => $item['name'],
+                        'version' => $item['version'] ?? '1.0',
+                        'authority' => $item['authority'] ?? 'Muraji',
+                        'description' => $item['description'] ?? '',
+                        'repo_url' => $item['url'] ?? null,
+                        'type' => $item['type'] ?? 'Standard',
+                    ]
+                );
+                $count++;
+            }
+
+            Notification::make()
+                ->title('Muraji API Sync Complete')
+                ->body("Successfully synced {$count} criteria from Muraji API!")
+                ->success()
+                ->send();
+
+        } catch (RequestException $e) {
+            Log::error('Muraji API fetch failed', ['error' => $e->getMessage()]);
+            Notification::make()
+                ->title('Error Fetching from Muraji API')
+                ->body($e->getMessage())
+                ->color('danger')
+                ->send();
+        } catch (\Exception $e) {
+            Log::error('Muraji API error', ['error' => $e->getMessage()]);
+            Notification::make()
+                ->title('Error Fetching from Muraji API')
+                ->body($e->getMessage())
+                ->color('danger')
+                ->send();
+        }
+    }
+
     public static function importBundle(Bundle $bundle): void
     {
         \Log::info('Importing bundle: '.$bundle->code);
