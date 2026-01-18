@@ -173,108 +173,44 @@ class StandardsService {
     return true;
   }
 
+  // ==========================================
+  // CRITERIA (Parent standards like 5.4)
+  // ==========================================
+
   /**
-   * Store standard criteria (bundles) to database
-   * Supports hierarchical structure with parent_code
-   * @param {Array} criteria - Array of standard criteria objects
-   * @returns {Promise<{success: boolean, stored: number, errors: Array}>}
+   * Store a criteria (parent standard)
+   * @param {Object} data - { code, name, authority, description, version }
    */
-  async storeCriteria(criteria) {
+  async storeCriteria(data) {
     if (!db.isDbConfigured) {
       throw new Error('Database not configured');
     }
 
-    if (!Array.isArray(criteria)) {
-      throw new Error('Criteria must be an array');
+    const { code, name, authority, description, version } = data;
+    
+    if (!code || !name) {
+      throw new Error('Code and name are required');
     }
 
-    console.log(`📦 Storing ${criteria.length} standard criteria...`);
+    const existing = await db.query('SELECT id FROM criteria WHERE code = $1', [code]);
 
-    const results = { success: true, stored: 0, updated: 0, errors: [] };
-
-    // Sort criteria so parents are processed first (shorter codes first)
-    const sortedCriteria = [...criteria].sort((a, b) => 
-      (a.code || '').length - (b.code || '').length
-    );
-
-    for (const item of sortedCriteria) {
-      try {
-        // Validate required fields
-        if (!item.code || !item.name) {
-          results.errors.push({ code: item.code, error: 'Missing required fields (code, name)' });
-          continue;
-        }
-
-        // Look up parent_id if parent_code is provided
-        let parentId = null;
-        if (item.parent_code) {
-          const parentResult = await db.query(
-            'SELECT id FROM standard_criteria WHERE code = $1',
-            [item.parent_code]
-          );
-          if (parentResult.rows.length > 0) {
-            parentId = parentResult.rows[0].id;
-          }
-        }
-
-        // Check if criteria already exists
-        const existing = await db.query(
-          'SELECT id FROM standard_criteria WHERE code = $1',
-          [item.code]
-        );
-
-        if (existing.rows.length > 0) {
-          // Update existing
-          await db.query(`
-            UPDATE standard_criteria SET
-              name = $1,
-              authority = $2,
-              description = $3,
-              version = $4,
-              url = $5,
-              parent_id = $6,
-              updated_at = NOW()
-            WHERE code = $7
-          `, [
-            item.name,
-            item.authority || null,
-            item.description || null,
-            item.version || null,
-            item.url || null,
-            parentId,
-            item.code
-          ]);
-          results.updated++;
-        } else {
-          // Insert new
-          await db.query(`
-            INSERT INTO standard_criteria (code, name, authority, description, version, url, parent_id, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-          `, [
-            item.code,
-            item.name,
-            item.authority || null,
-            item.description || null,
-            item.version || null,
-            item.url || null,
-            parentId
-          ]);
-          results.stored++;
-        }
-      } catch (error) {
-        console.error(`❌ Error storing criteria ${item.code}:`, error.message);
-        results.errors.push({ code: item.code, error: error.message });
-        results.success = false;
-      }
+    if (existing.rows.length > 0) {
+      await db.query(`
+        UPDATE criteria SET name = $1, authority = $2, description = $3, version = $4, updated_at = NOW()
+        WHERE code = $5
+      `, [name, authority || null, description || null, version || '1.0', code]);
+      return { action: 'updated', code };
+    } else {
+      const result = await db.query(`
+        INSERT INTO criteria (code, name, authority, description, version, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING id
+      `, [code, name, authority || null, description || null, version || '1.0']);
+      return { action: 'created', code, id: result.rows[0].id };
     }
-
-    console.log(`✅ Stored: ${results.stored}, Updated: ${results.updated}, Errors: ${results.errors.length}`);
-    return results;
   }
 
   /**
-   * Get all stored standard criteria with hierarchy info
-   * @returns {Promise<Array>}
+   * Get all criteria (parent standards)
    */
   async getAllCriteria() {
     if (!db.isDbConfigured) {
@@ -282,50 +218,172 @@ class StandardsService {
     }
 
     const result = await db.query(`
-      SELECT 
-        c.*,
-        p.code as parent_code,
-        p.name as parent_name
-      FROM standard_criteria c
-      LEFT JOIN standard_criteria p ON c.parent_id = p.id
+      SELECT c.*, 
+        (SELECT COUNT(*) FROM sub_criteria WHERE criteria_id = c.id) as sub_criteria_count
+      FROM criteria c
       ORDER BY c.code
     `);
-
     return result.rows;
   }
 
   /**
-   * Get criteria with children (hierarchical structure)
-   * @returns {Promise<Array>}
+   * Get a single criteria by code
+   */
+  async getCriteriaByCode(code) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const result = await db.query('SELECT * FROM criteria WHERE code = $1', [code]);
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Delete a criteria by code (also deletes sub_criteria)
+   */
+  async deleteCriteria(code) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const result = await db.query('DELETE FROM criteria WHERE code = $1 RETURNING code', [code]);
+    return result.rows[0] || null;
+  }
+
+  // ==========================================
+  // SUB_CRITERIA (Children like 5.4.1, 5.4.2)
+  // ==========================================
+
+  /**
+   * Store a sub-criteria under a parent criteria
+   * @param {string} criteriaCode - Parent criteria code (e.g., '5.4')
+   * @param {Object} data - { code, name, description, requirements_count, documents_count }
+   */
+  async storeSubCriteria(criteriaCode, data) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    // Find parent criteria
+    const parent = await db.query('SELECT id FROM criteria WHERE code = $1', [criteriaCode]);
+    if (parent.rows.length === 0) {
+      throw new Error(`Parent criteria '${criteriaCode}' not found`);
+    }
+    const criteriaId = parent.rows[0].id;
+
+    const { code, name, description, requirements_count, documents_count, version } = data;
+    
+    if (!code || !name) {
+      throw new Error('Code and name are required');
+    }
+
+    const existing = await db.query('SELECT id FROM sub_criteria WHERE code = $1', [code]);
+
+    if (existing.rows.length > 0) {
+      await db.query(`
+        UPDATE sub_criteria SET 
+          criteria_id = $1, name = $2, description = $3, 
+          requirements_count = $4, documents_count = $5, version = $6, updated_at = NOW()
+        WHERE code = $7
+      `, [criteriaId, name, description || null, requirements_count || 0, documents_count || 0, version || '1.0', code]);
+      return { action: 'updated', code };
+    } else {
+      const result = await db.query(`
+        INSERT INTO sub_criteria (criteria_id, code, name, description, requirements_count, documents_count, version, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING id
+      `, [criteriaId, code, name, description || null, requirements_count || 0, documents_count || 0, version || '1.0']);
+      return { action: 'created', code, id: result.rows[0].id };
+    }
+  }
+
+  /**
+   * Get all sub-criteria for a parent criteria
+   */
+  async getSubCriteria(criteriaCode) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const result = await db.query(`
+      SELECT sc.* FROM sub_criteria sc
+      JOIN criteria c ON sc.criteria_id = c.id
+      WHERE c.code = $1
+      ORDER BY sc.code
+    `, [criteriaCode]);
+    return result.rows;
+  }
+
+  /**
+   * Delete a sub-criteria by code
+   */
+  async deleteSubCriteria(code) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const result = await db.query('DELETE FROM sub_criteria WHERE code = $1 RETURNING code', [code]);
+    return result.rows[0] || null;
+  }
+
+  // ==========================================
+  // HIERARCHY (Combined view)
+  // ==========================================
+
+  /**
+   * Get full hierarchy: criteria with their sub-criteria
    */
   async getCriteriaHierarchy() {
     if (!db.isDbConfigured) {
       throw new Error('Database not configured');
     }
 
-    // Get all parent criteria (no parent_id)
-    const parents = await db.query(`
-      SELECT * FROM standard_criteria
-      WHERE parent_id IS NULL
-      ORDER BY code
-    `);
-
-    // For each parent, get children
+    const criteria = await db.query('SELECT * FROM criteria ORDER BY code');
+    
     const hierarchy = [];
-    for (const parent of parents.rows) {
-      const children = await db.query(`
-        SELECT * FROM standard_criteria
-        WHERE parent_id = $1
-        ORDER BY code
-      `, [parent.id]);
-
+    for (const c of criteria.rows) {
+      const subCriteria = await db.query(
+        'SELECT * FROM sub_criteria WHERE criteria_id = $1 ORDER BY code',
+        [c.id]
+      );
       hierarchy.push({
-        ...parent,
-        children: children.rows
+        ...c,
+        sub_criteria: subCriteria.rows
       });
     }
 
     return hierarchy;
+  }
+
+  /**
+   * Bulk import: criteria with sub-criteria
+   * @param {Array} data - [{ code, name, ..., sub_criteria: [{code, name, ...}] }]
+   */
+  async bulkImport(data) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const results = { criteria: 0, sub_criteria: 0, errors: [] };
+
+    for (const item of data) {
+      try {
+        // Store criteria
+        await this.storeCriteria(item);
+        results.criteria++;
+
+        // Store sub-criteria if provided
+        if (item.sub_criteria && Array.isArray(item.sub_criteria)) {
+          for (const sub of item.sub_criteria) {
+            await this.storeSubCriteria(item.code, sub);
+            results.sub_criteria++;
+          }
+        }
+      } catch (error) {
+        results.errors.push({ code: item.code, error: error.message });
+      }
+    }
+
+    return results;
   }
 
   /**

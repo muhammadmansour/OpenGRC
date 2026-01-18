@@ -1,6 +1,10 @@
 /**
  * Standards Routes
  * Handles audit standards and criteria endpoints
+ * 
+ * NEW STRUCTURE:
+ * - criteria table: Parent standards (e.g., 5.4)
+ * - sub_criteria table: Children (e.g., 5.4.1, 5.4.2)
  */
 
 const express = require('express');
@@ -9,20 +13,12 @@ const standardsService = require('../services/standards.service');
 const { asyncHandler } = require('../middleware/error.middleware');
 
 // =============================================================================
-// STANDARD CRITERIA (BUNDLES) ENDPOINTS
+// CRITERIA ENDPOINTS (Parent standards like 5.4)
 // =============================================================================
 
 /**
- * @swagger
- * /api/standards/criteria:
- *   get:
- *     summary: Get all standard criteria (bundles)
- *     tags: [Standards]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all standard criteria
+ * GET /api/standards/criteria
+ * Get all criteria (parent standards)
  */
 router.get('/criteria', asyncHandler(async (req, res) => {
   const criteria = await standardsService.getAllCriteria();
@@ -34,14 +30,8 @@ router.get('/criteria', asyncHandler(async (req, res) => {
 }));
 
 /**
- * @swagger
- * /api/standards/criteria/hierarchy:
- *   get:
- *     summary: Get criteria in hierarchical structure (parents with children)
- *     tags: [Standards]
- *     responses:
- *       200:
- *         description: Hierarchical list of criteria
+ * GET /api/standards/criteria/hierarchy
+ * Get criteria with their sub-criteria (full hierarchy)
  */
 router.get('/criteria/hierarchy', asyncHandler(async (req, res) => {
   const hierarchy = await standardsService.getCriteriaHierarchy();
@@ -53,80 +43,8 @@ router.get('/criteria/hierarchy', asyncHandler(async (req, res) => {
 }));
 
 /**
- * @swagger
- * /api/standards/criteria:
- *   post:
- *     summary: Store standard criteria (bundles)
- *     tags: [Standards]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: array
- *             items:
- *               type: object
- *               required:
- *                 - code
- *                 - name
- *               properties:
- *                 code:
- *                   type: string
- *                 name:
- *                   type: string
- *                 authority:
- *                   type: string
- *                 description:
- *                   type: string
- *                 version:
- *                   type: string
- *                 url:
- *                   type: string
- *     responses:
- *       200:
- *         description: Criteria stored successfully
- */
-router.post('/criteria', asyncHandler(async (req, res) => {
-  const criteria = req.body;
-
-  if (!Array.isArray(criteria)) {
-    return res.status(400).json({
-      error: 'Validation Error',
-      message: 'Request body must be an array of criteria'
-    });
-  }
-
-  const result = await standardsService.storeCriteria(criteria);
-  res.json({
-    success: result.success,
-    message: `Stored ${result.stored} new criteria, updated ${result.updated} existing`,
-    stored: result.stored,
-    updated: result.updated,
-    errors: result.errors
-  });
-}));
-
-/**
- * @swagger
- * /api/standards/criteria/{code}:
- *   get:
- *     summary: Get a specific standard criteria by code
- *     tags: [Standards]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: code
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Standard criteria details
- *       404:
- *         description: Criteria not found
+ * GET /api/standards/criteria/:code
+ * Get a single criteria by code
  */
 router.get('/criteria/:code', asyncHandler(async (req, res) => {
   const { code } = req.params;
@@ -135,7 +53,7 @@ router.get('/criteria/:code', asyncHandler(async (req, res) => {
   if (!criteria) {
     return res.status(404).json({
       error: 'Not Found',
-      message: `Standard criteria not found: ${code}`
+      message: `Criteria not found: ${code}`
     });
   }
 
@@ -146,24 +64,30 @@ router.get('/criteria/:code', asyncHandler(async (req, res) => {
 }));
 
 /**
- * @swagger
- * /api/standards/criteria/{code}:
- *   delete:
- *     summary: Delete a standard criteria by code
- *     tags: [Standards]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: code
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Criteria deleted successfully
- *       404:
- *         description: Criteria not found
+ * POST /api/standards/criteria
+ * Create or update a criteria
+ * Body: { code, name, authority, description, version }
+ */
+router.post('/criteria', asyncHandler(async (req, res) => {
+  const data = req.body;
+
+  if (!data.code || !data.name) {
+    return res.status(400).json({
+      error: 'Validation Error',
+      message: 'code and name are required'
+    });
+  }
+
+  const result = await standardsService.storeCriteria(data);
+  res.json({
+    success: true,
+    ...result
+  });
+}));
+
+/**
+ * DELETE /api/standards/criteria/:code
+ * Delete a criteria (also deletes its sub-criteria)
  */
 router.delete('/criteria/:code', asyncHandler(async (req, res) => {
   const { code } = req.params;
@@ -172,99 +96,104 @@ router.delete('/criteria/:code', asyncHandler(async (req, res) => {
   if (!deleted) {
     return res.status(404).json({
       error: 'Not Found',
-      message: `Standard criteria not found: ${code}`
+      message: `Criteria not found: ${code}`
     });
   }
 
   res.json({
     success: true,
-    message: `Deleted criteria: ${code}`
+    message: `Deleted criteria: ${code} and all its sub-criteria`
   });
 }));
 
 // =============================================================================
-// IMPORT STANDARDS ENDPOINTS
+// SUB-CRITERIA ENDPOINTS (Children like 5.4.1, 5.4.2)
 // =============================================================================
 
 /**
- * @swagger
- * /api/standards/import/{code}:
- *   post:
- *     summary: Import a standard from its URL
- *     tags: [Standards]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: code
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Standard imported successfully
+ * GET /api/standards/criteria/:code/sub
+ * Get all sub-criteria for a parent criteria
  */
-router.post('/import/:code', asyncHandler(async (req, res) => {
+router.get('/criteria/:code/sub', asyncHandler(async (req, res) => {
   const { code } = req.params;
-  const result = await standardsService.importStandardFromUrl(code);
-  res.json(result);
-}));
-
-/**
- * @swagger
- * /api/standards/imported:
- *   get:
- *     summary: Get all imported standards
- *     tags: [Standards]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of imported standards
- */
-router.get('/imported', asyncHandler(async (req, res) => {
-  const standards = await standardsService.getAllImportedStandards();
+  const subCriteria = await standardsService.getSubCriteria(code);
   res.json({
     success: true,
-    count: standards.length,
-    data: standards
+    parent_code: code,
+    count: subCriteria.length,
+    data: subCriteria
   });
 }));
 
 /**
- * @swagger
- * /api/standards/imported/{code}:
- *   get:
- *     summary: Get imported standard data by code
- *     tags: [Standards]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: code
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Imported standard data
- *       404:
- *         description: Standard not found
+ * POST /api/standards/criteria/:code/sub
+ * Create or update a sub-criteria under a parent
+ * Body: { code, name, description, requirements_count, documents_count }
  */
-router.get('/imported/:code', asyncHandler(async (req, res) => {
-  const { code } = req.params;
-  const standard = await standardsService.getImportedStandard(code);
+router.post('/criteria/:code/sub', asyncHandler(async (req, res) => {
+  const parentCode = req.params.code;
+  const data = req.body;
 
-  if (!standard) {
+  if (!data.code || !data.name) {
+    return res.status(400).json({
+      error: 'Validation Error',
+      message: 'code and name are required'
+    });
+  }
+
+  const result = await standardsService.storeSubCriteria(parentCode, data);
+  res.json({
+    success: true,
+    parent_code: parentCode,
+    ...result
+  });
+}));
+
+/**
+ * DELETE /api/standards/sub-criteria/:code
+ * Delete a sub-criteria by code
+ */
+router.delete('/sub-criteria/:code', asyncHandler(async (req, res) => {
+  const { code } = req.params;
+  const deleted = await standardsService.deleteSubCriteria(code);
+
+  if (!deleted) {
     return res.status(404).json({
       error: 'Not Found',
-      message: `Imported standard not found: ${code}`
+      message: `Sub-criteria not found: ${code}`
     });
   }
 
   res.json({
     success: true,
-    data: standard
+    message: `Deleted sub-criteria: ${code}`
+  });
+}));
+
+// =============================================================================
+// BULK IMPORT ENDPOINT
+// =============================================================================
+
+/**
+ * POST /api/standards/import
+ * Bulk import criteria with sub-criteria
+ * Body: [{ code, name, authority, ..., sub_criteria: [{code, name, ...}] }]
+ */
+router.post('/import', asyncHandler(async (req, res) => {
+  const data = req.body;
+
+  if (!Array.isArray(data)) {
+    return res.status(400).json({
+      error: 'Validation Error',
+      message: 'Request body must be an array'
+    });
+  }
+
+  const result = await standardsService.bulkImport(data);
+  res.json({
+    success: true,
+    message: `Imported ${result.criteria} criteria and ${result.sub_criteria} sub-criteria`,
+    ...result
   });
 }));
 

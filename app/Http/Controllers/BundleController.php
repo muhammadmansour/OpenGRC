@@ -77,13 +77,14 @@ class BundleController extends Controller
     }
 
     /**
-     * Fetch criteria from Muraji API and save:
-     * - Parent criteria → Standards table (for audit dropdown)
+     * Fetch criteria from Muraji API (hierarchy endpoint) and save:
+     * - Criteria → Standards table (for audit dropdown)
      * - Sub-criteria → Controls table (under the parent standard)
      */
     public static function retrieveFromMurajiApi(): void
     {
-        $apiUrl = setting('general.muraji_api', 'https://muraji-api.wathbahs.com/api/standards/criteria');
+        // Use hierarchy endpoint to get criteria with sub-criteria
+        $apiUrl = setting('general.muraji_api', 'https://muraji-api.wathbahs.com/api/standards/criteria/hierarchy');
 
         try {
             $response = Http::withHeaders([
@@ -94,76 +95,58 @@ class BundleController extends Controller
             
             $result = json_decode($response->body(), true);
             
-            // Handle both direct array and {data: [...]} format
-            $criteria = isset($result['data']) ? $result['data'] : $result;
+            // Handle {data: [...]} format
+            $criteriaList = isset($result['data']) ? $result['data'] : $result;
             
-            if (!is_array($criteria)) {
+            if (!is_array($criteriaList)) {
                 throw new \Exception('Invalid response format from Muraji API');
             }
 
             $standardsCount = 0;
             $controlsCount = 0;
 
-            // First pass: Create all parent criteria as Standards
-            foreach ($criteria as $item) {
-                if (empty($item['code']) || empty($item['name'])) {
+            // Process each criteria and its sub-criteria
+            foreach ($criteriaList as $criteria) {
+                if (empty($criteria['code']) || empty($criteria['name'])) {
                     continue;
                 }
 
-                // Only process PARENT criteria (no parent_code/parent_id)
-                if (!empty($item['parent_code']) || !empty($item['parent_id'])) {
-                    continue;
-                }
-
-                // Save parent criteria to Standards table
-                Standard::updateOrCreate(
-                    ['code' => $item['code']],
+                // Save criteria as Standard
+                $standard = Standard::updateOrCreate(
+                    ['code' => $criteria['code']],
                     [
-                        'code' => $item['code'],
-                        'name' => $item['name'],
-                        'authority' => $item['authority'] ?? 'Muraji',
-                        'description' => $item['description'] ?? '',
-                        'status' => 'In Scope', // Required to appear in audit dropdown
+                        'code' => $criteria['code'],
+                        'name' => $criteria['name'],
+                        'authority' => $criteria['authority'] ?? 'Muraji',
+                        'description' => $criteria['description'] ?? '',
+                        'status' => 'In Scope',
                     ]
                 );
                 $standardsCount++;
-                Log::info("Created Standard: {$item['code']} - {$item['name']}");
-            }
+                Log::info("Created/Updated Standard: {$criteria['code']} - {$criteria['name']}");
 
-            // Second pass: Create all sub-criteria as Controls under their parent Standard
-            foreach ($criteria as $item) {
-                if (empty($item['code']) || empty($item['name'])) {
-                    continue;
+                // Process sub-criteria if present
+                $subCriteria = $criteria['sub_criteria'] ?? [];
+                foreach ($subCriteria as $sub) {
+                    if (empty($sub['code']) || empty($sub['name'])) {
+                        continue;
+                    }
+
+                    Control::updateOrCreate(
+                        ['code' => $sub['code'], 'standard_id' => $standard->id],
+                        [
+                            'standard_id' => $standard->id,
+                            'code' => $sub['code'],
+                            'title' => $sub['name'],
+                            'description' => $sub['description'] ?? '',
+                            'type' => 'other',
+                            'category' => 'other',
+                            'enforcement' => 'mandatory',
+                        ]
+                    );
+                    $controlsCount++;
+                    Log::info("Created/Updated Control: {$sub['code']} under Standard {$criteria['code']}");
                 }
-
-                // Only process SUB-CRITERIA (has parent_code or parent_id)
-                $parentCode = $item['parent_code'] ?? null;
-                if (empty($parentCode) && empty($item['parent_id'])) {
-                    continue;
-                }
-
-                // Find the parent Standard
-                $standard = Standard::where('code', $parentCode)->first();
-                if (!$standard) {
-                    Log::warning("Parent standard not found for control: {$item['code']}, parent: {$parentCode}");
-                    continue;
-                }
-
-                // Save sub-criteria to Controls table
-                Control::updateOrCreate(
-                    ['code' => $item['code'], 'standard_id' => $standard->id],
-                    [
-                        'standard_id' => $standard->id,
-                        'code' => $item['code'],
-                        'title' => $item['name'],
-                        'description' => $item['description'] ?? '',
-                        'type' => 'other',
-                        'category' => 'other',
-                        'enforcement' => 'mandatory',
-                    ]
-                );
-                $controlsCount++;
-                Log::info("Created Control: {$item['code']} under Standard {$parentCode}");
             }
 
             Notification::make()
