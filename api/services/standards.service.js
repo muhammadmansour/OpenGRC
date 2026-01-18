@@ -386,41 +386,7 @@ class StandardsService {
     return results;
   }
 
-  /**
-   * Get criteria by code
-   * @param {string} code - The standard code
-   * @returns {Promise<Object|null>}
-   */
-  async getCriteriaByCode(code) {
-    if (!db.isDbConfigured) {
-      throw new Error('Database not configured');
-    }
-
-    const result = await db.query(
-      'SELECT * FROM standard_criteria WHERE code = $1',
-      [code]
-    );
-
-    return result.rows[0] || null;
-  }
-
-  /**
-   * Delete criteria by code
-   * @param {string} code - The standard code
-   * @returns {Promise<boolean>}
-   */
-  async deleteCriteria(code) {
-    if (!db.isDbConfigured) {
-      throw new Error('Database not configured');
-    }
-
-    const result = await db.query(
-      'DELETE FROM standard_criteria WHERE code = $1',
-      [code]
-    );
-
-    return result.rowCount > 0;
-  }
+  // OLD DUPLICATE FUNCTIONS REMOVED - using new criteria/sub_criteria tables above
 
   /**
    * Import a standard from its URL (fetch and store the full standard data)
@@ -489,7 +455,7 @@ class StandardsService {
 
       // Update criteria status
       await db.query(
-        'UPDATE standard_criteria SET status = $1, imported_at = NOW() WHERE code = $2',
+        'UPDATE criteria SET status = $1, updated_at = NOW() WHERE code = $2',
         ['imported', code]
       );
 
