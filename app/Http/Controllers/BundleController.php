@@ -113,7 +113,7 @@ class BundleController extends Controller
                         'version' => $item['version'] ?? '1.0',
                         'authority' => $item['authority'] ?? 'Muraji',
                         'description' => $item['description'] ?? '',
-                        'repo_url' => $item['url'] ?? null,
+                        'repo_url' => $item['url'] ?? 'https://muraji-api.wathbahs.com/api/standards/criteria/' . $item['code'],
                         'type' => $item['type'] ?? 'Standard',
                     ]
                 );
