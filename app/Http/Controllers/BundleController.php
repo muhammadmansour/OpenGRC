@@ -76,7 +76,7 @@ class BundleController extends Controller
     }
 
     /**
-     * Fetch bundles from Muraji API (criteria endpoint)
+     * Fetch criteria from Muraji API and save as Standards for audit selection
      */
     public static function retrieveFromMurajiApi(): void
     {
@@ -105,16 +105,15 @@ class BundleController extends Controller
                     continue;
                 }
 
-                Bundle::updateOrCreate(
+                // Save to Standards table (for audit selection dropdown)
+                Standard::updateOrCreate(
                     ['code' => $item['code']],
                     [
                         'code' => $item['code'],
                         'name' => $item['name'],
-                        'version' => $item['version'] ?? '1.0',
                         'authority' => $item['authority'] ?? 'Muraji',
                         'description' => $item['description'] ?? '',
-                        'repo_url' => $item['url'] ?? 'https://muraji-api.wathbahs.com/api/standards/criteria/' . $item['code'],
-                        'type' => $item['type'] ?? 'Standard',
+                        'status' => 'In Scope', // Required to appear in audit dropdown
                     ]
                 );
                 $count++;
@@ -122,7 +121,7 @@ class BundleController extends Controller
 
             Notification::make()
                 ->title('Muraji API Sync Complete')
-                ->body("Successfully synced {$count} criteria from Muraji API!")
+                ->body("Successfully synced {$count} criteria as Standards for audit selection!")
                 ->success()
                 ->send();
 
