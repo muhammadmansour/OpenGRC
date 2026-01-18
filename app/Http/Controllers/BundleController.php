@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bundle;
+use App\Models\Control;
 use App\Models\Standard;
 use Exception;
 use Filament\Notifications\Notification;
@@ -76,8 +77,9 @@ class BundleController extends Controller
     }
 
     /**
-     * Fetch criteria from Muraji API and save as Standards for audit selection
-     * Only imports SUB-CRITERIA (items with parent_code), not parent categories
+     * Fetch criteria from Muraji API and save:
+     * - Parent criteria → Standards table (for audit dropdown)
+     * - Sub-criteria → Controls table (under the parent standard)
      */
     public static function retrieveFromMurajiApi(): void
     {
@@ -99,23 +101,21 @@ class BundleController extends Controller
                 throw new \Exception('Invalid response format from Muraji API');
             }
 
-            $count = 0;
-            $skipped = 0;
+            $standardsCount = 0;
+            $controlsCount = 0;
+
+            // First pass: Create all parent criteria as Standards
             foreach ($criteria as $item) {
-                // Skip items without required fields
                 if (empty($item['code']) || empty($item['name'])) {
                     continue;
                 }
 
-                // ONLY import sub-criteria (items that have a parent)
-                // Skip parent categories (items without parent_code or parent_id)
-                if (empty($item['parent_code']) && empty($item['parent_id'])) {
-                    $skipped++;
-                    Log::info("Skipping parent category: {$item['code']} - {$item['name']}");
+                // Only process PARENT criteria (no parent_code/parent_id)
+                if (!empty($item['parent_code']) || !empty($item['parent_id'])) {
                     continue;
                 }
 
-                // Save sub-criteria to Standards table (for audit selection dropdown)
+                // Save parent criteria to Standards table
                 Standard::updateOrCreate(
                     ['code' => $item['code']],
                     [
@@ -126,12 +126,49 @@ class BundleController extends Controller
                         'status' => 'In Scope', // Required to appear in audit dropdown
                     ]
                 );
-                $count++;
+                $standardsCount++;
+                Log::info("Created Standard: {$item['code']} - {$item['name']}");
+            }
+
+            // Second pass: Create all sub-criteria as Controls under their parent Standard
+            foreach ($criteria as $item) {
+                if (empty($item['code']) || empty($item['name'])) {
+                    continue;
+                }
+
+                // Only process SUB-CRITERIA (has parent_code or parent_id)
+                $parentCode = $item['parent_code'] ?? null;
+                if (empty($parentCode) && empty($item['parent_id'])) {
+                    continue;
+                }
+
+                // Find the parent Standard
+                $standard = Standard::where('code', $parentCode)->first();
+                if (!$standard) {
+                    Log::warning("Parent standard not found for control: {$item['code']}, parent: {$parentCode}");
+                    continue;
+                }
+
+                // Save sub-criteria to Controls table
+                Control::updateOrCreate(
+                    ['code' => $item['code'], 'standard_id' => $standard->id],
+                    [
+                        'standard_id' => $standard->id,
+                        'code' => $item['code'],
+                        'title' => $item['name'],
+                        'description' => $item['description'] ?? '',
+                        'type' => 'other',
+                        'category' => 'other',
+                        'enforcement' => 'mandatory',
+                    ]
+                );
+                $controlsCount++;
+                Log::info("Created Control: {$item['code']} under Standard {$parentCode}");
             }
 
             Notification::make()
                 ->title('Muraji API Sync Complete')
-                ->body("Imported {$count} sub-criteria. Skipped {$skipped} parent categories.")
+                ->body("Imported {$standardsCount} standards and {$controlsCount} controls.")
                 ->success()
                 ->send();
 
