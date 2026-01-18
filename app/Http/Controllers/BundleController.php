@@ -194,17 +194,8 @@ class BundleController extends Controller
                     continue;
                 }
 
-                // Build description with requirements info
+                // Use description directly (should contain the requirements)
                 $description = $sub['description'] ?? '';
-                $reqCount = $sub['requirements_count'] ?? 0;
-                $docCount = $sub['documents_count'] ?? 0;
-                
-                // Add requirements summary if available
-                if ($reqCount > 0 || $docCount > 0) {
-                    $description .= "\n\n---\n";
-                    $description .= "📋 عدد المتطلبات: {$reqCount}\n";
-                    $description .= "📄 عدد الوثائق المطلوبة: {$docCount}";
-                }
 
                 Control::updateOrCreate(
                     ['code' => $sub['code'], 'standard_id' => $standard->id],
