@@ -139,9 +139,9 @@ class BundleController extends Controller
                             'code' => $sub['code'],
                             'title' => $sub['name'],
                             'description' => $sub['description'] ?? '',
-                            'type' => 'other',
-                            'category' => 'other',
-                            'enforcement' => 'mandatory',
+                            'type' => 'Other',
+                            'category' => 'Other',
+                            'enforcement' => 'Mandatory',
                         ]
                     );
                     $controlsCount++;
