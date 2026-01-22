@@ -21,6 +21,7 @@ const projectRoutes = require('./routes/project.routes');
 const domainRoutes = require('./routes/domain.routes');
 const adminRoutes = require('./routes/admin.routes');
 const extractionRoutes = require('./routes/extraction.routes');
+const libraryRoutes = require('./routes/library.routes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
@@ -157,6 +158,7 @@ app.use('/api/projects', authMiddleware, projectRoutes);
 app.use('/api/domains', authMiddleware, domainRoutes);
 app.use('/api/admin', authMiddleware, adminRoutes);
 app.use('/api/extractions', authMiddleware, extractionRoutes);
+app.use('/api/libraries', libraryRoutes); // Library CRUD (public for now)
 
 // =============================================================================
 // ERROR HANDLING
