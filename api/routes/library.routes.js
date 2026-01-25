@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const libraryService = require('../services/library.service');
 const { asyncHandler } = require('../middleware/error.middleware');
+const { convertToOpenGRC } = require('../utils/opengrc-converter');
 
 // =============================================================================
 // GET ENDPOINTS
@@ -78,11 +79,15 @@ router.get('/search', asyncHandler(async (req, res) => {
 /**
  * GET /api/libraries/urn/:urn
  * Get library by URN (latest version or specific version/locale)
- * Query params: locale, version
+ * Query params: 
+ *   - locale: language locale (default: 'en')
+ *   - version: specific version number
+ *   - provider: 'ciso' (default, raw DB format) or 'opengrc' (converted format)
+ *   - output: 'bundle', 'standard', or 'full' (only when provider=opengrc)
  */
 router.get('/urn/:urn', asyncHandler(async (req, res) => {
   const { urn } = req.params;
-  const { locale, version } = req.query;
+  const { locale, version, provider, output } = req.query;
 
   const library = await libraryService.getLibraryByUrn(
     urn,
@@ -97,6 +102,13 @@ router.get('/urn/:urn', asyncHandler(async (req, res) => {
     });
   }
 
+  // If provider=opengrc, convert to OpenGRC format
+  if (provider === 'opengrc') {
+    const converted = convertToOpenGRC(library, output || 'full');
+    return res.json(converted);
+  }
+
+  // Default: provider=ciso or not specified - return raw DB format
   res.json({
     success: true,
     data: library
@@ -122,9 +134,14 @@ router.get('/urn/:urn/versions', asyncHandler(async (req, res) => {
 /**
  * GET /api/libraries/:id
  * Get library by ID
+ * Query params: 
+ *   - provider: 'ciso' (default, raw DB format) or 'opengrc' (converted format)
+ *   - output: 'bundle', 'standard', or 'full' (only when provider=opengrc)
  */
 router.get('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { provider, output } = req.query;
+  
   const library = await libraryService.getLibraryById(id);
 
   if (!library) {
@@ -134,6 +151,13 @@ router.get('/:id', asyncHandler(async (req, res) => {
     });
   }
 
+  // If provider=opengrc, convert to OpenGRC format
+  if (provider === 'opengrc') {
+    const converted = convertToOpenGRC(library, output || 'full');
+    return res.json(converted);
+  }
+
+  // Default: provider=ciso or not specified - return raw DB format
   res.json({
     success: true,
     data: library
