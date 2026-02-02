@@ -1,69 +1,24 @@
 /**
  * Entity Extraction Service
- * Uses Google's Gemini AI to extract entities from files and text
+ * Uses the same Gemini Chat Service for AI operations
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const geminiChatService = require('./gemini-chat.service');
 
 class EntityExtractionService {
-  constructor() {
-    this.genAI = null;
-    this.model = null;
-    this.currentModelName = 'gemini-2.0-flash-exp';
-    this.initializeGemini();
+  
+  /**
+   * Get current model name from chat service
+   */
+  get currentModelName() {
+    return geminiChatService.currentModelName;
   }
 
   /**
-   * Initialize Gemini AI with API key
-   * Uses same configuration as Chat API
+   * Check if service is available (uses chat service)
    */
-  initializeGemini() {
-    const apiKey = process.env.GEMINI_API_KEY;
-    
-    if (!apiKey) {
-      console.warn('⚠️  GEMINI_API_KEY not found - Entity Extraction service unavailable');
-      return;
-    }
-
-    // Same model list as Chat API
-    const modelNames = [
-      'gemini-2.0-flash-exp',
-      'gemini-exp-1206',
-      'gemini-1.5-flash-latest',
-      'gemini-1.5-flash',
-      'gemini-1.5-pro-latest',
-      'gemini-1.5-pro',
-      'gemini-pro'
-    ];
-
-    try {
-      this.genAI = new GoogleGenerativeAI(apiKey);
-      
-      for (const modelName of modelNames) {
-        try {
-          this.model = this.genAI.getGenerativeModel({ 
-            model: modelName,
-            generationConfig: {
-              temperature: 0.4,
-              topP: 0.95,
-              topK: 40,
-              maxOutputTokens: 8192,
-            }
-          });
-          this.currentModelName = modelName;
-          console.log(`✅ Entity Extraction service initialized with ${modelName}`);
-          break;
-        } catch (modelError) {
-          console.warn(`⚠️  Model ${modelName} not available: ${modelError.message}`);
-        }
-      }
-      
-      if (!this.model) {
-        throw new Error('No Gemini models available');
-      }
-    } catch (error) {
-      console.error('❌ Failed to initialize Entity Extraction service:', error.message);
-    }
+  isAvailable() {
+    return geminiChatService.isAvailable();
   }
 
   /**
@@ -73,7 +28,7 @@ class EntityExtractionService {
    * @param {Object} options - Extraction options
    */
   async extractEntities(context, files = [], options = {}) {
-    if (!this.model) {
+    if (!this.isAvailable()) {
       throw new Error('Entity Extraction service not initialized. Please set GEMINI_API_KEY');
     }
 
@@ -82,11 +37,14 @@ class EntityExtractionService {
       console.log(`📄 Context length: ${context?.length || 0} characters`);
       console.log(`📎 Files: ${files.length}`);
       
-      const parts = this.buildExtractionParts(context, files, options);
+      // Build the extraction prompt
+      const extractionPrompt = this.buildExtractionPrompt(context, files, options);
       
-      console.log(`📦 Sending ${parts.length} parts to Gemini for extraction`);
+      console.log(`📦 Sending request to Gemini for extraction`);
       
-      const result = await this.model.generateContent(parts);
+      // Use the chat service's model directly
+      const parts = this.buildMultimodalParts(extractionPrompt, files);
+      const result = await geminiChatService.model.generateContent(parts);
       const response = await result.response;
       const aiResponse = response.text();
 
@@ -128,15 +86,9 @@ Extract ALL relevant entities from the provided documents. Focus on:
   }
 
   /**
-   * Build multimodal parts for entity extraction
+   * Build the extraction prompt
    */
-  buildExtractionParts(context, files = [], options = {}) {
-    const parts = [];
-    
-    const textFiles = files.filter(f => f.encoding === 'text');
-    const binaryFiles = files.filter(f => f.encoding === 'base64');
-
-    // Entity types to extract (can be customized via options)
+  buildExtractionPrompt(context, files = [], options = {}) {
     const entityTypes = options.entityTypes || [
       'PERSON', 'ORGANIZATION', 'LOCATION', 'DATE', 'TIME', 
       'MONEY', 'PERCENT', 'EMAIL', 'PHONE', 'URL',
@@ -144,10 +96,9 @@ Extract ALL relevant entities from the provided documents. Focus on:
       'CONTROL', 'RISK', 'POLICY', 'PROCEDURE', 'REQUIREMENT'
     ];
 
-    // Use built-in prompt, with optional context override
     const extractionInstructions = context || this.getDefaultPrompt();
 
-    let textPrompt = `You are an expert entity extraction system. Your task is to extract all relevant entities from the provided documents and text.
+    let prompt = `You are an expert entity extraction system. Your task is to extract all relevant entities from the provided documents and text.
 
 **EXTRACTION INSTRUCTIONS:**
 ${extractionInstructions}
@@ -157,26 +108,16 @@ ${entityTypes.join(', ')}
 
 `;
 
-    // Add text files content
-    if (textFiles.length > 0) {
-      textPrompt += `\n**TEXT CONTENT (${textFiles.length} file(s)):**\n`;
-      textFiles.forEach((file, idx) => {
-        textPrompt += `\n--- File ${idx + 1}: ${file.name} ---\n`;
-        textPrompt += `${file.data.substring(0, 20000)}${file.data.length > 20000 ? '\n...[content truncated]' : ''}\n`;
+    // Add file info
+    if (files.length > 0) {
+      prompt += `\n**DOCUMENTS TO ANALYZE (${files.length} file(s)):**\n`;
+      files.forEach((file, idx) => {
+        prompt += `${idx + 1}. ${file.name} (${file.mimeType})\n`;
       });
+      prompt += `\n**CRITICAL:** Read and extract entities from ALL attached documents.\n`;
     }
 
-    // Note about binary files
-    if (binaryFiles.length > 0) {
-      textPrompt += `\n**ATTACHED DOCUMENTS (${binaryFiles.length} file(s)):**\n`;
-      textPrompt += `The following documents are attached for entity extraction:\n`;
-      binaryFiles.forEach((file, idx) => {
-        textPrompt += `${idx + 1}. ${file.name} (${file.mimeType})\n`;
-      });
-      textPrompt += `\n**CRITICAL:** Read and extract entities from ALL attached documents.\n`;
-    }
-
-    textPrompt += `
+    prompt += `
 **OUTPUT FORMAT:**
 Return a JSON object with this exact structure:
 
@@ -196,12 +137,10 @@ Return a JSON object with this exact structure:
     "totalEntities": <number>,
     "byType": {
       "PERSON": <count>,
-      "ORGANIZATION": <count>,
-      ...
+      "ORGANIZATION": <count>
     },
     "bySource": {
-      "filename1.pdf": <count>,
-      ...
+      "filename1.pdf": <count>
     }
   },
   "relationships": [
@@ -227,9 +166,28 @@ Return a JSON object with this exact structure:
 5. For compliance documents, pay special attention to: controls, requirements, policies, standards, regulations
 6. Return ONLY valid JSON, no markdown code blocks`;
 
+    return prompt;
+  }
+
+  /**
+   * Build multimodal parts for Gemini
+   */
+  buildMultimodalParts(textPrompt, files = []) {
+    const parts = [];
+    
+    // Add text prompt first
     parts.push({ text: textPrompt });
 
-    // Add binary files
+    // Add text files content inline
+    const textFiles = files.filter(f => f.encoding === 'text');
+    for (const file of textFiles) {
+      parts.push({ 
+        text: `\n--- Content of ${file.name} ---\n${file.data.substring(0, 20000)}${file.data.length > 20000 ? '\n...[truncated]' : ''}\n` 
+      });
+    }
+
+    // Add binary files as inline data
+    const binaryFiles = files.filter(f => f.encoding === 'base64');
     for (const file of binaryFiles) {
       try {
         const mimeType = file.mimeType || 'application/octet-stream';
@@ -324,7 +282,7 @@ Return a JSON object with this exact structure:
    * Batch extraction from multiple file sets
    */
   async extractBatch(items) {
-    if (!this.model) {
+    if (!this.isAvailable()) {
       throw new Error('Entity Extraction service not initialized');
     }
 
@@ -352,13 +310,6 @@ Return a JSON object with this exact structure:
     }
 
     return results;
-  }
-
-  /**
-   * Check if service is available
-   */
-  isAvailable() {
-    return this.model !== null;
   }
 }
 
