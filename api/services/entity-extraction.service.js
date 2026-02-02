@@ -9,12 +9,13 @@ class EntityExtractionService {
   constructor() {
     this.genAI = null;
     this.model = null;
-    this.currentModelName = 'gemini-1.5-flash-latest';
+    this.currentModelName = 'gemini-2.0-flash-exp';
     this.initializeGemini();
   }
 
   /**
    * Initialize Gemini AI with API key
+   * Uses same configuration as Chat API
    */
   initializeGemini() {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -24,15 +25,15 @@ class EntityExtractionService {
       return;
     }
 
-    // Try versioned and latest model names
+    // Same model list as Chat API
     const modelNames = [
+      'gemini-2.0-flash-exp',
+      'gemini-exp-1206',
       'gemini-1.5-flash-latest',
-      'gemini-1.5-flash-002',
-      'gemini-1.5-flash-001',
+      'gemini-1.5-flash',
       'gemini-1.5-pro-latest',
-      'gemini-1.5-pro-002',
-      'gemini-1.0-pro-latest',
-      'gemini-1.0-pro'
+      'gemini-1.5-pro',
+      'gemini-pro'
     ];
 
     try {
@@ -43,7 +44,7 @@ class EntityExtractionService {
           this.model = this.genAI.getGenerativeModel({ 
             model: modelName,
             generationConfig: {
-              temperature: 0.2, // Lower temperature for more precise extraction
+              temperature: 0.4,
               topP: 0.95,
               topK: 40,
               maxOutputTokens: 8192,
