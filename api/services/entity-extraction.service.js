@@ -9,7 +9,7 @@ class EntityExtractionService {
   constructor() {
     this.genAI = null;
     this.model = null;
-    this.currentModelName = 'gemini-2.0-flash-exp';
+    this.currentModelName = 'gemini-2.5-pro-preview-05-06';
     this.initializeGemini();
   }
 
@@ -25,12 +25,12 @@ class EntityExtractionService {
     }
 
     const modelNames = [
-      'gemini-2.0-flash-exp',
-      'gemini-exp-1206',
-      'gemini-1.5-flash-latest',
-      'gemini-1.5-flash',
+      'gemini-2.5-pro-preview-05-06',
+      'gemini-2.5-pro',
       'gemini-1.5-pro-latest',
       'gemini-1.5-pro',
+      'gemini-1.5-flash-latest',
+      'gemini-1.5-flash',
       'gemini-pro'
     ];
 
