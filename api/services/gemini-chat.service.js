@@ -47,7 +47,7 @@ class GeminiChatService {
               temperature: 0.4,
               topP: 0.95,
               topK: 40,
-              maxOutputTokens: 8192,
+              maxOutputTokens: 65536,
             }
           });
           this.currentModelName = modelName;
