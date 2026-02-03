@@ -523,8 +523,10 @@ class LibraryService {
         const { node, index } = match;
         let wasUpdated = false;
 
-        if (update.typical_evidence !== undefined) {
-          requirementNodes[index].typical_evidence = update.typical_evidence;
+        // Accept both typical_evidence and typical_requirements (backwards compatibility)
+        const typicalEvidence = update.typical_evidence ?? update.typical_requirements;
+        if (typicalEvidence !== undefined) {
+          requirementNodes[index].typical_evidence = typicalEvidence;
           wasUpdated = true;
         }
 

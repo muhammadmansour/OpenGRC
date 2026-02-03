@@ -604,7 +604,11 @@ router.get('/:id/controls', asyncHandler(async (req, res) => {
  *                       description: |
  *                         Typical evidence needed for this control.
  *                         Can include bullet points using "- " prefix.
+ *                         Also accepts "typical_requirements" for backwards compatibility.
  *                       example: "- Approved cybersecurity strategy document\n- Board meeting minutes showing approval\n- Signature of Authorizing Official"
+ *                     typical_requirements:
+ *                       type: string
+ *                       description: Alias for typical_evidence (backwards compatibility)
  *                     questions:
  *                       type: object
  *                       description: Assessment questions in JSON format
