@@ -221,6 +221,110 @@ router.get('/:id/content', asyncHandler(async (req, res) => {
 }));
 
 // =============================================================================
+// PROVIDER-BASED ENDPOINTS (must come before /:id routes)
+// =============================================================================
+
+/**
+ * @swagger
+ * /api/libraries/provider/{provider}/controls:
+ *   post:
+ *     summary: Bulk update controls across all libraries from a provider
+ *     description: |
+ *       Updates typical_requirements and questions for controls across ALL libraries
+ *       from a specific provider (e.g., NCA). This is useful when multiple libraries
+ *       share the same control codes.
+ *     tags: [Libraries]
+ *     parameters:
+ *       - in: path
+ *         name: provider
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Provider name (e.g., "NCA")
+ *         example: NCA
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - updates
+ *             properties:
+ *               updates:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - code
+ *                   properties:
+ *                     code:
+ *                       type: string
+ *                       description: Control code (e.g., "1-1-1")
+ *                     typical_requirements:
+ *                       type: string
+ *                     questions:
+ *                       type: object
+ *     responses:
+ *       200:
+ *         description: Bulk update completed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 provider:
+ *                   type: string
+ *                 libraries_processed:
+ *                   type: integer
+ *                 results:
+ *                   type: array
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: No libraries found for provider
+ */
+router.post('/provider/:provider/controls', asyncHandler(async (req, res) => {
+  const { provider } = req.params;
+  const { updates } = req.body;
+
+  if (!updates || !Array.isArray(updates)) {
+    return res.status(400).json({
+      error: 'Validation Error',
+      message: 'updates must be an array of control updates'
+    });
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({
+      error: 'Validation Error',
+      message: 'updates array cannot be empty'
+    });
+  }
+
+  try {
+    const result = await libraryService.bulkUpdateControlsByProvider(provider, updates);
+    res.json({
+      success: true,
+      message: `Processed ${result.libraries_processed} libraries for provider: ${provider}`,
+      ...result
+    });
+  } catch (err) {
+    if (err.message.includes('No libraries found')) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: err.message
+      });
+    }
+    throw err;
+  }
+}));
+
+// =============================================================================
 // POST ENDPOINTS
 // =============================================================================
 
@@ -377,6 +481,232 @@ router.patch('/:id/load', asyncHandler(async (req, res) => {
     message: is_loaded ? 'Library loaded' : 'Library unloaded',
     data: library
   });
+}));
+
+// =============================================================================
+// CONTROLS UPDATE ENDPOINTS
+// =============================================================================
+
+/**
+ * @swagger
+ * /api/libraries/{id}/controls:
+ *   get:
+ *     summary: Get all controls from a library
+ *     description: Returns all controls with their typical_requirements and questions fields
+ *     tags: [Libraries]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Library UUID
+ *       - in: query
+ *         name: assessable_only
+ *         schema:
+ *           type: boolean
+ *         description: Only return assessable controls
+ *       - in: query
+ *         name: has_typical_requirements
+ *         schema:
+ *           type: boolean
+ *         description: Filter by presence of typical_requirements
+ *       - in: query
+ *         name: has_questions
+ *         schema:
+ *           type: boolean
+ *         description: Filter by presence of questions
+ *     responses:
+ *       200:
+ *         description: List of controls
+ *       404:
+ *         description: Library not found
+ */
+router.get('/:id/controls', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const filters = {
+    assessable_only: req.query.assessable_only === 'true',
+    has_typical_requirements: req.query.has_typical_requirements !== undefined 
+      ? req.query.has_typical_requirements === 'true' 
+      : undefined,
+    has_questions: req.query.has_questions !== undefined 
+      ? req.query.has_questions === 'true' 
+      : undefined
+  };
+
+  // Remove undefined values
+  Object.keys(filters).forEach(key => filters[key] === undefined && delete filters[key]);
+
+  try {
+    const result = await libraryService.getLibraryControls(id, filters);
+    res.json({
+      success: true,
+      ...result
+    });
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: err.message
+      });
+    }
+    throw err;
+  }
+}));
+
+/**
+ * @swagger
+ * /api/libraries/{id}/controls:
+ *   patch:
+ *     summary: Update library controls with typical_requirements and questions
+ *     description: |
+ *       Update multiple controls in a library with their typical_requirements and/or questions.
+ *       Each update object must have at least one identifier (id, urn, code, or ref_id) to match the control.
+ *     tags: [Libraries]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Library UUID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - updates
+ *             properties:
+ *               updates:
+ *                 type: array
+ *                 description: Array of control updates
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: Control UUID (urn)
+ *                     urn:
+ *                       type: string
+ *                       description: Control URN
+ *                     code:
+ *                       type: string
+ *                       description: Control code (e.g., "1-1-1")
+ *                     ref_id:
+ *                       type: string
+ *                       description: Reference ID
+ *                     typical_requirements:
+ *                       type: string
+ *                       description: |
+ *                         Typical requirements/evidence needed for this control.
+ *                         Can include bullet points using "- " prefix.
+ *                       example: "- Approved cybersecurity strategy document\n- Board meeting minutes showing approval\n- Signature of Authorizing Official"
+ *                     questions:
+ *                       type: object
+ *                       description: Assessment questions in JSON format
+ *                       example:
+ *                         q1:
+ *                           text: "Is the cybersecurity strategy documented?"
+ *                           type: "unique_choice"
+ *                           options: ["yes", "no", "partial"]
+ *                         q2:
+ *                           text: "Is the strategy approved by management?"
+ *                           type: "unique_choice"
+ *                           options: ["yes", "no", "partial"]
+ *           example:
+ *             updates:
+ *               - code: "1-1-1"
+ *                 typical_requirements: "- Approved cybersecurity strategy document\n- Board meeting minutes showing approval\n- Signature of Authorizing Official\n- Evidence of communication to stakeholders"
+ *                 questions:
+ *                   q1:
+ *                     text: "Is the cybersecurity strategy documented?"
+ *                     type: "unique_choice"
+ *                     options: ["yes", "no", "partial"]
+ *                   q2:
+ *                     text: "Is the strategy approved by management?"
+ *                     type: "unique_choice"
+ *                     options: ["yes", "no", "partial"]
+ *     responses:
+ *       200:
+ *         description: Controls updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 library:
+ *                   type: object
+ *                 statistics:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     updated:
+ *                       type: integer
+ *                     not_found:
+ *                       type: integer
+ *                     errors:
+ *                       type: array
+ *                 updated_items:
+ *                   type: array
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Library not found
+ */
+router.patch('/:id/controls', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { updates } = req.body;
+
+  if (!updates || !Array.isArray(updates)) {
+    return res.status(400).json({
+      error: 'Validation Error',
+      message: 'updates must be an array of control updates'
+    });
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({
+      error: 'Validation Error',
+      message: 'updates array cannot be empty'
+    });
+  }
+
+  // Validate each update has at least one identifier
+  for (let i = 0; i < updates.length; i++) {
+    const update = updates[i];
+    if (!update.id && !update.urn && !update.code && !update.ref_id) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: `Update at index ${i} must have at least one identifier (id, urn, code, or ref_id)`
+      });
+    }
+  }
+
+  try {
+    const result = await libraryService.updateLibraryControls(id, updates);
+    res.json({
+      success: true,
+      message: `Updated ${result.statistics.updated} of ${result.statistics.total} controls`,
+      ...result
+    });
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: err.message
+      });
+    }
+    throw err;
+  }
 }));
 
 // =============================================================================

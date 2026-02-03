@@ -426,6 +426,264 @@ class LibraryService {
 
     return await this.createLibrary(newData);
   }
+
+  /**
+   * Update library controls with typical_requirements and questions
+   * @param {string} libraryId - Library UUID
+   * @param {Array} updates - Array of updates with { id?, code?, ref_id?, typical_requirements?, questions? }
+   * @returns {Object} Updated library and statistics
+   */
+  async updateLibraryControls(libraryId, updates) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    if (!Array.isArray(updates) || updates.length === 0) {
+      throw new Error('updates must be a non-empty array');
+    }
+
+    // Get the library
+    const library = await this.getLibraryById(libraryId);
+    if (!library) {
+      throw new Error(`Library not found: ${libraryId}`);
+    }
+
+    // Parse content if it's a string
+    let content = library.content;
+    if (typeof content === 'string') {
+      content = JSON.parse(content);
+    }
+
+    // Find the requirement_nodes array in content
+    // It could be at content.framework.requirement_nodes or content.requirement_nodes
+    let requirementNodes = null;
+    let nodePath = null;
+
+    if (content?.framework?.requirement_nodes) {
+      requirementNodes = content.framework.requirement_nodes;
+      nodePath = 'framework.requirement_nodes';
+    } else if (content?.requirement_nodes) {
+      requirementNodes = content.requirement_nodes;
+      nodePath = 'requirement_nodes';
+    }
+
+    if (!requirementNodes || !Array.isArray(requirementNodes)) {
+      throw new Error('Library content does not contain requirement_nodes array');
+    }
+
+    // Create lookup maps for faster matching
+    const nodesByUrn = new Map();
+    const nodesByRefId = new Map();
+    const nodesByCode = new Map();
+
+    requirementNodes.forEach((node, index) => {
+      if (node.urn) nodesByUrn.set(node.urn, { node, index });
+      if (node.ref_id) nodesByRefId.set(node.ref_id, { node, index });
+      if (node.code) nodesByCode.set(node.code, { node, index });
+    });
+
+    // Track statistics
+    const stats = {
+      total: updates.length,
+      updated: 0,
+      not_found: 0,
+      errors: []
+    };
+
+    const updatedItems = [];
+
+    // Process each update
+    for (const update of updates) {
+      try {
+        // Find the matching node by id (urn), code, or ref_id
+        let match = null;
+
+        if (update.id && nodesByUrn.has(update.id)) {
+          match = nodesByUrn.get(update.id);
+        } else if (update.urn && nodesByUrn.has(update.urn)) {
+          match = nodesByUrn.get(update.urn);
+        } else if (update.code && nodesByCode.has(update.code)) {
+          match = nodesByCode.get(update.code);
+        } else if (update.code && nodesByRefId.has(update.code)) {
+          match = nodesByRefId.get(update.code);
+        } else if (update.ref_id && nodesByRefId.has(update.ref_id)) {
+          match = nodesByRefId.get(update.ref_id);
+        }
+
+        if (!match) {
+          stats.not_found++;
+          stats.errors.push({
+            identifier: update.id || update.urn || update.code || update.ref_id || 'unknown',
+            error: 'Control not found in library'
+          });
+          continue;
+        }
+
+        // Update the node with typical_requirements and/or questions
+        const { node, index } = match;
+        let wasUpdated = false;
+
+        if (update.typical_requirements !== undefined) {
+          requirementNodes[index].typical_requirements = update.typical_requirements;
+          wasUpdated = true;
+        }
+
+        if (update.questions !== undefined) {
+          // Ensure questions is stored as an object/JSON
+          requirementNodes[index].questions = typeof update.questions === 'string' 
+            ? JSON.parse(update.questions) 
+            : update.questions;
+          wasUpdated = true;
+        }
+
+        if (wasUpdated) {
+          stats.updated++;
+          updatedItems.push({
+            identifier: update.id || update.urn || update.code || update.ref_id,
+            ref_id: node.ref_id,
+            name: node.name
+          });
+        }
+      } catch (err) {
+        stats.errors.push({
+          identifier: update.id || update.urn || update.code || update.ref_id || 'unknown',
+          error: err.message
+        });
+      }
+    }
+
+    // Update the content back in the library
+    if (nodePath === 'framework.requirement_nodes') {
+      content.framework.requirement_nodes = requirementNodes;
+    } else {
+      content.requirement_nodes = requirementNodes;
+    }
+
+    // Calculate new hash and update library
+    const newHash = this.generateHash(content);
+
+    const result = await db.query(`
+      UPDATE core_storedlibrary 
+      SET content = $1, hash_checksum = $2, updated_at = NOW()
+      WHERE id = $3
+      RETURNING id, name, urn, version, updated_at
+    `, [JSON.stringify(content), newHash, libraryId]);
+
+    return {
+      library: result.rows[0],
+      statistics: stats,
+      updated_items: updatedItems
+    };
+  }
+
+  /**
+   * Get all controls from a library with their typical_requirements and questions
+   * @param {string} libraryId - Library UUID
+   * @param {Object} filters - Optional filters { has_typical_requirements, has_questions, assessable_only }
+   * @returns {Array} Array of controls
+   */
+  async getLibraryControls(libraryId, filters = {}) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    const library = await this.getLibraryById(libraryId);
+    if (!library) {
+      throw new Error(`Library not found: ${libraryId}`);
+    }
+
+    // Parse content if it's a string
+    let content = library.content;
+    if (typeof content === 'string') {
+      content = JSON.parse(content);
+    }
+
+    // Find the requirement_nodes array
+    let requirementNodes = content?.framework?.requirement_nodes || content?.requirement_nodes || [];
+
+    // Apply filters
+    let controls = requirementNodes.map(node => ({
+      urn: node.urn,
+      ref_id: node.ref_id,
+      code: node.code,
+      name: node.name,
+      description: node.description,
+      assessable: node.assessable,
+      depth: node.depth,
+      parent_urn: node.parent_urn,
+      typical_requirements: node.typical_requirements || null,
+      questions: node.questions || null,
+      implementation_groups: node.implementation_groups
+    }));
+
+    if (filters.assessable_only) {
+      controls = controls.filter(c => c.assessable === true);
+    }
+
+    if (filters.has_typical_requirements === true) {
+      controls = controls.filter(c => c.typical_requirements);
+    } else if (filters.has_typical_requirements === false) {
+      controls = controls.filter(c => !c.typical_requirements);
+    }
+
+    if (filters.has_questions === true) {
+      controls = controls.filter(c => c.questions);
+    } else if (filters.has_questions === false) {
+      controls = controls.filter(c => !c.questions);
+    }
+
+    return {
+      library_id: library.id,
+      library_name: library.name,
+      library_urn: library.urn,
+      total_controls: controls.length,
+      controls
+    };
+  }
+
+  /**
+   * Bulk update controls across multiple libraries by provider
+   * @param {string} provider - Provider name (e.g., 'NCA')
+   * @param {Array} updates - Array of updates with { code, typical_requirements?, questions? }
+   * @returns {Object} Statistics of updates
+   */
+  async bulkUpdateControlsByProvider(provider, updates) {
+    if (!db.isDbConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    // Find all libraries by provider
+    const libraries = await this.getAllLibraries({ provider });
+
+    if (libraries.length === 0) {
+      throw new Error(`No libraries found for provider: ${provider}`);
+    }
+
+    const results = [];
+
+    for (const library of libraries) {
+      try {
+        const result = await this.updateLibraryControls(library.id, updates);
+        results.push({
+          library_id: library.id,
+          library_name: library.name,
+          ...result.statistics
+        });
+      } catch (err) {
+        results.push({
+          library_id: library.id,
+          library_name: library.name,
+          error: err.message
+        });
+      }
+    }
+
+    return {
+      provider,
+      libraries_processed: libraries.length,
+      results
+    };
+  }
 }
 
 module.exports = new LibraryService();
