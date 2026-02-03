@@ -428,9 +428,9 @@ class LibraryService {
   }
 
   /**
-   * Update library controls with typical_requirements and questions
+   * Update library controls with typical_evidence and questions
    * @param {string} libraryId - Library UUID
-   * @param {Array} updates - Array of updates with { id?, code?, ref_id?, typical_requirements?, questions? }
+   * @param {Array} updates - Array of updates with { id?, code?, ref_id?, typical_evidence?, questions? }
    * @returns {Object} Updated library and statistics
    */
   async updateLibraryControls(libraryId, updates) {
@@ -523,8 +523,8 @@ class LibraryService {
         const { node, index } = match;
         let wasUpdated = false;
 
-        if (update.typical_requirements !== undefined) {
-          requirementNodes[index].typical_requirements = update.typical_requirements;
+        if (update.typical_evidence !== undefined) {
+          requirementNodes[index].typical_evidence = update.typical_evidence;
           wasUpdated = true;
         }
 
@@ -577,9 +577,9 @@ class LibraryService {
   }
 
   /**
-   * Get all controls from a library with their typical_requirements and questions
+   * Get all controls from a library with their typical_evidence and questions
    * @param {string} libraryId - Library UUID
-   * @param {Object} filters - Optional filters { has_typical_requirements, has_questions, assessable_only }
+   * @param {Object} filters - Optional filters { has_typical_evidence, has_questions, assessable_only }
    * @returns {Array} Array of controls
    */
   async getLibraryControls(libraryId, filters = {}) {
@@ -611,7 +611,7 @@ class LibraryService {
       assessable: node.assessable,
       depth: node.depth,
       parent_urn: node.parent_urn,
-      typical_requirements: node.typical_requirements || null,
+      typical_evidence: node.typical_evidence || null,
       questions: node.questions || null,
       implementation_groups: node.implementation_groups
     }));
@@ -620,10 +620,10 @@ class LibraryService {
       controls = controls.filter(c => c.assessable === true);
     }
 
-    if (filters.has_typical_requirements === true) {
-      controls = controls.filter(c => c.typical_requirements);
-    } else if (filters.has_typical_requirements === false) {
-      controls = controls.filter(c => !c.typical_requirements);
+    if (filters.has_typical_evidence === true) {
+      controls = controls.filter(c => c.typical_evidence);
+    } else if (filters.has_typical_evidence === false) {
+      controls = controls.filter(c => !c.typical_evidence);
     }
 
     if (filters.has_questions === true) {

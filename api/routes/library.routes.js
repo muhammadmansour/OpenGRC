@@ -230,7 +230,7 @@ router.get('/:id/content', asyncHandler(async (req, res) => {
  *   post:
  *     summary: Bulk update controls across all libraries from a provider
  *     description: |
- *       Updates typical_requirements and questions for controls across ALL libraries
+ *       Updates typical_evidence and questions for controls across ALL libraries
  *       from a specific provider (e.g., NCA). This is useful when multiple libraries
  *       share the same control codes.
  *     tags: [Libraries]
@@ -261,7 +261,7 @@ router.get('/:id/content', asyncHandler(async (req, res) => {
  *                     code:
  *                       type: string
  *                       description: Control code (e.g., "1-1-1")
- *                     typical_requirements:
+ *                     typical_evidence:
  *                       type: string
  *                     questions:
  *                       type: object
@@ -492,7 +492,7 @@ router.patch('/:id/load', asyncHandler(async (req, res) => {
  * /api/libraries/{id}/controls:
  *   get:
  *     summary: Get all controls from a library
- *     description: Returns all controls with their typical_requirements and questions fields
+ *     description: Returns all controls with their typical_evidence and questions fields
  *     tags: [Libraries]
  *     parameters:
  *       - in: path
@@ -508,10 +508,10 @@ router.patch('/:id/load', asyncHandler(async (req, res) => {
  *           type: boolean
  *         description: Only return assessable controls
  *       - in: query
- *         name: has_typical_requirements
+ *         name: has_typical_evidence
  *         schema:
  *           type: boolean
- *         description: Filter by presence of typical_requirements
+ *         description: Filter by presence of typical_evidence
  *       - in: query
  *         name: has_questions
  *         schema:
@@ -527,8 +527,8 @@ router.get('/:id/controls', asyncHandler(async (req, res) => {
   const { id } = req.params;
   const filters = {
     assessable_only: req.query.assessable_only === 'true',
-    has_typical_requirements: req.query.has_typical_requirements !== undefined 
-      ? req.query.has_typical_requirements === 'true' 
+    has_typical_evidence: req.query.has_typical_evidence !== undefined 
+      ? req.query.has_typical_evidence === 'true' 
       : undefined,
     has_questions: req.query.has_questions !== undefined 
       ? req.query.has_questions === 'true' 
@@ -559,9 +559,9 @@ router.get('/:id/controls', asyncHandler(async (req, res) => {
  * @swagger
  * /api/libraries/{id}/controls:
  *   patch:
- *     summary: Update library controls with typical_requirements and questions
+ *     summary: Update library controls with typical_evidence and questions
  *     description: |
- *       Update multiple controls in a library with their typical_requirements and/or questions.
+ *       Update multiple controls in a library with their typical_evidence and/or questions.
  *       Each update object must have at least one identifier (id, urn, code, or ref_id) to match the control.
  *     tags: [Libraries]
  *     parameters:
@@ -599,10 +599,10 @@ router.get('/:id/controls', asyncHandler(async (req, res) => {
  *                     ref_id:
  *                       type: string
  *                       description: Reference ID
- *                     typical_requirements:
+ *                     typical_evidence:
  *                       type: string
  *                       description: |
- *                         Typical requirements/evidence needed for this control.
+ *                         Typical evidence needed for this control.
  *                         Can include bullet points using "- " prefix.
  *                       example: "- Approved cybersecurity strategy document\n- Board meeting minutes showing approval\n- Signature of Authorizing Official"
  *                     questions:
@@ -620,7 +620,7 @@ router.get('/:id/controls', asyncHandler(async (req, res) => {
  *           example:
  *             updates:
  *               - code: "1-1-1"
- *                 typical_requirements: "- Approved cybersecurity strategy document\n- Board meeting minutes showing approval\n- Signature of Authorizing Official\n- Evidence of communication to stakeholders"
+ *                 typical_evidence: "- Approved cybersecurity strategy document\n- Board meeting minutes showing approval\n- Signature of Authorizing Official\n- Evidence of communication to stakeholders"
  *                 questions:
  *                   q1:
  *                     text: "Is the cybersecurity strategy documented?"
