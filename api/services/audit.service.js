@@ -63,19 +63,18 @@ class AuditService {
    * Build the audit analysis prompt
    */
   buildAuditPrompt(files = [], questions = [], typicalEvidence = [], options = {}) {
-    let prompt = `You are an expert compliance auditor. Your task is to EVALUATE the submitted evidence file(s) against the provided audit questions and typical evidence requirements.
+    let prompt = `You are an expert compliance auditor. Your task is to EVALUATE the submitted evidence file(s) and determine if they satisfy the compliance requirement.
 
-**EVALUATION OBJECTIVE:**
-Determine if the submitted evidence adequately addresses the audit questions and meets the typical evidence expectations.
-
-**AUDIT CONTEXT:**
+**=== AUDIT CONTEXT ===**
 ${options.context || 'General compliance audit evaluation'}
 
 `;
 
     // Add questions section
     if (questions.length > 0) {
-      prompt += `**AUDIT QUESTIONS - Evaluate if the evidence answers these (${questions.length}):**\n`;
+      prompt += `**=== AUDIT QUESTIONS (${questions.length}) ===**
+Evaluate if the submitted evidence answers these questions:
+`;
       questions.forEach((q, idx) => {
         prompt += `Q${idx + 1}: ${q}\n`;
       });
@@ -84,7 +83,9 @@ ${options.context || 'General compliance audit evaluation'}
 
     // Add typical evidence section  
     if (typicalEvidence.length > 0) {
-      prompt += `**TYPICAL EVIDENCE - Check if the submitted files contain these (${typicalEvidence.length}):**\n`;
+      prompt += `**=== TYPICAL/EXPECTED EVIDENCE (${typicalEvidence.length}) ===**
+Check if the submitted files contain or demonstrate these:
+`;
       typicalEvidence.forEach((e, idx) => {
         prompt += `E${idx + 1}: ${e}\n`;
       });
@@ -93,33 +94,45 @@ ${options.context || 'General compliance audit evaluation'}
 
     // Add file info
     if (files.length > 0) {
-      prompt += `**SUBMITTED EVIDENCE FILES (${files.length}):**\n`;
+      prompt += `**=== SUBMITTED EVIDENCE FILES (${files.length}) ===**
+`;
       files.forEach((file, idx) => {
         prompt += `File ${idx + 1}: ${file.name} (${file.mimeType})\n`;
       });
       prompt += `\n`;
     }
 
-    prompt += `**YOUR EVALUATION TASK:**
+    prompt += `**=== YOUR EVALUATION INSTRUCTIONS ===**
 
-1. **READ** the submitted evidence file(s) thoroughly
-2. **EVALUATE** each audit question:
-   - Does the evidence answer this question? (Yes/Partially/No)
-   - What specific content in the file supports your answer?
-   - Quote or reference specific sections from the file
-3. **CHECK** each typical evidence item:
-   - Is this type of evidence present in the submitted files? (Present/Partial/Missing)
-   - Where exactly in the file(s) did you find it?
-4. **IDENTIFY** gaps between what's expected and what's provided
-5. **SCORE** the overall compliance (0-100)
+You must carefully analyze the AUDIT CONTEXT above which contains:
+- The evidence name and description
+- The linked compliance requirement (Framework, Provider, Requirement ID, Name, Description)
 
-**OUTPUT FORMAT (JSON only, no markdown):**
+Then evaluate if the SUBMITTED EVIDENCE FILES satisfy:
+1. The compliance requirement described in the context
+2. Each of the AUDIT QUESTIONS
+3. Each of the TYPICAL/EXPECTED EVIDENCE items
+
+**EVALUATION STEPS:**
+1. **READ** the submitted file(s) thoroughly - examine actual content
+2. **COMPARE** the file content against the requirement in the context
+3. **ANSWER** each audit question based on what you find in the files
+4. **CHECK** if typical evidence items are present
+5. **IDENTIFY** any gaps or missing elements
+6. **SCORE** overall compliance (0-100)
+
+**=== OUTPUT FORMAT (JSON only) ===**
 
 {
   "overallAssessment": {
     "status": "Compliant" | "Partially Compliant" | "Non-Compliant" | "Insufficient Evidence",
     "score": <0-100>,
-    "summary": "2-3 sentence summary of findings"
+    "summary": "2-3 sentence assessment based on the requirement in context"
+  },
+  "requirementEvaluation": {
+    "requirementMet": true | false | "partial",
+    "evidenceAlignment": "How well does the submitted evidence align with the requirement",
+    "specificFindings": "What in the file specifically addresses the requirement"
   },
   "questionEvaluation": [
     {
@@ -143,30 +156,30 @@ ${options.context || 'General compliance audit evaluation'}
   "fileAnalysis": [
     {
       "fileName": "submitted-file.pdf",
-      "contentSummary": "What this file contains",
-      "relevantSections": ["Key sections relevant to the audit"],
+      "contentSummary": "What this file actually contains",
+      "relevantSections": ["Key sections/content relevant to the requirement"],
       "coversQuestions": [1, 2],
       "coversEvidence": [1, 3]
     }
   ],
   "gaps": [
     {
-      "gap": "What's missing",
+      "gap": "What's missing based on the requirement",
       "severity": "High" | "Medium" | "Low",
-      "impact": "Why this matters",
-      "recommendation": "How to fix"
+      "impact": "Why this matters for compliance",
+      "recommendation": "How to address this gap"
     }
   ],
   "strengths": ["What the evidence does well"],
-  "recommendations": ["Specific actions to improve compliance"]
+  "recommendations": ["Specific actions to achieve full compliance"]
 }
 
-**CRITICAL INSTRUCTIONS:**
-- You MUST read and analyze the actual content of the submitted file(s)
-- Quote or reference specific content to support your evaluation
-- Be specific - don't give generic answers
-- If a question cannot be answered from the evidence, clearly state that
-- Return ONLY valid JSON, no markdown code blocks or extra text`;
+**CRITICAL:**
+- READ the actual content of submitted files - don't just look at filenames
+- USE the requirement details from AUDIT CONTEXT to guide your evaluation
+- QUOTE or reference specific content from the files
+- Be SPECIFIC - generic answers are not acceptable
+- Return ONLY valid JSON, no markdown code blocks`;
 
     return prompt;
   }
