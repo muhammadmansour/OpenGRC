@@ -24,6 +24,7 @@ const extractionRoutes = require('./routes/extraction.routes');
 const libraryRoutes = require('./routes/library.routes');
 const mailRoutes = require('./routes/mail.routes');
 const entityExtractionRoutes = require('./routes/entity-extraction.routes');
+const auditRoutes = require('./routes/audit.routes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
@@ -163,6 +164,7 @@ app.use('/api/extractions', authMiddleware, extractionRoutes);
 app.use('/api/libraries', libraryRoutes); // Library CRUD (public for now)
 app.use('/api/mail', mailRoutes); // Mail sending (public for now)
 app.use('/api/entity-extraction', entityExtractionRoutes); // Entity extraction (public for now)
+app.use('/api/audit', auditRoutes); // Audit analysis (public for now)
 
 // =============================================================================
 // ERROR HANDLING
