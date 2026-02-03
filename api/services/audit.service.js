@@ -63,116 +63,107 @@ class AuditService {
    * Build the audit analysis prompt
    */
   buildAuditPrompt(files = [], questions = [], typicalEvidence = [], options = {}) {
-    let prompt = `You are an expert compliance auditor and evidence evaluator. Your task is to analyze the provided evidence files and evaluate them against the given audit questions and typical evidence requirements.
+    let prompt = `You are an expert compliance auditor. Your task is to EVALUATE the submitted evidence file(s) against the provided audit questions and typical evidence requirements.
 
-**AUDIT CONTEXT:**
-${options.context || 'Evaluate the provided evidence for compliance and completeness.'}
+**EVALUATION OBJECTIVE:**
+Determine if the submitted evidence adequately addresses the audit questions and meets the typical evidence expectations.
 
 `;
 
     // Add questions section
     if (questions.length > 0) {
-      prompt += `**AUDIT QUESTIONS TO EVALUATE (${questions.length}):**\n`;
+      prompt += `**AUDIT QUESTIONS - Evaluate if the evidence answers these (${questions.length}):**\n`;
       questions.forEach((q, idx) => {
-        prompt += `${idx + 1}. ${q}\n`;
+        prompt += `Q${idx + 1}: ${q}\n`;
       });
       prompt += `\n`;
     }
 
-    // Add typical evidence section
+    // Add typical evidence section  
     if (typicalEvidence.length > 0) {
-      prompt += `**TYPICAL/EXPECTED EVIDENCE (${typicalEvidence.length}):**\n`;
+      prompt += `**TYPICAL EVIDENCE - Check if the submitted files contain these (${typicalEvidence.length}):**\n`;
       typicalEvidence.forEach((e, idx) => {
-        prompt += `${idx + 1}. ${e}\n`;
+        prompt += `E${idx + 1}: ${e}\n`;
       });
       prompt += `\n`;
     }
 
     // Add file info
     if (files.length > 0) {
-      prompt += `**EVIDENCE FILES PROVIDED (${files.length}):**\n`;
+      prompt += `**SUBMITTED EVIDENCE FILES (${files.length}):**\n`;
       files.forEach((file, idx) => {
-        prompt += `${idx + 1}. ${file.name} (${file.mimeType})\n`;
+        prompt += `File ${idx + 1}: ${file.name} (${file.mimeType})\n`;
       });
-      prompt += `\n**CRITICAL:** Thoroughly analyze ALL attached evidence files.\n\n`;
+      prompt += `\n`;
     }
 
-    prompt += `**YOUR ANALYSIS TASK:**
-1. Review each evidence file carefully
-2. Evaluate how well the evidence answers each audit question
-3. Compare the provided evidence against the typical/expected evidence
-4. Identify gaps, strengths, and areas of concern
-5. Provide specific recommendations
+    prompt += `**YOUR EVALUATION TASK:**
 
-**OUTPUT FORMAT:**
-Return a JSON object with this exact structure:
+1. **READ** the submitted evidence file(s) thoroughly
+2. **EVALUATE** each audit question:
+   - Does the evidence answer this question? (Yes/Partially/No)
+   - What specific content in the file supports your answer?
+   - Quote or reference specific sections from the file
+3. **CHECK** each typical evidence item:
+   - Is this type of evidence present in the submitted files? (Present/Partial/Missing)
+   - Where exactly in the file(s) did you find it?
+4. **IDENTIFY** gaps between what's expected and what's provided
+5. **SCORE** the overall compliance (0-100)
+
+**OUTPUT FORMAT (JSON only, no markdown):**
 
 {
   "overallAssessment": {
     "status": "Compliant" | "Partially Compliant" | "Non-Compliant" | "Insufficient Evidence",
-    "score": <number 0-100>,
-    "summary": "Brief overall assessment summary"
+    "score": <0-100>,
+    "summary": "2-3 sentence summary of findings"
   },
-  "questionAnalysis": [
+  "questionEvaluation": [
     {
       "questionNumber": 1,
-      "question": "The audit question text",
-      "answer": "Detailed answer based on evidence",
-      "evidenceFound": ["List of relevant evidence found"],
-      "status": "Answered" | "Partially Answered" | "Not Answered",
-      "confidence": 0.95,
-      "gaps": ["Any gaps identified"]
+      "question": "The question text",
+      "answered": "Yes" | "Partially" | "No",
+      "evidenceFound": "Specific content/quote from the file that answers this",
+      "sourceFile": "filename where found",
+      "confidence": <0.0-1.0>,
+      "notes": "Additional observations"
     }
   ],
-  "evidenceAnalysis": [
+  "typicalEvidenceCheck": [
     {
-      "fileName": "document.pdf",
-      "description": "What this document contains",
-      "relevance": "High" | "Medium" | "Low",
-      "coversTypicalEvidence": ["Which typical evidence items this covers"],
-      "keyFindings": ["Important findings from this document"]
+      "evidenceItem": "The typical evidence description",
+      "status": "Present" | "Partial" | "Missing",
+      "foundIn": "filename or 'Not found'",
+      "details": "What was found or what's missing"
     }
   ],
-  "typicalEvidenceComparison": [
+  "fileAnalysis": [
     {
-      "typicalEvidence": "Expected evidence description",
-      "status": "Present" | "Partially Present" | "Missing",
-      "foundIn": ["List of files where found"],
-      "notes": "Additional notes"
+      "fileName": "submitted-file.pdf",
+      "contentSummary": "What this file contains",
+      "relevantSections": ["Key sections relevant to the audit"],
+      "coversQuestions": [1, 2],
+      "coversEvidence": [1, 3]
     }
   ],
   "gaps": [
     {
-      "description": "Gap description",
+      "gap": "What's missing",
       "severity": "High" | "Medium" | "Low",
-      "recommendation": "How to address this gap"
+      "impact": "Why this matters",
+      "recommendation": "How to fix"
     }
   ],
-  "strengths": ["List of strengths identified"],
-  "recommendations": ["List of actionable recommendations"],
-  "entities": [
-    {
-      "text": "Entity text",
-      "type": "PERSON|ORGANIZATION|POLICY|CONTROL|STANDARD|DATE|etc",
-      "context": "Where found",
-      "source": "filename"
-    }
-  ],
-  "relationships": [
-    {
-      "entity1": "First entity",
-      "relation": "relationship type",
-      "entity2": "Second entity"
-    }
-  ]
+  "strengths": ["What the evidence does well"],
+  "recommendations": ["Specific actions to improve compliance"]
 }
 
-**IMPORTANT:**
-1. Be thorough and specific in your analysis
-2. Reference specific content from the evidence files
-3. Clearly indicate what is present vs missing
-4. Provide actionable recommendations
-5. Return ONLY valid JSON, no markdown code blocks`;
+**CRITICAL INSTRUCTIONS:**
+- You MUST read and analyze the actual content of the submitted file(s)
+- Quote or reference specific content to support your evaluation
+- Be specific - don't give generic answers
+- If a question cannot be answered from the evidence, clearly state that
+- Return ONLY valid JSON, no markdown code blocks or extra text`;
 
     return prompt;
   }
