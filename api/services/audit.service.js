@@ -68,6 +68,9 @@ class AuditService {
 **EVALUATION OBJECTIVE:**
 Determine if the submitted evidence adequately addresses the audit questions and meets the typical evidence expectations.
 
+**AUDIT CONTEXT:**
+${options.context || 'General compliance audit evaluation'}
+
 `;
 
     // Add questions section
