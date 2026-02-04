@@ -482,77 +482,113 @@ class LibraryService {
       if (node.code) nodesByCode.set(node.code, { node, index });
     });
 
+    console.log(`📚 Library has ${requirementNodes.length} controls`);
+    console.log(`   - By URN: ${nodesByUrn.size} entries`);
+    console.log(`   - By ref_id: ${nodesByRefId.size} entries`);
+    console.log(`   - By code: ${nodesByCode.size} entries`);
+
     // Track statistics
     const stats = {
       total: updates.length,
       updated: 0,
       not_found: 0,
+      skipped: 0,
       errors: []
     };
 
     const updatedItems = [];
 
+    console.log(`\n📝 Processing ${updates.length} updates...`);
+
     // Process each update
     for (const update of updates) {
       try {
+        const identifier = update.id || update.urn || update.code || update.ref_id || 'unknown';
+        
         // Find the matching node by id (urn), code, or ref_id
         let match = null;
+        let matchedBy = null;
 
         if (update.id && nodesByUrn.has(update.id)) {
           match = nodesByUrn.get(update.id);
+          matchedBy = 'id/urn';
         } else if (update.urn && nodesByUrn.has(update.urn)) {
           match = nodesByUrn.get(update.urn);
+          matchedBy = 'urn';
         } else if (update.code && nodesByCode.has(update.code)) {
           match = nodesByCode.get(update.code);
+          matchedBy = 'code';
         } else if (update.code && nodesByRefId.has(update.code)) {
           match = nodesByRefId.get(update.code);
+          matchedBy = 'code->ref_id';
         } else if (update.ref_id && nodesByRefId.has(update.ref_id)) {
           match = nodesByRefId.get(update.ref_id);
+          matchedBy = 'ref_id';
         }
 
         if (!match) {
           stats.not_found++;
           stats.errors.push({
-            identifier: update.id || update.urn || update.code || update.ref_id || 'unknown',
+            identifier: identifier,
             error: 'Control not found in library'
           });
+          console.log(`   ❌ Not found: ${identifier}`);
           continue;
         }
 
-        // Update the node with typical_requirements and/or questions
+        // Update the node with typical_evidence and/or questions
         const { node, index } = match;
         let wasUpdated = false;
 
         // Accept both typical_evidence and typical_requirements (backwards compatibility)
         const typicalEvidence = update.typical_evidence ?? update.typical_requirements;
-        if (typicalEvidence !== undefined) {
+        if (typicalEvidence !== undefined && typicalEvidence !== null && typicalEvidence !== '') {
           requirementNodes[index].typical_evidence = typicalEvidence;
           wasUpdated = true;
         }
 
-        if (update.questions !== undefined) {
-          // Ensure questions is stored as an object/JSON
-          requirementNodes[index].questions = typeof update.questions === 'string' 
+        // Handle questions - skip if empty object or empty array
+        if (update.questions !== undefined && update.questions !== null) {
+          const questionsObj = typeof update.questions === 'string' 
             ? JSON.parse(update.questions) 
             : update.questions;
-          wasUpdated = true;
+          
+          // Check if questions is not empty
+          const hasQuestions = questionsObj && 
+            typeof questionsObj === 'object' && 
+            Object.keys(questionsObj).length > 0;
+          
+          if (hasQuestions) {
+            requirementNodes[index].questions = questionsObj;
+            wasUpdated = true;
+          }
         }
 
         if (wasUpdated) {
           stats.updated++;
           updatedItems.push({
-            identifier: update.id || update.urn || update.code || update.ref_id,
+            identifier: identifier,
+            matched_by: matchedBy,
             ref_id: node.ref_id,
-            name: node.name
+            name: node.name,
+            has_typical_evidence: !!requirementNodes[index].typical_evidence,
+            has_questions: !!requirementNodes[index].questions && Object.keys(requirementNodes[index].questions).length > 0
           });
+          console.log(`   ✅ Updated: ${identifier} (matched by ${matchedBy})`);
+        } else {
+          stats.skipped++;
+          console.log(`   ⏭️  Skipped: ${identifier} (no valid data to update)`);
         }
       } catch (err) {
         stats.errors.push({
           identifier: update.id || update.urn || update.code || update.ref_id || 'unknown',
           error: err.message
         });
+        console.log(`   ❌ Error: ${update.code || 'unknown'} - ${err.message}`);
       }
     }
+
+    console.log(`\n📊 Update Summary: ${stats.updated} updated, ${stats.not_found} not found, ${stats.skipped} skipped`);
 
     // Update the content back in the library
     if (nodePath === 'framework.requirement_nodes') {
@@ -654,6 +690,18 @@ class LibraryService {
       throw new Error('Database not configured');
     }
 
+    console.log('\n' + '='.repeat(80));
+    console.log(`🔄 BULK UPDATE BY PROVIDER: ${provider}`);
+    console.log('='.repeat(80));
+    console.log(`📝 Updates to apply: ${updates.length}`);
+    
+    // Log summary of updates
+    updates.forEach((u, i) => {
+      const hasEvidence = !!(u.typical_evidence || u.typical_requirements);
+      const hasQuestions = u.questions && typeof u.questions === 'object' && Object.keys(u.questions).length > 0;
+      console.log(`   ${i + 1}. Code: ${u.code || u.ref_id || 'N/A'} | Evidence: ${hasEvidence ? '✓' : '✗'} | Questions: ${hasQuestions ? Object.keys(u.questions).length : 0}`);
+    });
+
     // Find all libraries by provider
     const libraries = await this.getAllLibraries({ provider });
 
@@ -661,17 +709,33 @@ class LibraryService {
       throw new Error(`No libraries found for provider: ${provider}`);
     }
 
+    console.log(`\n📚 Found ${libraries.length} libraries for provider "${provider}":`);
+    libraries.forEach((lib, i) => {
+      console.log(`   ${i + 1}. ${lib.name} (${lib.id})`);
+    });
+
     const results = [];
+    let totalUpdated = 0;
+    let totalNotFound = 0;
 
     for (const library of libraries) {
+      console.log(`\n${'─'.repeat(60)}`);
+      console.log(`📖 Processing: ${library.name}`);
+      
       try {
         const result = await this.updateLibraryControls(library.id, updates);
+        totalUpdated += result.statistics.updated;
+        totalNotFound += result.statistics.not_found;
+        
         results.push({
           library_id: library.id,
           library_name: library.name,
-          ...result.statistics
+          library_urn: library.urn,
+          ...result.statistics,
+          updated_items: result.updated_items
         });
       } catch (err) {
+        console.log(`   ❌ Error: ${err.message}`);
         results.push({
           library_id: library.id,
           library_name: library.name,
@@ -680,9 +744,18 @@ class LibraryService {
       }
     }
 
+    console.log('\n' + '='.repeat(80));
+    console.log(`✅ BULK UPDATE COMPLETE`);
+    console.log(`   Total libraries: ${libraries.length}`);
+    console.log(`   Total controls updated: ${totalUpdated}`);
+    console.log(`   Total not found: ${totalNotFound}`);
+    console.log('='.repeat(80) + '\n');
+
     return {
       provider,
       libraries_processed: libraries.length,
+      total_updated: totalUpdated,
+      total_not_found: totalNotFound,
       results
     };
   }
