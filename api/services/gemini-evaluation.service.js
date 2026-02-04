@@ -84,6 +84,13 @@ class GeminiEvaluationService {
       // Build prompt
       const prompt = this.buildPrompt(context, files);
       
+      // Log the exact prompt being sent to Gemini
+      console.log('\n' + '='.repeat(80));
+      console.log('🤖 EXACT PROMPT SENT TO GEMINI (evaluate):');
+      console.log('='.repeat(80));
+      console.log(prompt);
+      console.log('='.repeat(80) + '\n');
+      
       // Send to Gemini
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
@@ -109,6 +116,13 @@ class GeminiEvaluationService {
 
     try {
       const prompt = this.buildEvaluationPrompt(itemData, fileContents);
+      
+      // Log the exact prompt being sent to Gemini
+      console.log('\n' + '='.repeat(80));
+      console.log('🤖 EXACT PROMPT SENT TO GEMINI (evaluateAuditItem):');
+      console.log('='.repeat(80));
+      console.log(prompt);
+      console.log('='.repeat(80) + '\n');
       
       console.log('🤖 Sending evaluation request to Gemini AI...');
       const result = await this.model.generateContent(prompt);

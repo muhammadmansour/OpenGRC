@@ -83,6 +83,16 @@ class GeminiChatService {
       // Build multimodal content parts
       const parts = this.buildMultimodalParts(context, files);
       
+      // Log the exact prompt being sent to Gemini (text part only, files are logged separately)
+      const textPart = parts.find(p => p.text);
+      if (textPart) {
+        console.log('\n' + '='.repeat(80));
+        console.log('🤖 EXACT PROMPT SENT TO GEMINI (chat):');
+        console.log('='.repeat(80));
+        console.log(textPart.text);
+        console.log('='.repeat(80) + '\n');
+      }
+      
       console.log(`📦 Sending ${parts.length} parts to Gemini (text + files)`);
       
       // Send to Gemini with multimodal content

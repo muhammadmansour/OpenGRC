@@ -42,6 +42,13 @@ class AuditService {
       // Build the audit prompt
       const auditPrompt = this.buildAuditPrompt(files, questions, typicalEvidence, options);
       
+      // Log the exact prompt being sent to Gemini
+      console.log('\n' + '='.repeat(80));
+      console.log('🤖 EXACT PROMPT SENT TO GEMINI:');
+      console.log('='.repeat(80));
+      console.log(auditPrompt);
+      console.log('='.repeat(80) + '\n');
+      
       console.log(`📦 Sending request to Gemini for audit analysis`);
       
       // Use the chat service's model directly

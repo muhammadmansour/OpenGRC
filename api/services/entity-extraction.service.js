@@ -40,6 +40,13 @@ class EntityExtractionService {
       // Build the extraction prompt
       const extractionPrompt = this.buildExtractionPrompt(context, files, options);
       
+      // Log the exact prompt being sent to Gemini
+      console.log('\n' + '='.repeat(80));
+      console.log('🤖 EXACT PROMPT SENT TO GEMINI (extractEntities):');
+      console.log('='.repeat(80));
+      console.log(extractionPrompt);
+      console.log('='.repeat(80) + '\n');
+      
       console.log(`📦 Sending request to Gemini for extraction`);
       
       // Use the chat service's model directly
