@@ -22,6 +22,7 @@ const domainRoutes = require('./routes/domain.routes');
 const adminRoutes = require('./routes/admin.routes');
 const extractionRoutes = require('./routes/extraction.routes');
 const libraryRoutes = require('./routes/library.routes');
+const libraryV2Routes = require('./routes/library.v2.routes');
 const mailRoutes = require('./routes/mail.routes');
 const entityExtractionRoutes = require('./routes/entity-extraction.routes');
 const auditRoutes = require('./routes/audit.routes');
@@ -161,7 +162,8 @@ app.use('/api/projects', authMiddleware, projectRoutes);
 app.use('/api/domains', authMiddleware, domainRoutes);
 app.use('/api/admin', authMiddleware, adminRoutes);
 app.use('/api/extractions', authMiddleware, extractionRoutes);
-app.use('/api/libraries', libraryRoutes); // Library CRUD (public for now)
+app.use('/api/libraries/v2', libraryV2Routes); // Library CRUD v2 with DGA data (public for now)
+app.use('/api/libraries', libraryRoutes); // Library CRUD v1 (public for now)
 app.use('/api/mail', mailRoutes); // Mail sending (public for now)
 app.use('/api/entity-extraction', entityExtractionRoutes); // Entity extraction (public for now)
 app.use('/api/audit', auditRoutes); // Audit analysis (public for now)
