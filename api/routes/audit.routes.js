@@ -19,8 +19,12 @@ const { asyncHandler } = require('../middleware/error.middleware');
  * @swagger
  * /api/audit/analyze:
  *   post:
- *     summary: Analyze evidence against audit questions
- *     description: Uses AI to analyze evidence files against audit questions and typical evidence requirements
+ *     summary: Analyze evidence against applied control requirements
+ *     description: |
+ *       Uses Gemini AI to analyze evidence files against compliance requirements.
+ *       Supports two modes:
+ *       - **Gemini File Search**: Reference pre-uploaded files via gemini_file_search.file_ids
+ *       - **Inline files**: Send base64/text files directly (legacy)
  *     tags: [Audit]
  *     requestBody:
  *       required: true
@@ -28,50 +32,113 @@ const { asyncHandler } = require('../middleware/error.middleware');
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - files
  *             properties:
- *               files:
+ *               applied_control:
+ *                 type: object
+ *                 description: The control being evaluated
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                   ref_id:
+ *                     type: string
+ *                     example: "AC-1"
+ *                   name:
+ *                     type: string
+ *                     example: "Access Control Policy"
+ *                   description:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                     example: "active"
+ *                   category:
+ *                     type: string
+ *                     example: "policy"
+ *                   csf_function:
+ *                     type: string
+ *                     example: "protect"
+ *               gemini_file_search:
+ *                 type: object
+ *                 description: Gemini file references for pre-uploaded evidence files
+ *                 properties:
+ *                   file_ids:
+ *                     type: array
+ *                     description: Gemini file IDs (e.g. "files/abc123")
+ *                     items:
+ *                       type: string
+ *                   store_id:
+ *                     type: string
+ *                     description: Gemini file search store ID
+ *                   evidences:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         gemini_file_id:
+ *                           type: string
+ *                         gemini_store_id:
+ *                           type: string
+ *                         evidence_name:
+ *                           type: string
+ *                         evidence_description:
+ *                           type: string
+ *               requirements:
  *                 type: array
- *                 description: Array of evidence files to analyze
+ *                 description: Compliance requirements to check against
  *                 items:
  *                   type: object
- *                   required:
- *                     - name
- *                     - mimeType
- *                     - encoding
- *                     - data
  *                   properties:
+ *                     ref_id:
+ *                       type: string
  *                     name:
  *                       type: string
- *                       example: "access-control-policy.pdf"
- *                     mimeType:
+ *                     description:
  *                       type: string
- *                       example: "application/pdf"
- *                     encoding:
+ *                     framework:
  *                       type: string
- *                       enum: [base64, text]
- *                     data:
+ *                     provider:
  *                       type: string
  *               questions:
  *                 type: array
  *                 description: Audit questions to evaluate
  *                 items:
  *                   type: string
- *                 example: ["Is there a documented access control policy?", "Are access reviews performed regularly?"]
- *               typicalEvidence:
+ *               typical_evidence:
  *                 type: array
- *                 description: Expected/typical evidence for this audit
+ *                 description: Expected/typical evidence descriptions
  *                 items:
  *                   type: string
- *                 example: ["Access Control Policy document", "Access review logs", "User provisioning procedures"]
- *               options:
+ *               analysis_config:
  *                 type: object
+ *                 description: Toggle analysis sections on/off
  *                 properties:
- *                   context:
- *                     type: string
- *                     description: Additional context for the audit
- *                     example: "ISO 27001 Access Control audit for Q1 2026"
+ *                   include_entity_extraction:
+ *                     type: boolean
+ *                     default: true
+ *                   include_compliance_check:
+ *                     type: boolean
+ *                     default: true
+ *                   include_gap_analysis:
+ *                     type: boolean
+ *                     default: true
+ *                   include_recommendations:
+ *                     type: boolean
+ *                     default: true
+ *               files:
+ *                 type: array
+ *                 description: "Legacy: inline file uploads (base64/text)"
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     mimeType:
+ *                       type: string
+ *                     encoding:
+ *                       type: string
+ *                       enum: [base64, text]
+ *                     data:
+ *                       type: string
  *     responses:
  *       200:
  *         description: Audit analysis completed
@@ -81,7 +148,18 @@ const { asyncHandler } = require('../middleware/error.middleware');
  *         description: Service unavailable
  */
 router.post('/analyze', asyncHandler(async (req, res) => {
-  const { files = [], questions = [], typicalEvidence = [], options = {} } = req.body;
+  const {
+    applied_control = {},
+    gemini_file_search = {},
+    requirements = [],
+    questions = [],
+    typical_evidence = [],
+    analysis_config = {},
+    // Legacy support
+    files = [],
+    typicalEvidence = [],
+    options = {}
+  } = req.body;
 
   // Check if service is available
   if (!auditService.isAvailable()) {
@@ -91,45 +169,75 @@ router.post('/analyze', asyncHandler(async (req, res) => {
     });
   }
 
-  // Validation - files are required
-  if (!files || files.length === 0) {
+  // Determine file source
+  const hasGeminiFiles = (gemini_file_search.file_ids && gemini_file_search.file_ids.length > 0);
+  const hasInlineFiles = (files && files.length > 0);
+
+  // Validation - need at least some evidence or context
+  if (!hasGeminiFiles && !hasInlineFiles && requirements.length === 0 && questions.length === 0) {
     return res.status(400).json({
       error: 'Validation Error',
-      message: 'files array is required and must contain at least one file'
+      message: 'Request must include at least one of: gemini_file_search.file_ids, files, requirements, or questions'
     });
   }
 
-  // Validate each file has required fields
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    if (!file.name || !file.mimeType || !file.encoding || !file.data) {
-      return res.status(400).json({
-        error: 'Validation Error',
-        message: `File at index ${i} is missing required fields (name, mimeType, encoding, data)`
-      });
+  // Validate inline files if provided (legacy)
+  if (hasInlineFiles) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file.name || !file.mimeType || !file.encoding || !file.data) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: `File at index ${i} is missing required fields (name, mimeType, encoding, data)`
+        });
+      }
     }
   }
 
+  const fileIds = gemini_file_search.file_ids || [];
+  const evidences = gemini_file_search.evidences || [];
+  // Merge typical_evidence with legacy typicalEvidence
+  const mergedTypicalEvidence = typical_evidence.length > 0 ? typical_evidence : typicalEvidence;
+
   console.log(`📋 Audit analysis request received`);
-  console.log(`   Files: ${files.length}`);
+  console.log(`   Applied Control: ${applied_control.ref_id || 'N/A'} - ${applied_control.name || 'N/A'}`);
+  console.log(`   Gemini File IDs: ${fileIds.length}`);
+  console.log(`   Evidence entries: ${evidences.length}`);
+  console.log(`   Requirements: ${requirements.length}`);
   console.log(`   Questions: ${questions.length}`);
-  console.log(`   Typical Evidence: ${typicalEvidence.length}`);
-  
-  files.forEach((file, index) => {
-    console.log(`   ${index + 1}. ${file.name} (${file.mimeType}) [${file.encoding}]`);
-  });
+  console.log(`   Typical Evidence: ${mergedTypicalEvidence.length}`);
+  console.log(`   Inline files: ${files.length}`);
 
   try {
-    const result = await auditService.analyze(files, questions, typicalEvidence, options);
+    const result = await auditService.analyze({
+      applied_control,
+      gemini_file_search,
+      requirements,
+      questions,
+      typical_evidence: mergedTypicalEvidence,
+      analysis_config,
+      files,
+      options
+    });
 
     res.status(200).json({
       success: true,
       ...result,
       metadata: {
         timestamp: new Date().toISOString(),
-        filesProcessed: files.length,
+        applied_control_id: applied_control.id || null,
+        applied_control_ref: applied_control.ref_id || null,
+        geminiFilesUsed: fileIds.length,
+        inlineFilesProcessed: files.length,
+        requirementsEvaluated: requirements.length,
         questionsEvaluated: questions.length,
-        typicalEvidenceChecked: typicalEvidence.length,
+        typicalEvidenceChecked: mergedTypicalEvidence.length,
+        analysisConfig: {
+          include_entity_extraction: analysis_config.include_entity_extraction !== false,
+          include_compliance_check: analysis_config.include_compliance_check !== false,
+          include_gap_analysis: analysis_config.include_gap_analysis !== false,
+          include_recommendations: analysis_config.include_recommendations !== false,
+        },
         model: auditService.currentModelName
       }
     });
@@ -148,7 +256,7 @@ router.post('/analyze', asyncHandler(async (req, res) => {
  * /api/audit/batch:
  *   post:
  *     summary: Batch audit analysis
- *     description: Analyze multiple audit items in one request
+ *     description: Analyze multiple audit items in one request. Each item uses the same body format as /analyze.
  *     tags: [Audit]
  *     requestBody:
  *       required: true
@@ -164,15 +272,17 @@ router.post('/analyze', asyncHandler(async (req, res) => {
  *                 items:
  *                   type: object
  *                   properties:
- *                     id:
- *                       type: string
- *                     files:
+ *                     applied_control:
+ *                       type: object
+ *                     gemini_file_search:
+ *                       type: object
+ *                     requirements:
  *                       type: array
  *                     questions:
  *                       type: array
- *                     typicalEvidence:
+ *                     typical_evidence:
  *                       type: array
- *                     options:
+ *                     analysis_config:
  *                       type: object
  *     responses:
  *       200:
@@ -234,7 +344,11 @@ router.get('/status', asyncHandler(async (req, res) => {
     status: isAvailable ? 'ready' : 'not configured',
     message: isAvailable 
       ? 'Audit service is ready' 
-      : 'GEMINI_API_KEY environment variable not set'
+      : 'GEMINI_API_KEY environment variable not set',
+    supportedModes: {
+      gemini_file_search: 'Reference pre-uploaded files via file_ids',
+      inline_files: 'Send base64/text files directly (legacy)'
+    }
   });
 }));
 
