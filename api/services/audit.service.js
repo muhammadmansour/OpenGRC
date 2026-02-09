@@ -102,7 +102,7 @@ class AuditService {
       console.log('='.repeat(80) + '\n');
 
       // Build content parts (prompt + file references) - async to support file metadata lookup
-      const parts = await this.buildContentParts(auditPrompt, gemini_file_search, files);
+      const { parts, skippedFiles } = await this.buildContentParts(auditPrompt, gemini_file_search, files);
 
       console.log(`📦 Sending ${parts.length} parts to Gemini`);
 
@@ -113,7 +113,15 @@ class AuditService {
 
       console.log('✅ Audit analysis completed');
 
-      return this.parseAuditResponse(aiResponse);
+      const parsed = this.parseAuditResponse(aiResponse);
+
+      // Attach skipped files info so the caller knows what wasn't analyzed
+      if (skippedFiles && skippedFiles.length > 0) {
+        parsed.skippedFiles = skippedFiles;
+        parsed.fileWarning = `${skippedFiles.length} file(s) could not be attached. Use Gemini Files API format (files/{name}) instead of fileSearchStores/ paths.`;
+      }
+
+      return parsed;
     } catch (error) {
       console.error('❌ Audit analysis error:', error.message);
       throw new Error(`Audit analysis failed: ${error.message}`);
@@ -376,11 +384,16 @@ You must carefully:
    * Build content parts for Gemini API call.
    * Combines: text prompt + Gemini file references (fileData) + inline files (inlineData)
    * 
-   * For Gemini file references, uses GoogleAIFileManager to look up actual file metadata
-   * (uri, mimeType) instead of hardcoding - avoids "Unsupported MIME type" errors.
+   * Supported file_id formats:
+   *   - "files/abc123" → Gemini Files API (looked up via GoogleAIFileManager)
+   *   - "https://generativelanguage.googleapis.com/v1beta/files/abc123" → direct URI
+   * 
+   * NOT supported (skipped with warning):
+   *   - "fileSearchStores/..." → Vertex AI file search store paths (not compatible with Google AI SDK)
    */
   async buildContentParts(textPrompt, geminiFileSearch = {}, inlineFiles = []) {
     const parts = [];
+    const skippedFiles = [];
 
     // 1. Text prompt
     parts.push({ text: textPrompt });
@@ -390,14 +403,27 @@ You must carefully:
     const evidences = geminiFileSearch.evidences || [];
 
     for (const fileId of fileIds) {
+      // ── Guard: reject file search store paths ──
+      // These are Vertex AI resources and cannot be used as fileData with Google AI SDK.
+      // They need to be uploaded via the Gemini Files API instead (returns "files/{name}" format).
+      if (fileId.startsWith('fileSearchStores/') || fileId.includes('/fileSearchStores/')) {
+        console.warn(`⚠️ Skipping unsupported file ID format: ${fileId}`);
+        console.warn(`   fileSearchStores/ paths are Vertex AI resources and cannot be used as fileData.`);
+        console.warn(`   Upload files via the Gemini Files API instead → returns "files/{name}" format.`);
+        const evidence = evidences.find(e => e.gemini_file_id === fileId);
+        skippedFiles.push({
+          fileId,
+          evidenceName: evidence?.evidence_name || 'Unknown',
+          reason: 'fileSearchStores/ paths are not supported. Use Gemini Files API (files/{name} format).'
+        });
+        continue;
+      }
+
       try {
         // Try to look up file metadata from Gemini Files API
-        if (fileManager) {
-          // Normalize the file name - ensure it starts with "files/"
-          const fileName = fileId.startsWith('files/') ? fileId : fileId;
-          console.log(`🔍 Looking up file metadata for: ${fileName}`);
-          
-          const fileMeta = await fileManager.getFile(fileName);
+        if (fileManager && fileId.startsWith('files/')) {
+          console.log(`🔍 Looking up file metadata for: ${fileId}`);
+          const fileMeta = await fileManager.getFile(fileId);
           
           parts.push({
             fileData: {
@@ -406,15 +432,23 @@ You must carefully:
             }
           });
           console.log(`📁 Added Gemini file: ${fileId} (${fileMeta.mimeType}, uri: ${fileMeta.uri})`);
-        } else {
-          // No file manager available - try to get mime_type from evidences metadata
+        } else if (fileId.startsWith('https://')) {
+          // Direct URI provided - need mime_type from evidences
           const evidence = evidences.find(e => e.gemini_file_id === fileId);
           const mimeType = evidence?.mime_type || 'application/pdf';
-          
-          let fileUri = fileId;
-          if (!fileId.startsWith('http')) {
-            fileUri = `https://generativelanguage.googleapis.com/v1beta/${fileId}`;
-          }
+
+          parts.push({
+            fileData: {
+              fileUri: fileId,
+              mimeType: mimeType
+            }
+          });
+          console.log(`📁 Added Gemini file (direct URI): ${fileId} (${mimeType})`);
+        } else if (fileId.startsWith('files/')) {
+          // Files API format but no file manager - construct URI manually
+          const evidence = evidences.find(e => e.gemini_file_id === fileId);
+          const mimeType = evidence?.mime_type || 'application/pdf';
+          const fileUri = `https://generativelanguage.googleapis.com/v1beta/${fileId}`;
 
           parts.push({
             fileData: {
@@ -422,34 +456,34 @@ You must carefully:
               mimeType: mimeType
             }
           });
-          console.log(`📁 Added Gemini file reference (no file manager): ${fileId} (${mimeType})`);
+          console.log(`📁 Added Gemini file (constructed URI): ${fileId} (${mimeType})`);
+        } else {
+          // Unknown format
+          console.warn(`⚠️ Skipping unrecognized file ID format: ${fileId}`);
+          console.warn(`   Expected format: "files/{name}" (from Gemini Files API upload)`);
+          skippedFiles.push({
+            fileId,
+            reason: 'Unrecognized format. Expected "files/{name}" from Gemini Files API.'
+          });
         }
       } catch (fileError) {
-        console.error(`❌ Error looking up file ${fileId}:`, fileError.message);
-        
-        // Fallback: try to get mime_type from evidences, use a supported default
-        const evidence = evidences.find(e => e.gemini_file_id === fileId);
-        const mimeType = evidence?.mime_type || 'application/pdf';
-        
-        let fileUri = fileId;
-        if (!fileId.startsWith('http')) {
-          fileUri = `https://generativelanguage.googleapis.com/v1beta/${fileId}`;
-        }
-
-        try {
-          parts.push({
-            fileData: {
-              fileUri: fileUri,
-              mimeType: mimeType
-            }
-          });
-          console.log(`📁 Added Gemini file reference (fallback): ${fileId} (${mimeType})`);
-        } catch (fallbackError) {
-          console.error(`❌ Failed to add file ${fileId} even with fallback:`, fallbackError.message);
-          // Last resort: mention file in prompt text so Gemini knows about it
-          parts[0].text += `\n\n[Note: File reference ${fileId} could not be attached. Please note this file was supposed to be analyzed.]`;
-        }
+        console.error(`❌ Error processing file ${fileId}:`, fileError.message);
+        skippedFiles.push({
+          fileId,
+          reason: `Lookup failed: ${fileError.message}`
+        });
       }
+    }
+
+    // If files were skipped, append a note to the prompt
+    if (skippedFiles.length > 0) {
+      let note = `\n\n**[SYSTEM NOTE]** ${skippedFiles.length} file(s) could not be attached for analysis:\n`;
+      for (const sf of skippedFiles) {
+        note += `- ${sf.evidenceName || sf.fileId}: ${sf.reason}\n`;
+      }
+      note += `\nPlease assess based on whatever evidence IS available. If no files are attached, state that clearly.\n`;
+      parts[0].text += note;
+      console.warn(`⚠️ ${skippedFiles.length} file(s) skipped — analysis will proceed without them`);
     }
 
     // 3. Inline text files (legacy support)
@@ -488,7 +522,7 @@ You must carefully:
       }
     }
 
-    return parts;
+    return { parts, skippedFiles };
   }
 
   /**
