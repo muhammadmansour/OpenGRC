@@ -6,6 +6,19 @@
 
 const geminiChatService = require('./gemini-chat.service');
 
+// File manager for looking up Gemini Files API metadata (uri, mimeType)
+let fileManager = null;
+try {
+  const { GoogleAIFileManager } = require('@google/generative-ai/server');
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (apiKey) {
+    fileManager = new GoogleAIFileManager(apiKey);
+    console.log('✅ GoogleAIFileManager initialized for file metadata lookup');
+  }
+} catch (err) {
+  console.warn('⚠️ GoogleAIFileManager not available:', err.message);
+}
+
 class AuditService {
   
   /**
@@ -88,8 +101,8 @@ class AuditService {
       console.log(auditPrompt.substring(0, 2000) + (auditPrompt.length > 2000 ? '\n...[truncated in log]' : ''));
       console.log('='.repeat(80) + '\n');
 
-      // Build content parts (prompt + file references)
-      const parts = this.buildContentParts(auditPrompt, gemini_file_search, files);
+      // Build content parts (prompt + file references) - async to support file metadata lookup
+      const parts = await this.buildContentParts(auditPrompt, gemini_file_search, files);
 
       console.log(`📦 Sending ${parts.length} parts to Gemini`);
 
@@ -362,8 +375,11 @@ You must carefully:
   /**
    * Build content parts for Gemini API call.
    * Combines: text prompt + Gemini file references (fileData) + inline files (inlineData)
+   * 
+   * For Gemini file references, uses GoogleAIFileManager to look up actual file metadata
+   * (uri, mimeType) instead of hardcoding - avoids "Unsupported MIME type" errors.
    */
-  buildContentParts(textPrompt, geminiFileSearch = {}, inlineFiles = []) {
+  async buildContentParts(textPrompt, geminiFileSearch = {}, inlineFiles = []) {
     const parts = [];
 
     // 1. Text prompt
@@ -371,21 +387,69 @@ You must carefully:
 
     // 2. Gemini File Search references (pre-uploaded files)
     const fileIds = geminiFileSearch.file_ids || [];
-    for (const fileId of fileIds) {
-      // fileId format: "files/abc123" or full URI
-      // Construct the full URI if not already provided
-      let fileUri = fileId;
-      if (!fileId.startsWith('http')) {
-        fileUri = `https://generativelanguage.googleapis.com/v1beta/${fileId}`;
-      }
+    const evidences = geminiFileSearch.evidences || [];
 
-      parts.push({
-        fileData: {
-          fileUri: fileUri,
-          mimeType: 'application/octet-stream' // Gemini will auto-detect
+    for (const fileId of fileIds) {
+      try {
+        // Try to look up file metadata from Gemini Files API
+        if (fileManager) {
+          // Normalize the file name - ensure it starts with "files/"
+          const fileName = fileId.startsWith('files/') ? fileId : fileId;
+          console.log(`🔍 Looking up file metadata for: ${fileName}`);
+          
+          const fileMeta = await fileManager.getFile(fileName);
+          
+          parts.push({
+            fileData: {
+              fileUri: fileMeta.uri,
+              mimeType: fileMeta.mimeType
+            }
+          });
+          console.log(`📁 Added Gemini file: ${fileId} (${fileMeta.mimeType}, uri: ${fileMeta.uri})`);
+        } else {
+          // No file manager available - try to get mime_type from evidences metadata
+          const evidence = evidences.find(e => e.gemini_file_id === fileId);
+          const mimeType = evidence?.mime_type || 'application/pdf';
+          
+          let fileUri = fileId;
+          if (!fileId.startsWith('http')) {
+            fileUri = `https://generativelanguage.googleapis.com/v1beta/${fileId}`;
+          }
+
+          parts.push({
+            fileData: {
+              fileUri: fileUri,
+              mimeType: mimeType
+            }
+          });
+          console.log(`📁 Added Gemini file reference (no file manager): ${fileId} (${mimeType})`);
         }
-      });
-      console.log(`📁 Added Gemini file reference: ${fileId}`);
+      } catch (fileError) {
+        console.error(`❌ Error looking up file ${fileId}:`, fileError.message);
+        
+        // Fallback: try to get mime_type from evidences, use a supported default
+        const evidence = evidences.find(e => e.gemini_file_id === fileId);
+        const mimeType = evidence?.mime_type || 'application/pdf';
+        
+        let fileUri = fileId;
+        if (!fileId.startsWith('http')) {
+          fileUri = `https://generativelanguage.googleapis.com/v1beta/${fileId}`;
+        }
+
+        try {
+          parts.push({
+            fileData: {
+              fileUri: fileUri,
+              mimeType: mimeType
+            }
+          });
+          console.log(`📁 Added Gemini file reference (fallback): ${fileId} (${mimeType})`);
+        } catch (fallbackError) {
+          console.error(`❌ Failed to add file ${fileId} even with fallback:`, fallbackError.message);
+          // Last resort: mention file in prompt text so Gemini knows about it
+          parts[0].text += `\n\n[Note: File reference ${fileId} could not be attached. Please note this file was supposed to be analyzed.]`;
+        }
+      }
     }
 
     // 3. Inline text files (legacy support)
