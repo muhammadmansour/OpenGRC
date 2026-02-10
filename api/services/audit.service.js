@@ -152,7 +152,10 @@ class AuditService {
       ...analysis_config
     };
 
-    let prompt = `You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.
+    let prompt = `أنت مدقق امتثال خبير. مهمتك هي تحليل ملفات الأدلة المقدمة بدقة وتقييمها مقابل الضوابط والمتطلبات المحددة.
+
+**لغة الإخراج: العربية**
+يجب أن تكون جميع النصوص في استجابتك باللغة العربية الفصحى. لا تكتب أي نص بالإنجليزية في قيم JSON — فقط مفاتيح JSON تبقى بالإنجليزية.
 
 `;
 
@@ -249,22 +252,22 @@ ${options.context}
     }
 
     // === EVALUATION INSTRUCTIONS ===
-    prompt += `**=== YOUR EVALUATION INSTRUCTIONS ===**
+    prompt += `**=== تعليمات التقييم ===**
 
-You must carefully:
-1. **READ** the actual content of ALL submitted evidence files thoroughly
-2. **COMPARE** the evidence against each compliance requirement
-3. **ANSWER** each audit question based on what you find in the files
-4. **CHECK** if each typical evidence item is present or addressed
-5. **IDENTIFY** any gaps, missing elements, or areas of concern
-6. **TRANSLATE** all output text (summaries, findings, details, gap descriptions, recommendations) into proper Arabic that holds the semantic meaning. All values in the JSON response must be in Arabic.
+يجب عليك بعناية:
+1. **اقرأ** المحتوى الفعلي لجميع ملفات الأدلة المقدمة بدقة
+2. **قارن** الأدلة مع كل متطلب من متطلبات الامتثال
+3. **أجب** على كل سؤال تدقيق بناءً على ما تجده في الملفات
+4. **تحقق** مما إذا كان كل عنصر من الأدلة النموذجية موجوداً أو معالجاً
+5. **حدد** أي فجوات أو عناصر مفقودة أو مجالات مثيرة للقلق
 
-**CRITICAL:**
-- READ the actual content of submitted files - don't just look at filenames
-- QUOTE or reference specific content from the files as evidence
-- Be SPECIFIC - generic answers are not acceptable
-- If no files are provided or files are empty, state that clearly
-- ALL output text must be in proper Arabic
+**تنبيهات هامة:**
+- اقرأ المحتوى الفعلي للملفات المقدمة - لا تكتفِ بالنظر إلى أسماء الملفات
+- استشهد أو أشر إلى محتوى محدد من الملفات كدليل
+- كن دقيقاً ومحدداً - الإجابات العامة غير مقبولة
+- إذا لم تُقدَّم ملفات أو كانت فارغة، اذكر ذلك بوضوح
+- **جميع النصوص في الإخراج يجب أن تكون باللغة العربية الفصحى**
+- **مفاتيح JSON فقط تبقى بالإنجليزية، جميع القيم النصية بالعربية**
 
 `;
 
@@ -349,7 +352,7 @@ You must carefully:
     prompt += `
 }
 
-**CRITICAL:** Return ONLY valid JSON, no markdown code blocks, no additional text. ALL text values must be in Arabic.`;
+**هام جداً:** أعد فقط JSON صالح، بدون كتل كود markdown، بدون نص إضافي. جميع القيم النصية يجب أن تكون باللغة العربية الفصحى. مفاتيح JSON فقط بالإنجليزية.`;
 
     return prompt;
   }
