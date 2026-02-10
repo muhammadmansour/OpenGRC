@@ -611,29 +611,56 @@ router.get('/:id/controls', asyncHandler(async (req, res) => {
  *                       description: Alias for typical_evidence (backwards compatibility)
  *                     questions:
  *                       type: object
- *                       description: Assessment questions in JSON format
+ *                       description: |
+ *                         Assessment questions keyed by URN. Each question has type, text, and choices.
+ *                         Keys must be URNs (e.g., urn:intuitem:risk:req_node:ecc-1:1-1:question:1).
+ *                         Each choice must have a urn and value property.
  *                       example:
- *                         q1:
+ *                         "urn:intuitem:risk:req_node:ecc-1:1-1:question:1":
+ *                           type: "unique_choice"
  *                           text: "Is the cybersecurity strategy documented?"
+ *                           choices:
+ *                             - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:1:choice:1"
+ *                               value: "Yes"
+ *                             - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:1:choice:2"
+ *                               value: "No"
+ *                             - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:1:choice:3"
+ *                               value: "Partial"
+ *                         "urn:intuitem:risk:req_node:ecc-1:1-1:question:2":
  *                           type: "unique_choice"
- *                           options: ["yes", "no", "partial"]
- *                         q2:
  *                           text: "Is the strategy approved by management?"
- *                           type: "unique_choice"
- *                           options: ["yes", "no", "partial"]
+ *                           choices:
+ *                             - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:2:choice:1"
+ *                               value: "Yes"
+ *                             - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:2:choice:2"
+ *                               value: "No"
+ *                             - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:2:choice:3"
+ *                               value: "Partial"
  *           example:
  *             updates:
  *               - code: "1-1-1"
  *                 typical_evidence: "- Approved cybersecurity strategy document\n- Board meeting minutes showing approval\n- Signature of Authorizing Official\n- Evidence of communication to stakeholders"
  *                 questions:
- *                   q1:
+ *                   "urn:intuitem:risk:req_node:ecc-1:1-1:question:1":
+ *                     type: "unique_choice"
  *                     text: "Is the cybersecurity strategy documented?"
+ *                     choices:
+ *                       - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:1:choice:1"
+ *                         value: "Yes"
+ *                       - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:1:choice:2"
+ *                         value: "No"
+ *                       - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:1:choice:3"
+ *                         value: "Partial"
+ *                   "urn:intuitem:risk:req_node:ecc-1:1-1:question:2":
  *                     type: "unique_choice"
- *                     options: ["yes", "no", "partial"]
- *                   q2:
  *                     text: "Is the strategy approved by management?"
- *                     type: "unique_choice"
- *                     options: ["yes", "no", "partial"]
+ *                     choices:
+ *                       - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:2:choice:1"
+ *                         value: "Yes"
+ *                       - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:2:choice:2"
+ *                         value: "No"
+ *                       - urn: "urn:intuitem:risk:req_node:ecc-1:1-1:question:2:choice:3"
+ *                         value: "Partial"
  *     responses:
  *       200:
  *         description: Controls updated successfully
