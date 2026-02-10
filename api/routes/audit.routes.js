@@ -220,27 +220,7 @@ router.post('/analyze', asyncHandler(async (req, res) => {
       options
     });
 
-    res.status(200).json({
-      success: true,
-      ...result,
-      metadata: {
-        timestamp: new Date().toISOString(),
-        applied_control_id: applied_control.id || null,
-        applied_control_ref: applied_control.ref_id || null,
-        geminiFilesUsed: fileIds.length,
-        inlineFilesProcessed: files.length,
-        requirementsEvaluated: requirements.length,
-        questionsEvaluated: questions.length,
-        typicalEvidenceChecked: mergedTypicalEvidence.length,
-        analysisConfig: {
-          include_entity_extraction: analysis_config.include_entity_extraction !== false,
-          include_compliance_check: analysis_config.include_compliance_check !== false,
-          include_gap_analysis: analysis_config.include_gap_analysis !== false,
-          include_recommendations: analysis_config.include_recommendations !== false,
-        },
-        model: auditService.currentModelName
-      }
-    });
+    res.status(200).json(result);
   } catch (error) {
     console.error('❌ Audit analysis error:', error);
     res.status(500).json({

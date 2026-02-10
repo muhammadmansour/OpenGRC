@@ -438,71 +438,49 @@ ${options.context}
 
       const response = JSON.parse(jsonText);
 
-      // Ensure required fields exist
-      if (!response.overallAssessment) {
-        response.overallAssessment = {
-          status: 'Insufficient Evidence',
-          score: 0,
-          summary: 'Unable to complete assessment'
-        };
-      }
-      if (!response.requirementEvaluation) {
-        response.requirementEvaluation = [];
-      }
-      if (!response.questionEvaluation) {
-        response.questionEvaluation = [];
-      }
-      if (!response.typicalEvidenceCheck) {
-        response.typicalEvidenceCheck = [];
-      }
-      if (!response.fileAnalysis) {
-        response.fileAnalysis = [];
-      }
-      if (!response.gaps) {
-        response.gaps = [];
-      }
-      if (!response.strengths) {
-        response.strengths = [];
-      }
-      if (!response.recommendations) {
-        response.recommendations = [];
-      }
-      if (!response.entities) {
-        response.entities = [];
-      }
-      if (!response.controlAssessment) {
-        response.controlAssessment = {};
-      }
+      // Only keep the fields defined in the prompt output format
+      const cleaned = {
+        success: true,
+        ref_id: response.ref_id || '',
+        name: response.name || '',
+        description: response.description || '',
+        status: response.status || '',
+        category: response.category || '',
+        csf_function: response.csf_function || '',
+        overallAssessment: response.overallAssessment || {
+          controlName: '',
+          controlDescription: '',
+          status: '',
+          summary: ''
+        },
+        questionEvaluation: response.questionEvaluation || [],
+        typicalEvidenceCheck: response.typicalEvidenceCheck || [],
+        gaps: response.gaps || []
+      };
 
-      // Add metadata
-      response.timestamp = new Date().toISOString();
-      response.aiModel = this.currentModelName;
-      response.success = true;
-
-      return response;
+      return cleaned;
     } catch (error) {
       console.error('Failed to parse audit response:', error.message);
       console.log('Raw response:', responseText.substring(0, 500));
 
       return {
         success: false,
+        ref_id: '',
+        name: '',
+        description: '',
+        status: '',
+        category: '',
+        csf_function: '',
         overallAssessment: {
-          status: 'Error',
-          score: 0,
-          summary: 'Failed to parse audit results'
+          controlName: '',
+          controlDescription: '',
+          status: 'خطأ',
+          summary: 'فشل في تحليل نتائج التدقيق'
         },
-        requirementEvaluation: [],
         questionEvaluation: [],
         typicalEvidenceCheck: [],
-        fileAnalysis: [],
         gaps: [],
-        strengths: [],
-        recommendations: ['Manual review recommended due to parsing error'],
-        entities: [],
-        controlAssessment: {},
         rawResponse: responseText,
-        timestamp: new Date().toISOString(),
-        aiModel: this.currentModelName,
         parseError: error.message
       };
     }
