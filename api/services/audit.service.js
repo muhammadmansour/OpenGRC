@@ -260,23 +260,20 @@ ${options.context}
 `;
 
     // === OUTPUT FORMAT ===
+    const reqName = requirements.length > 0 ? (requirements[0].name || '') : '';
+    const reqDesc = requirements.length > 0 ? (requirements[0].description || '') : '';
+
     prompt += `**=== OUTPUT FORMAT (JSON only) ===**
 
 {
-  "ref_id": "${applied_control.ref_id || ''}",
-  "name": "${applied_control.name || ''}",
-  "description": "${applied_control.description || ''}",
-  "status": "${applied_control.status || ''}",
-  "category": "${applied_control.category || ''}",
-  "csf_function": "${applied_control.csf_function || ''}",
   "overallAssessment": {
-    "controlName": "${applied_control.name || ''}",
-    "controlDescription": "${applied_control.description || ''}",
+    "name": "${reqName}",
+    "description": "${reqDesc}",
     "status": "...",
     "summary": "..."
   },
-  "questionEvaluation": [{ "questionNumber": 1, "question": "...", "answered": "...", "evidenceFound": "...", "sourceFile": "...", "confidence": 0.0, "notes": "..." }],
-  "typicalEvidenceCheck": [{ "evidenceItem": "...", "status": "...", "foundIn": "...", "details": "..." }],
+  "questionEvaluation": [{ "question": "...", "answered": "...", "evidenceFound": "...", "notes": "..." }],
+  "typicalEvidenceCheck": [{ "evidenceItem": "...", "status": "...", "details": "..." }],
   "gaps": [{ "gap": "...", "recommendation": "..." }]
 }`;
 
@@ -441,15 +438,9 @@ ${options.context}
       // Only keep the fields defined in the prompt output format
       const cleaned = {
         success: true,
-        ref_id: response.ref_id || '',
-        name: response.name || '',
-        description: response.description || '',
-        status: response.status || '',
-        category: response.category || '',
-        csf_function: response.csf_function || '',
         overallAssessment: response.overallAssessment || {
-          controlName: '',
-          controlDescription: '',
+          name: '',
+          description: '',
           status: '',
           summary: ''
         },
@@ -465,15 +456,9 @@ ${options.context}
 
       return {
         success: false,
-        ref_id: '',
-        name: '',
-        description: '',
-        status: '',
-        category: '',
-        csf_function: '',
         overallAssessment: {
-          controlName: '',
-          controlDescription: '',
+          name: '',
+          description: '',
           status: 'خطأ',
           summary: 'فشل في تحليل نتائج التدقيق'
         },
