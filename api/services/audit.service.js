@@ -249,22 +249,13 @@ ${options.context}
     }
 
     // === EVALUATION INSTRUCTIONS ===
-    prompt += `**=== YOUR EVALUATION INSTRUCTIONS ===**
-
-You must carefully:
-1. **READ** the actual content of ALL submitted evidence files thoroughly
-2. **COMPARE** the evidence against each compliance requirement
-3. **ANSWER** each audit question based on what you find in the files
-4. **CHECK** if each typical evidence item is present or addressed
-5. **IDENTIFY** any gaps, missing elements, or areas of concern
-6. **TRANSLATE** the outcomes (in all output sections) to proper Arabic that holds the semantic meaning
-
-**CRITICAL:**
-- READ the actual content of submitted files - don't just look at filenames
-- QUOTE or reference specific content from the files as evidence
-- Be SPECIFIC - generic answers are not acceptable
-- If no files are provided or files are empty, state that clearly
-- ALL text values in the JSON output must be in proper Arabic (JSON keys stay in English)
+    prompt += `**=== EVALUATION INSTRUCTIONS ===**
+1. READ all evidence files
+2. COMPARE against requirements
+3. ANSWER audit questions
+4. CHECK typical evidence items
+5. IDENTIFY gaps
+6. TRANSLATE the outcomes (in output sections) to proper Arabic that holds the symantic meaning
 
 `;
 
@@ -272,11 +263,17 @@ You must carefully:
     prompt += `**=== OUTPUT FORMAT (JSON only) ===**
 
 {
+  "ref_id": "${applied_control.ref_id || ''}",
+  "name": "${applied_control.name || ''}",
+  "description": "${applied_control.description || ''}",
+  "status": "${applied_control.status || ''}",
+  "category": "${applied_control.category || ''}",
+  "csf_function": "${applied_control.csf_function || ''}",
   "overallAssessment": {
-    "controlName": "${applied_control.name || 'N/A'}",
-    "controlDescription": "${applied_control.description || 'N/A'}",
-    "status": "متوافق" | "متوافق جزئياً" | "غير متوافق" | "أدلة غير كافية",
-    "summary": "ملخص التقييم في 2-3 جمل بالعربية"
+    "controlName": "${applied_control.name || ''}",
+    "controlDescription": "${applied_control.description || ''}",
+    "status": "...",
+    "summary": "..."
   },`;
 
     if (questions.length > 0) {
@@ -284,12 +281,12 @@ You must carefully:
   "questionEvaluation": [
     {
       "questionNumber": 1,
-      "question": "نص السؤال",
-      "answered": "نعم" | "جزئياً" | "لا",
-      "evidenceFound": "محتوى أو اقتباس محدد من الملف يجيب على هذا السؤال",
-      "sourceFile": "اسم الملف أو المستند المصدر",
-      "confidence": <0.0-1.0>,
-      "notes": "ملاحظات إضافية"
+      "question": "...",
+      "answered": "...",
+      "evidenceFound": "...",
+      "sourceFile": "...",
+      "confidence": 0.0,
+      "notes": "..."
     }
   ],`;
     }
@@ -298,10 +295,10 @@ You must carefully:
       prompt += `
   "typicalEvidenceCheck": [
     {
-      "evidenceItem": "وصف الدليل المتوقع",
-      "status": "موجود" | "جزئي" | "غير موجود",
-      "foundIn": "اسم الملف أو المستند، أو 'غير موجود'",
-      "details": "تفاصيل ما تم العثور عليه أو ما ينقص"
+      "evidenceItem": "...",
+      "status": "...",
+      "foundIn": "...",
+      "details": "..."
     }
   ],`;
     }
@@ -310,8 +307,8 @@ You must carefully:
       prompt += `
   "gaps": [
     {
-      "gap": "وصف الفجوة أو النقص",
-      "recommendation": "التوصية لمعالجة هذه الفجوة"
+      "gap": "...",
+      "recommendation": "..."
     }
   ],`;
     }
@@ -319,7 +316,7 @@ You must carefully:
     prompt += `
 }
 
-**CRITICAL:** Return ONLY valid JSON, no markdown code blocks, no additional text. All text values must be in proper Arabic.`;
+Return ONLY valid JSON.`;
 
     return prompt;
   }
