@@ -152,10 +152,7 @@ class AuditService {
       ...analysis_config
     };
 
-    let prompt = `أنت مدقق امتثال خبير. مهمتك هي تحليل ملفات الأدلة المقدمة بدقة وتقييمها مقابل الضوابط والمتطلبات المحددة.
-
-**لغة الإخراج: العربية**
-يجب أن تكون جميع النصوص في استجابتك باللغة العربية الفصحى. لا تكتب أي نص بالإنجليزية في قيم JSON — فقط مفاتيح JSON تبقى بالإنجليزية.
+    let prompt = `You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.
 
 `;
 
@@ -252,22 +249,22 @@ ${options.context}
     }
 
     // === EVALUATION INSTRUCTIONS ===
-    prompt += `**=== تعليمات التقييم ===**
+    prompt += `**=== YOUR EVALUATION INSTRUCTIONS ===**
 
-يجب عليك بعناية:
-1. **اقرأ** المحتوى الفعلي لجميع ملفات الأدلة المقدمة بدقة
-2. **قارن** الأدلة مع كل متطلب من متطلبات الامتثال
-3. **أجب** على كل سؤال تدقيق بناءً على ما تجده في الملفات
-4. **تحقق** مما إذا كان كل عنصر من الأدلة النموذجية موجوداً أو معالجاً
-5. **حدد** أي فجوات أو عناصر مفقودة أو مجالات مثيرة للقلق
+You must carefully:
+1. **READ** the actual content of ALL submitted evidence files thoroughly
+2. **COMPARE** the evidence against each compliance requirement
+3. **ANSWER** each audit question based on what you find in the files
+4. **CHECK** if each typical evidence item is present or addressed
+5. **IDENTIFY** any gaps, missing elements, or areas of concern
+6. **TRANSLATE** the outcomes (in all output sections) to proper Arabic that holds the semantic meaning
 
-**تنبيهات هامة:**
-- اقرأ المحتوى الفعلي للملفات المقدمة - لا تكتفِ بالنظر إلى أسماء الملفات
-- استشهد أو أشر إلى محتوى محدد من الملفات كدليل
-- كن دقيقاً ومحدداً - الإجابات العامة غير مقبولة
-- إذا لم تُقدَّم ملفات أو كانت فارغة، اذكر ذلك بوضوح
-- **جميع النصوص في الإخراج يجب أن تكون باللغة العربية الفصحى**
-- **مفاتيح JSON فقط تبقى بالإنجليزية، جميع القيم النصية بالعربية**
+**CRITICAL:**
+- READ the actual content of submitted files - don't just look at filenames
+- QUOTE or reference specific content from the files as evidence
+- Be SPECIFIC - generic answers are not acceptable
+- If no files are provided or files are empty, state that clearly
+- ALL text values in the JSON output must be in proper Arabic (JSON keys stay in English)
 
 `;
 
@@ -279,22 +276,8 @@ ${options.context}
     "controlName": "${applied_control.name || 'N/A'}",
     "controlDescription": "${applied_control.description || 'N/A'}",
     "status": "متوافق" | "متوافق جزئياً" | "غير متوافق" | "أدلة غير كافية",
-    "summary": "ملخص التقييم في 2-3 جمل"
+    "summary": "ملخص التقييم في 2-3 جمل بالعربية"
   },`;
-
-    if (config.include_compliance_check && requirements.length > 0) {
-      prompt += `
-  "requirementEvaluation": [
-    {
-      "ref_id": "Requirement reference ID",
-      "name": "اسم المتطلب",
-      "met": true | false | "partial",
-      "evidenceAlignment": "مدى توافق الأدلة",
-      "specificFindings": "ما وُجد في الملفات يتعلق بهذا المتطلب تحديداً",
-      "confidence": <0.0-1.0>
-    }
-  ],`;
-    }
 
     if (questions.length > 0) {
       prompt += `
@@ -333,26 +316,10 @@ ${options.context}
   ],`;
     }
 
-    if (config.include_recommendations) {
-      prompt += `
-  "recommendations": ["إجراءات محددة لتحقيق الامتثال الكامل"],`;
-    }
-
-    if (config.include_entity_extraction) {
-      prompt += `
-  "entities": [
-    {
-      "type": "person" | "date" | "policy" | "system" | "organization" | "standard" | "process",
-      "value": "الكيان المستخرج",
-      "context": "أين وكيف تم ذكره"
-    }
-  ],`;
-    }
-
     prompt += `
 }
 
-**هام جداً:** أعد فقط JSON صالح، بدون كتل كود markdown، بدون نص إضافي. جميع القيم النصية يجب أن تكون باللغة العربية الفصحى. مفاتيح JSON فقط بالإنجليزية.`;
+**CRITICAL:** Return ONLY valid JSON, no markdown code blocks, no additional text. All text values must be in proper Arabic.`;
 
     return prompt;
   }
