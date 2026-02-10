@@ -143,12 +143,12 @@ class AuditService {
       options = {}
     } = params;
 
-    // Default analysis config - all enabled
+    // Default analysis config
     const config = {
-      include_entity_extraction: true,
-      include_compliance_check: true,
+      include_entity_extraction: false,
+      include_compliance_check: false,
       include_gap_analysis: true,
-      include_recommendations: true,
+      include_recommendations: false,
       ...analysis_config
     };
 
@@ -257,20 +257,14 @@ You must carefully:
 3. **ANSWER** each audit question based on what you find in the files
 4. **CHECK** if each typical evidence item is present or addressed
 5. **IDENTIFY** any gaps, missing elements, or areas of concern
-6. **SCORE** overall compliance (0-100)
-`;
+6. **TRANSLATE** all output text (summaries, findings, details, gap descriptions, recommendations) into proper Arabic that holds the semantic meaning. All values in the JSON response must be in Arabic.
 
-    if (config.include_entity_extraction) {
-      prompt += `7. **EXTRACT** key entities (people, dates, policies, systems) mentioned in the evidence
-`;
-    }
-
-    prompt += `
 **CRITICAL:**
 - READ the actual content of submitted files - don't just look at filenames
 - QUOTE or reference specific content from the files as evidence
 - Be SPECIFIC - generic answers are not acceptable
 - If no files are provided or files are empty, state that clearly
+- ALL output text must be in proper Arabic
 
 `;
 
@@ -279,9 +273,10 @@ You must carefully:
 
 {
   "overallAssessment": {
-    "status": "Compliant" | "Partially Compliant" | "Non-Compliant" | "Insufficient Evidence",
-    "score": <0-100>,
-    "summary": "2-3 sentence assessment"
+    "controlName": "${applied_control.name || 'N/A'}",
+    "controlDescription": "${applied_control.description || 'N/A'}",
+    "status": "متوافق" | "متوافق جزئياً" | "غير متوافق" | "أدلة غير كافية",
+    "summary": "ملخص التقييم في 2-3 جمل"
   },`;
 
     if (config.include_compliance_check && requirements.length > 0) {
@@ -289,10 +284,10 @@ You must carefully:
   "requirementEvaluation": [
     {
       "ref_id": "Requirement reference ID",
-      "name": "Requirement name",
+      "name": "اسم المتطلب",
       "met": true | false | "partial",
-      "evidenceAlignment": "How well does the evidence align",
-      "specificFindings": "What in the files specifically addresses this requirement",
+      "evidenceAlignment": "مدى توافق الأدلة",
+      "specificFindings": "ما وُجد في الملفات يتعلق بهذا المتطلب تحديداً",
       "confidence": <0.0-1.0>
     }
   ],`;
@@ -303,12 +298,12 @@ You must carefully:
   "questionEvaluation": [
     {
       "questionNumber": 1,
-      "question": "The question text",
-      "answered": "Yes" | "Partially" | "No",
-      "evidenceFound": "Specific content/quote from the file that answers this",
-      "sourceFile": "filename or evidence name where found",
+      "question": "نص السؤال",
+      "answered": "نعم" | "جزئياً" | "لا",
+      "evidenceFound": "محتوى أو اقتباس محدد من الملف يجيب على هذا السؤال",
+      "sourceFile": "اسم الملف أو المستند المصدر",
       "confidence": <0.0-1.0>,
-      "notes": "Additional observations"
+      "notes": "ملاحظات إضافية"
     }
   ],`;
     }
@@ -317,42 +312,27 @@ You must carefully:
       prompt += `
   "typicalEvidenceCheck": [
     {
-      "evidenceItem": "The typical evidence description",
-      "status": "Present" | "Partial" | "Missing",
-      "foundIn": "filename or evidence name, or 'Not found'",
-      "details": "What was found or what's missing"
+      "evidenceItem": "وصف الدليل المتوقع",
+      "status": "موجود" | "جزئي" | "غير موجود",
+      "foundIn": "اسم الملف أو المستند، أو 'غير موجود'",
+      "details": "تفاصيل ما تم العثور عليه أو ما ينقص"
     }
   ],`;
     }
-
-    prompt += `
-  "fileAnalysis": [
-    {
-      "fileName": "evidence name or file reference",
-      "contentSummary": "What this file actually contains",
-      "relevantSections": ["Key sections relevant to the requirements"],
-      "relevanceScore": <0.0-1.0>
-    }
-  ],`;
 
     if (config.include_gap_analysis) {
       prompt += `
   "gaps": [
     {
-      "gap": "What's missing",
-      "severity": "High" | "Medium" | "Low",
-      "impact": "Why this matters for compliance",
-      "recommendation": "How to address this gap"
+      "gap": "وصف الفجوة أو النقص",
+      "recommendation": "التوصية لمعالجة هذه الفجوة"
     }
   ],`;
     }
 
-    prompt += `
-  "strengths": ["What the evidence does well"],`;
-
     if (config.include_recommendations) {
       prompt += `
-  "recommendations": ["Specific actions to achieve full compliance"],`;
+  "recommendations": ["إجراءات محددة لتحقيق الامتثال الكامل"],`;
     }
 
     if (config.include_entity_extraction) {
@@ -360,22 +340,16 @@ You must carefully:
   "entities": [
     {
       "type": "person" | "date" | "policy" | "system" | "organization" | "standard" | "process",
-      "value": "The extracted entity",
-      "context": "Where/how it was mentioned"
+      "value": "الكيان المستخرج",
+      "context": "أين وكيف تم ذكره"
     }
   ],`;
     }
 
     prompt += `
-  "controlAssessment": {
-    "controlId": "${applied_control.ref_id || 'N/A'}",
-    "controlName": "${applied_control.name || 'N/A'}",
-    "implementationStatus": "Implemented" | "Partially Implemented" | "Not Implemented" | "Not Applicable",
-    "effectivenessRating": "Highly Effective" | "Effective" | "Partially Effective" | "Ineffective" | "Not Assessed"
-  }
 }
 
-**CRITICAL:** Return ONLY valid JSON, no markdown code blocks, no additional text.`;
+**CRITICAL:** Return ONLY valid JSON, no markdown code blocks, no additional text. ALL text values must be in Arabic.`;
 
     return prompt;
   }
