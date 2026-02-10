@@ -274,49 +274,11 @@ ${options.context}
     "controlDescription": "${applied_control.description || ''}",
     "status": "...",
     "summary": "..."
-  },`;
-
-    if (questions.length > 0) {
-      prompt += `
-  "questionEvaluation": [
-    {
-      "questionNumber": 1,
-      "question": "...",
-      "answered": "...",
-      "evidenceFound": "...",
-      "sourceFile": "...",
-      "confidence": 0.0,
-      "notes": "..."
-    }
-  ],`;
-    }
-
-    if (typical_evidence.length > 0) {
-      prompt += `
-  "typicalEvidenceCheck": [
-    {
-      "evidenceItem": "...",
-      "status": "...",
-      "foundIn": "...",
-      "details": "..."
-    }
-  ],`;
-    }
-
-    if (config.include_gap_analysis) {
-      prompt += `
-  "gaps": [
-    {
-      "gap": "...",
-      "recommendation": "..."
-    }
-  ],`;
-    }
-
-    prompt += `
-}
-
-Return ONLY valid JSON.`;
+  },
+  "questionEvaluation": [{ "questionNumber": 1, "question": "...", "answered": "...", "evidenceFound": "...", "sourceFile": "...", "confidence": 0.0, "notes": "..." }],
+  "typicalEvidenceCheck": [{ "evidenceItem": "...", "status": "...", "foundIn": "...", "details": "..." }],
+  "gaps": [{ "gap": "...", "recommendation": "..." }]
+}`;
 
     return prompt;
   }
