@@ -1,6 +1,6 @@
 /**
  * Mail Service
- * Handles email sending using Nodemailer
+ * Handles email sending using Nodemailer via Outlook / Microsoft 365 SMTP
  */
 
 const nodemailer = require('nodemailer');
@@ -12,35 +12,37 @@ class MailService {
   }
 
   /**
-   * Initialize the mail transporter
+   * Initialize the mail transporter (Outlook / Microsoft 365)
    */
   initialize() {
     if (this.initialized) {
       return;
     }
 
+    const host = process.env.EMAIL_HOST || 'smtp.office365.com';
+    const port = parseInt(process.env.EMAIL_PORT) || 587;
+    const user = process.env.EMAIL_HOST_USER || 'info@wathbahs.com';
+    const pass = process.env.EMAIL_HOST_PASSWORD || 'Saudi2030+';
+
     const config = {
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT) || 587,
-      secure: process.env.EMAIL_PORT === '465', // true for 465, false for other ports
+      host,
+      port,
+      secure: port === 465, // true for 465, false for 587 (STARTTLS)
       auth: {
-        user: process.env.EMAIL_HOST_USER,
-        pass: process.env.EMAIL_HOST_PASSWORD
+        user,
+        pass
+      },
+      tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
       }
     };
 
-    // Add TLS settings if enabled
-    if (process.env.EMAIL_USE_TLS === 'True' || process.env.EMAIL_USE_TLS === 'true') {
-      config.tls = {
-        rejectUnauthorized: false // Allow self-signed certificates
-      };
-    }
-
     this.transporter = nodemailer.createTransport(config);
-    this.defaultFrom = process.env.DEFAULT_FROM_EMAIL || process.env.EMAIL_HOST_USER;
+    this.defaultFrom = process.env.DEFAULT_FROM_EMAIL || user;
     this.initialized = true;
 
-    console.log('📧 Mail service initialized');
+    console.log(`📧 Mail service initialized (${host}:${port}, user: ${user})`);
   }
 
   /**
@@ -160,12 +162,13 @@ class MailService {
    * Get mail configuration status (without sensitive data)
    */
   getConfigStatus() {
+    const user = process.env.EMAIL_HOST_USER || 'info@wathbahs.com';
     return {
-      configured: !!(process.env.EMAIL_HOST_USER && process.env.EMAIL_HOST_PASSWORD),
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      configured: true,
+      host: process.env.EMAIL_HOST || 'smtp.office365.com',
       port: process.env.EMAIL_PORT || '587',
-      useTls: process.env.EMAIL_USE_TLS === 'True' || process.env.EMAIL_USE_TLS === 'true',
-      defaultFrom: process.env.DEFAULT_FROM_EMAIL || process.env.EMAIL_HOST_USER || 'Not configured'
+      useTls: true,
+      defaultFrom: process.env.DEFAULT_FROM_EMAIL || user
     };
   }
 }
