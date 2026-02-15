@@ -8,6 +8,7 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
+    "@azure/msal-node": "^5.0.4",
     "@google/generative-ai": "^0.22.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

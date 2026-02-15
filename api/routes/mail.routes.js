@@ -12,7 +12,7 @@ const { asyncHandler } = require('../middleware/error.middleware');
  * @swagger
  * tags:
  *   name: Mail
- *   description: Email sending endpoints
+ *   description: Email sending via Microsoft Graph API (Outlook)
  */
 
 /**
@@ -36,8 +36,8 @@ const { asyncHandler } = require('../middleware/error.middleware');
  *               from_email:
  *                 type: string
  *                 format: email
- *                 description: Sender email address (optional, uses default if not provided)
- *                 example: "mansourmuhammad37@gmail.com"
+ *                 description: Sender email address (optional, uses info@wathbahs.com by default)
+ *                 example: "info@wathbahs.com"
  *               recipient_list:
  *                 type: array
  *                 items:
@@ -69,10 +69,7 @@ const { asyncHandler } = require('../middleware/error.middleware');
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Email sent successfully"
- *                 messageId:
- *                   type: string
- *                   example: "<abc123@gmail.com>"
+ *                   example: "Email sent successfully via Microsoft Graph API"
  *       400:
  *         description: Validation error
  *       500:
@@ -255,7 +252,7 @@ router.get('/verify', asyncHandler(async (req, res) => {
  * /api/mail/status:
  *   get:
  *     summary: Get mail configuration status
- *     description: Check if mail service is configured (does not expose credentials)
+ *     description: Check if mail service is configured (does not expose secrets)
  *     tags: [Mail]
  *     responses:
  *       200:
@@ -267,13 +264,15 @@ router.get('/verify', asyncHandler(async (req, res) => {
  *               properties:
  *                 configured:
  *                   type: boolean
- *                 host:
+ *                 provider:
  *                   type: string
- *                 port:
+ *                   example: "Microsoft Graph API (Outlook)"
+ *                 sender:
  *                   type: string
- *                 useTls:
- *                   type: boolean
- *                 defaultFrom:
+ *                   example: "info@wathbahs.com"
+ *                 tenantId:
+ *                   type: string
+ *                 clientId:
  *                   type: string
  */
 router.get('/status', asyncHandler(async (req, res) => {
