@@ -30,32 +30,30 @@ function convertToBundle(library) {
 }
 
 /**
- * Convert a library to OpenGRC Standard with Controls format
- * This is the full import format that can be directly used by OpenGRC
- * @param {Object} library - The library object from database
- * @returns {Object} OpenGRC Standard format with controls array
+ * Convert requirement nodes to OpenGRC Controls array
+ * This handles: Requirement Nodes → Controls
+ * @param {Array} requirementNodes - Array of requirement nodes from framework
+ * @returns {Object} Object with controls array and nodeMap for reference
  */
-function convertToStandard(library) {
-  if (!library) {
-    return null;
+function convertToControls(requirementNodes) {
+  if (!requirementNodes || !Array.isArray(requirementNodes)) {
+    return { controls: [], nodeMap: new Map() };
   }
 
-  const framework = library.content?.framework || {};
-  const requirementNodes = framework.requirement_nodes || [];
-
-  // Build parent-child map for hierarchy
+  // Build parent-child map for hierarchy lookup
   const nodeMap = new Map();
   requirementNodes.forEach(node => {
     nodeMap.set(node.urn, node);
   });
 
-  // Extract controls (assessable nodes at depth 3 or leaf nodes)
+  // Extract controls (only assessable nodes)
   const controls = [];
   
   requirementNodes.forEach(node => {
     if (node.assessable === true) {
-      // Find parent for category/type info
+      // Find parent (depth 2) for category
       const parent = node.parent_urn ? nodeMap.get(node.parent_urn) : null;
+      // Find grandparent (depth 1) for type classification
       const grandparent = parent?.parent_urn ? nodeMap.get(parent.parent_urn) : null;
 
       controls.push({
@@ -71,11 +69,49 @@ function convertToStandard(library) {
     }
   });
 
+  return { controls, nodeMap };
+}
+
+/**
+ * Convert framework to OpenGRC Standard format
+ * This handles: Framework → Standard (metadata only, without controls)
+ * @param {Object} library - The library object
+ * @param {Object} framework - The framework object from library.content
+ * @returns {Object} OpenGRC Standard metadata
+ */
+function convertFrameworkToStandard(library, framework) {
   return {
-    code: library.ref_id || framework.ref_id || library.urn?.split(':').pop(),
-    name: library.name || framework.name,
-    authority: library.provider || 'Unknown',
-    description: library.description || framework.description || '',
+    code: library?.ref_id || framework?.ref_id || library?.urn?.split(':').pop() || 'unknown',
+    name: library?.name || framework?.name || 'Unknown Standard',
+    authority: library?.provider || 'Unknown',
+    description: library?.description || framework?.description || ''
+  };
+}
+
+/**
+ * Convert a library to OpenGRC Standard with Controls format
+ * This is the full import format that can be directly used by OpenGRC
+ * Combines: Framework → Standard + Requirement Nodes → Controls
+ * @param {Object} library - The library object from database
+ * @returns {Object} OpenGRC Standard format with controls array
+ */
+function convertToStandard(library) {
+  if (!library) {
+    return null;
+  }
+
+  const framework = library.content?.framework || {};
+  const requirementNodes = framework.requirement_nodes || [];
+
+  // Convert framework to standard metadata
+  const standardMeta = convertFrameworkToStandard(library, framework);
+
+  // Convert requirement nodes to controls
+  const { controls } = convertToControls(requirementNodes);
+
+  // Combine standard metadata with controls
+  return {
+    ...standardMeta,
     controls: controls
   };
 }
@@ -208,9 +244,16 @@ function extractHierarchy(library) {
 }
 
 module.exports = {
-  convertToBundle,
-  convertToStandard,
-  convertToOpenGRC,
+  // Main conversion functions (3 major equivalents)
+  convertToBundle,           // Library → Bundle
+  convertFrameworkToStandard, // Framework → Standard (metadata)
+  convertToControls,         // Requirement Nodes → Controls
+  
+  // Combined/convenience functions
+  convertToStandard,         // Framework + Controls combined
+  convertToOpenGRC,          // Full conversion with all formats
+  
+  // Helpers
   categorizeControlType,
   extractHierarchy
 };

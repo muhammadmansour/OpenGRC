@@ -255,7 +255,7 @@ ${options.context}
 3. ANSWER audit questions
 4. CHECK typical evidence items
 5. IDENTIFY gaps
-6. TRANSLATE the outcomes (in output sections) to proper Arabic that holds the symantic meaning
+6. Respond ENTIRELY in English
 
 `;
 

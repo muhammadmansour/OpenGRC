@@ -1,0 +1,1003 @@
+{
+  "urn": "urn:intuitem:risk:library:saudi-pdpl-1.0",
+  "ref_id": "SAUDI-PDPL-1.0",
+  "provider": "SDAIA",
+  "name": "Saudi Arabia Personal Data Protection Law (PDPL)",
+  "description": "Saudi Arabia Personal Data Protection Law (Royal Decree M/19), its Implementing Regulation, and the Regulation on Personal Data Transfer Outside the Kingdom.",
+  "copyright": "Saudi Data and Artificial Intelligence Authority (SDAIA). All texts, layouts, designs and other elements of any nature in this document are subject to copyright law.",
+  "version": 1,
+  "locale": "en",
+  "publication_date": "2021-09-24",
+  "packager": "intuitem",
+  "content": {
+    "framework": {
+      "urn": "urn:intuitem:risk:framework:saudi-pdpl-1.0",
+      "ref_id": "SAUDI-PDPL-1.0",
+      "name": "Saudi Arabia Personal Data Protection Law (PDPL)",
+      "description": "Saudi Arabia Personal Data Protection Law (Royal Decree M/19), its Implementing Regulation, and the Regulation on Personal Data Transfer Outside the Kingdom.",
+      "requirement_nodes": [
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "assessable": false,
+          "depth": 1,
+          "name": "Personal Data Protection Law (Royal Decree M/19)"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:general-provisions",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "General Provisions"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-1",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:general-provisions",
+          "ref_id": "PDPL-Art-1",
+          "description": "This Law aims to protect the right of individuals to privacy by ensuring the confidentiality, integrity and availability of personal data. It regulates the collection, processing, disclosure and retention of personal data and establishes the rights and obligations of all relevant parties."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-2",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:general-provisions",
+          "ref_id": "PDPL-Art-2",
+          "description": "The provisions of this Law shall apply to any processing of personal data relating to individuals that takes place in the Kingdom by any means, including the processing of personal data relating to residents of the Kingdom by any means by any entity outside the Kingdom. Processing of personal data for purely personal or family purposes shall be excluded."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-3",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:general-provisions",
+          "ref_id": "PDPL-Art-3",
+          "description": "Words and expressions used in this Law shall have the meanings assigned to them in the Implementing Regulation, unless the context otherwise requires. Key terms include: personal data, sensitive data, processing, controller, data subject, consent, disclosure, and destruction of personal data."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:collection-and-processing-of-personal-data",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Collection and Processing of Personal Data"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-4",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:collection-and-processing-of-personal-data",
+          "ref_id": "PDPL-Art-4",
+          "description": "Personal data shall not be collected except for a lawful, specific, clear and concrete purpose directly relating to the activity of the controller. The controller shall take the necessary measures to verify the accuracy and completeness of personal data and keep it updated where necessary to achieve the purpose of its collection."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-5",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:collection-and-processing-of-personal-data",
+          "ref_id": "PDPL-Art-5",
+          "description": "The processing of personal data shall not take place without the consent of the data subject, except in specific cases prescribed by law, including: performance of a legal obligation, protection of a vital interest of the data subject, if the data subject has made the data manifestly public, or if processing is necessary for legitimate interests pursued by the controller."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-6",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:collection-and-processing-of-personal-data",
+          "ref_id": "PDPL-Art-6",
+          "description": "Consent for the processing of personal data shall be given freely, explicitly, unambiguously and in a clear form. The data subject may withdraw consent at any time and, in such case, the withdrawal shall not affect the lawfulness of the processing based on consent given prior to its withdrawal. The controller shall provide an easy mechanism for withdrawing consent."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-7",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:collection-and-processing-of-personal-data",
+          "ref_id": "PDPL-Art-7",
+          "description": "Personal data may be processed without the consent of the data subject in the following cases: (a) if the processing achieves a clear benefit for the data subject and it is impossible or difficult to contact them; (b) in accordance with another law or in implementation of a previous agreement to which the data subject is party; (c) if the controller is a public entity and the processing is required for security purposes or to fulfil a judicial requirement."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-8",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:collection-and-processing-of-personal-data",
+          "ref_id": "PDPL-Art-8",
+          "description": "The controller shall, before collecting personal data, inform the data subject of the following: the legal basis and purpose for the collection, whether the provision of data is mandatory or optional and its consequences, the identity of any entity to which data will be disclosed, and the consequences of not providing consent where applicable."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-9",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:collection-and-processing-of-personal-data",
+          "ref_id": "PDPL-Art-9",
+          "description": "Personal data shall not be retained after the purpose of its collection has been achieved or the specified period for retention has expired. The controller shall take the necessary procedures to destroy or anonymize personal data at the expiry of the retention period, except where another law requires its retention for a longer period."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-10",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:collection-and-processing-of-personal-data",
+          "ref_id": "PDPL-Art-10",
+          "description": "Where a controller has collected personal data and wishes to process it for a purpose other than that for which it was collected, the controller shall obtain the consent of the data subject for the new purpose, unless the processing is for scientific, research or statistical purposes in accordance with the relevant regulations."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Rights of the Data Subject"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-11",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject",
+          "ref_id": "PDPL-Art-11",
+          "description": "The data subject shall have the right to be informed of the legal basis and purpose of the collection and processing of their personal data, and to know the mandatory or optional nature of its provision and the consequences of not providing or withdrawing consent."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-12",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject",
+          "ref_id": "PDPL-Art-12",
+          "description": "The data subject shall have the right to access their personal data held by the controller and to obtain a copy thereof, in accordance with the conditions and procedures set out in the Implementing Regulation."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-13",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject",
+          "ref_id": "PDPL-Art-13",
+          "description": "The data subject shall have the right to request the correction, completion or updating of their personal data where it is inaccurate, incomplete or out of date, in accordance with the conditions and procedures set out in the Implementing Regulation."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-14",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject",
+          "ref_id": "PDPL-Art-14",
+          "description": "The data subject shall have the right to request the destruction of their personal data when it is no longer necessary to retain it, in accordance with the conditions and procedures set out in the Implementing Regulation. The controller shall destroy the data within the period specified in the Implementing Regulation and notify all third parties to whom the data was disclosed."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-15",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject",
+          "ref_id": "PDPL-Art-15",
+          "description": "The data subject shall have the right to object to the processing of their personal data in certain cases specified in this Law and the Implementing Regulation, including where the processing is for direct marketing purposes."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:processing-of-sensitive-data",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Processing of Sensitive Data"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-16",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:processing-of-sensitive-data",
+          "ref_id": "PDPL-Art-16",
+          "description": "Sensitive data includes data that reveals the racial or ethnic origin, religious, intellectual or political beliefs of a data subject, data relating to criminal records, biometric or genetic data for the purposes of identifying a natural person, health data and data indicating that the data subject is a child."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-17",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:processing-of-sensitive-data",
+          "ref_id": "PDPL-Art-17",
+          "description": "The processing of sensitive data shall be prohibited unless it is necessary for the protection of the vital interests of the data subject, or the processing is carried out in accordance with a law, or the data subject has given explicit consent. The Implementing Regulation specifies additional cases in which sensitive data may be processed."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-related-to-health",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Personal Data Related to Health"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-18",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-related-to-health",
+          "ref_id": "PDPL-Art-18",
+          "description": "The processing of health data shall comply with the provisions of this Law and any other applicable regulations. Health data may be processed without consent where necessary for public health purposes, medical diagnosis, provision of healthcare or treatment, or management of health systems and services."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:data-processing-for-minors",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Data Processing for Minors"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-19",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:data-processing-for-minors",
+          "ref_id": "PDPL-Art-19",
+          "description": "The processing of personal data belonging to minors (persons under the age of eighteen) shall be governed by the conditions set by the Implementing Regulation. Consent for data processing of a minor shall be obtained from the parent or legal guardian."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:obligations-of-the-controller",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Obligations of the Controller"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-20",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:obligations-of-the-controller",
+          "ref_id": "PDPL-Art-20",
+          "description": "The controller shall implement appropriate technical and organizational measures to ensure that the processing of personal data is carried out in accordance with this Law and the Implementing Regulation. These measures shall be reviewed and updated periodically."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-21",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:obligations-of-the-controller",
+          "ref_id": "PDPL-Art-21",
+          "description": "The controller shall maintain records of the personal data processing operations it carries out, including: the purpose of processing, the categories of data subjects and personal data, the period of retention, a description of the technical and organizational security measures, and any cross-border transfers of personal data."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-22",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:obligations-of-the-controller",
+          "ref_id": "PDPL-Art-22",
+          "description": "The controller shall conduct a personal data impact assessment prior to carrying out any processing that is likely to result in a high risk to the privacy of data subjects. The assessment shall include: the nature and scope of the processing, the risks to the data subject, and the measures to mitigate those risks."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-23",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:obligations-of-the-controller",
+          "ref_id": "PDPL-Art-23",
+          "description": "The controller shall appoint a data protection officer when required by the Implementing Regulation. The data protection officer shall be responsible for monitoring compliance with this Law and the Implementing Regulation and shall report directly to the highest level of management of the controller."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-24",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:obligations-of-the-controller",
+          "ref_id": "PDPL-Art-24",
+          "description": "In the event of a personal data breach, the controller shall notify the competent authority within the period specified in the Implementing Regulation. Where the breach is likely to cause serious harm to the data subject, the controller shall also notify the data subject without undue delay."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-25",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:obligations-of-the-controller",
+          "ref_id": "PDPL-Art-25",
+          "description": "The controller that engages a processor to process personal data on its behalf shall enter into a written agreement with the processor specifying: the nature and purpose of the processing, the type of personal data, the duration of processing, the obligations and rights of the controller, and the obligation of the processor to comply with this Law."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:processing-for-marketing-purposes",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Processing for Marketing Purposes"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-26",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:processing-for-marketing-purposes",
+          "ref_id": "PDPL-Art-26",
+          "description": "The processing of personal data for direct marketing purposes requires the consent of the data subject. The data subject shall have the right to object at any time to the processing of their data for direct marketing purposes. Where the data subject objects, the controller shall cease processing for such purposes."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:disclosure-and-transfer-of-personal-data",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Disclosure and Transfer of Personal Data"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-27",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:disclosure-and-transfer-of-personal-data",
+          "ref_id": "PDPL-Art-27",
+          "description": "Personal data shall not be disclosed to any entity except with the consent of the data subject or in the cases specified in this Law. Disclosure may be made without consent to competent public authorities for security purposes, to fulfil legal obligations, or to protect the vital interests of the data subject."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-28",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:disclosure-and-transfer-of-personal-data",
+          "ref_id": "PDPL-Art-28",
+          "description": "Personal data shall not be transferred outside the Kingdom except in accordance with the conditions set out in this Law, the Implementing Regulation, and the Regulation on Personal Data Transfer Outside the Kingdom. Transfer may be permitted where: the receiving country provides an adequate level of protection, or appropriate safeguards are in place."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-29",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:disclosure-and-transfer-of-personal-data",
+          "ref_id": "PDPL-Art-29",
+          "description": "The controller shall ensure that any cross-border transfer of personal data does not jeopardize national security or vital interests of the Kingdom. The competent authority may restrict or prohibit the transfer of certain categories of personal data outside the Kingdom."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:penalties-and-enforcement",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Penalties and Enforcement"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-30",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:penalties-and-enforcement",
+          "ref_id": "PDPL-Art-30",
+          "description": "Without prejudice to any more severe penalty prescribed in another law, any person who violates the provisions relating to the transfer of personal data outside the Kingdom in violation of this Law shall be punished by imprisonment for a period not exceeding two years and a fine not exceeding three million riyals, or either of these penalties."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-31",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:penalties-and-enforcement",
+          "ref_id": "PDPL-Art-31",
+          "description": "Without prejudice to any more severe penalty prescribed in another law, any person who discloses sensitive data in violation of this Law with the intention of causing harm to the data subject or achieving a personal benefit shall be punished by imprisonment for a period not exceeding two years and a fine not exceeding three million riyals, or either of these penalties."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-32",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:penalties-and-enforcement",
+          "ref_id": "PDPL-Art-32",
+          "description": "The competent authority may impose a warning, or a fine not exceeding five million riyals, against any person who violates any of the provisions of this Law or the Implementing Regulation. In the event of a repeated violation, the fine may be doubled. The competent court may order the publication of the judgment at the expense of the violator."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-33",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:penalties-and-enforcement",
+          "ref_id": "PDPL-Art-33",
+          "description": "Criminal cases and penalties relating to violations of this Law shall be considered by the competent court. The competent authority shall have the right to investigate violations and refer them to the Public Prosecution."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-protection-law-royal-decree-m19",
+          "name": "Final Provisions"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-34",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-34",
+          "description": "The competent authority shall be responsible for the supervision, monitoring and enforcement of the provisions of this Law and the Implementing Regulation. It shall have the power to issue decisions, regulations and procedures necessary for implementation."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-35",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-35",
+          "description": "Public and private entities processing personal data shall adjust their status in accordance with the provisions of this Law within a period not exceeding one year from the date of its entry into force, unless otherwise specified by the competent authority."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-36",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-36",
+          "description": "The Implementing Regulation shall be issued by resolution of the competent authority within one hundred and eighty days from the date of publication of this Law. The provisions of this Law shall come into force upon the expiry of the period for adjusting status."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-37",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-37",
+          "description": "The competent authority may grant additional extensions to the adjustment period for entities that demonstrate a legitimate need for additional time to achieve compliance, subject to conditions determined by the competent authority."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-38",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-38",
+          "description": "The provisions of this Law shall apply to the processing of personal data that takes place after its entry into force. Processing that was initiated before its entry into force shall be adjusted in accordance with the provisions of this Law within the adjustment period."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-39",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-39",
+          "description": "Without prejudice to the provisions of this Law, national data relating to security and vital national interests shall be subject to such special rules as may be issued by the Council of Ministers."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-40",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-40",
+          "description": "The competent authority shall establish and maintain a national register of controllers and processors. All entities processing personal data shall register with the competent authority in accordance with the conditions and procedures set out in the Implementing Regulation."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-41",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-41",
+          "description": "The competent authority may cooperate and exchange information with foreign data protection authorities for the purpose of enforcing this Law and ensuring the protection of personal data, subject to the applicable regulations and the requirement of reciprocity."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-42",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-42",
+          "description": "The provisions of this Law shall be without prejudice to the obligations arising from international agreements to which the Kingdom is party."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:pdpl-art-43",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions",
+          "ref_id": "PDPL-Art-43",
+          "description": "This Law shall be published in the Official Gazette and shall come into force in accordance with the provisions of Article 36."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "assessable": false,
+          "depth": 1,
+          "name": "Implementing Regulation of the Personal Data Protection Law"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:general-provisions-and-definitions",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "General Provisions and Definitions"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-1",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:general-provisions-and-definitions",
+          "ref_id": "IR-Art-1",
+          "description": "This regulation defines the terms and expressions used in the Personal Data Protection Law, including but not limited to: personal data, sensitive data, processing, controller, processor, data subject, consent, disclosure, destruction, anonymization, pseudonymization, cross-border transfer, personal data breach, and competent authority (SDAIA)."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-2",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:general-provisions-and-definitions",
+          "ref_id": "IR-Art-2",
+          "description": "The Implementing Regulation governs the procedures and conditions for the application of the Personal Data Protection Law. It establishes detailed requirements for controllers, processors, and other entities involved in the processing of personal data within and outside the Kingdom."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:legal-basis-and-conditions-for-personal-data-processing",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Legal Basis and Conditions for Personal Data Processing"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-3",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:legal-basis-and-conditions-for-personal-data-processing",
+          "ref_id": "IR-Art-3",
+          "description": "The controller shall determine the legal basis for processing personal data prior to the commencement of processing. The legal basis shall be one of the following: consent of the data subject, performance of a contract, compliance with a legal obligation, protection of vital interests, performance of a task in the public interest, or legitimate interests of the controller."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-4",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:legal-basis-and-conditions-for-personal-data-processing",
+          "ref_id": "IR-Art-4",
+          "description": "Consent of the data subject shall meet the following conditions: (a) freely given without coercion or deception; (b) specific to a particular purpose; (c) informed, meaning the data subject understands what they are consenting to; (d) unambiguous indication by clear affirmative action. Silence, pre-ticked boxes, or inactivity shall not constitute consent."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-5",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:legal-basis-and-conditions-for-personal-data-processing",
+          "ref_id": "IR-Art-5",
+          "description": "The controller shall implement mechanisms to obtain, record and manage consent, including: maintaining a record of consent; providing clear information at the time of obtaining consent; enabling withdrawal of consent through an easy mechanism; and ceasing processing upon withdrawal."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-6",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:legal-basis-and-conditions-for-personal-data-processing",
+          "ref_id": "IR-Art-6",
+          "description": "The controller shall ensure that personal data is processed lawfully, fairly and in a transparent manner. Processing shall be limited to what is necessary in relation to the purposes for which it is processed (data minimization). Personal data shall be accurate and, where necessary, kept up to date."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject---implementing-procedures",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Rights of the Data Subject - Implementing Procedures"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-7",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject---implementing-procedures",
+          "ref_id": "IR-Art-7",
+          "description": "The controller shall establish clear and accessible procedures for data subjects to exercise their rights under the Law. Requests from data subjects shall be responded to without undue delay and in any event within thirty (30) days of receipt of the request. The response period may be extended by an additional thirty (30) days where justified by the complexity of the request."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-8",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject---implementing-procedures",
+          "ref_id": "IR-Art-8",
+          "description": "The right of access shall include providing the data subject with the following information: (a) confirmation of whether personal data is being processed; (b) a copy of the personal data in an intelligible form; (c) the purpose of processing; (d) the categories of personal data; (e) the recipients or categories of recipients; (f) the retention period; (g) the existence of automated decision-making."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-9",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject---implementing-procedures",
+          "ref_id": "IR-Art-9",
+          "description": "The controller shall respond to correction requests by verifying the accuracy of existing data and implementing corrections within the specified period. The controller shall notify all recipients to whom the data has been disclosed of any corrections."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-10",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject---implementing-procedures",
+          "ref_id": "IR-Art-10",
+          "description": "The controller shall implement procedures for the destruction of personal data upon request by the data subject or upon expiry of the retention period. Destruction shall render the data irrecoverable. The controller shall certify the destruction and maintain records thereof."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-11",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:rights-of-the-data-subject---implementing-procedures",
+          "ref_id": "IR-Art-11",
+          "description": "The controller shall provide the data subject with a mechanism to object to the processing of their personal data. Where the data subject objects, the controller shall cease processing unless the controller demonstrates compelling legitimate grounds that override the interests of the data subject."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:sensitive-data-processing-requirements",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Sensitive Data Processing Requirements"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-12",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:sensitive-data-processing-requirements",
+          "ref_id": "IR-Art-12",
+          "description": "The processing of sensitive data shall require explicit consent from the data subject, which must be separate from any other consent. The controller shall implement enhanced security measures for the protection of sensitive data. A Data Protection Impact Assessment shall be conducted before processing sensitive data."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-13",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:sensitive-data-processing-requirements",
+          "ref_id": "IR-Art-13",
+          "description": "Health data may be processed without consent where necessary for: (a) public health monitoring and protection against serious cross-border health threats; (b) medical diagnosis and provision of health or social care; (c) management of health systems and services; (d) scientific or historical research or statistical purposes in the health field."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-14",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:sensitive-data-processing-requirements",
+          "ref_id": "IR-Art-14",
+          "description": "Biometric data and genetic data shall be subject to additional safeguards, including: restriction of access to authorized personnel only; encryption during storage and transmission; regular auditing of access; and prohibition of processing for purposes incompatible with the original purpose of collection."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:data-processing-for-minors---implementing-procedures",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Data Processing for Minors - Implementing Procedures"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-15",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:data-processing-for-minors---implementing-procedures",
+          "ref_id": "IR-Art-15",
+          "description": "The processing of personal data of minors shall require the consent of the parent or legal guardian. The controller shall make reasonable efforts to verify that consent is provided by the parent or guardian. The controller shall provide privacy information in a manner that is understandable by the minor."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:controller-and-processor-obligations",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Controller and Processor Obligations"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-16",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:controller-and-processor-obligations",
+          "ref_id": "IR-Art-16",
+          "description": "The controller shall implement appropriate technical and organizational measures to ensure and demonstrate that processing is performed in accordance with this Law. These measures shall include, as appropriate: (a) pseudonymization and encryption; (b) ongoing confidentiality, integrity, availability and resilience of processing systems; (c) the ability to restore availability and access in a timely manner; (d) a process for regularly testing and evaluating measures."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-17",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:controller-and-processor-obligations",
+          "ref_id": "IR-Art-17",
+          "description": "The controller shall maintain a comprehensive record of processing activities (ROPA) containing at minimum: (a) name and contact details of the controller; (b) purposes of processing; (c) categories of data subjects and personal data; (d) categories of recipients; (e) cross-border transfers; (f) retention periods; (g) description of security measures."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-18",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:controller-and-processor-obligations",
+          "ref_id": "IR-Art-18",
+          "description": "The controller shall conduct a Data Protection Impact Assessment (DPIA) prior to processing that is likely to result in high risk to the rights of data subjects. High risk processing includes: (a) systematic and extensive profiling; (b) large-scale processing of sensitive data; (c) systematic monitoring of publicly accessible areas; (d) use of new technologies."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-19",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:controller-and-processor-obligations",
+          "ref_id": "IR-Art-19",
+          "description": "The controller shall appoint a Data Protection Officer (DPO) where: (a) the controller is a public entity; (b) the core activities of the controller require large-scale, regular and systematic monitoring; (c) the core activities consist of large-scale processing of sensitive data. The DPO shall be provided with adequate resources and shall not be penalized for performing their duties."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-breach-notification",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Personal Data Breach Notification"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-20",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-breach-notification",
+          "ref_id": "IR-Art-20",
+          "description": "The controller shall notify the competent authority of any personal data breach without undue delay and no later than seventy-two (72) hours after becoming aware of the breach. The notification shall include: (a) the nature of the breach; (b) the categories and approximate number of data subjects affected; (c) the likely consequences; (d) the measures taken or proposed to address the breach."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-21",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-breach-notification",
+          "ref_id": "IR-Art-21",
+          "description": "Where the personal data breach is likely to result in a high risk to the rights of data subjects, the controller shall notify the affected data subjects without undue delay. The notification shall include: (a) the nature of the breach in clear and plain language; (b) the name and contact details of the DPO; (c) the likely consequences; (d) the measures taken to address the breach and mitigate its effects."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-22",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:personal-data-breach-notification",
+          "ref_id": "IR-Art-22",
+          "description": "The controller shall maintain a register of all personal data breaches, including the facts, effects and remedial actions taken. The register shall be available for inspection by the competent authority."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:processor-requirements",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Processor Requirements"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-23",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:processor-requirements",
+          "ref_id": "IR-Art-23",
+          "description": "The processor shall process personal data only on documented instructions from the controller. The processor shall ensure that persons authorized to process personal data have committed themselves to confidentiality. The processor shall implement appropriate technical and organizational security measures."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-24",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:processor-requirements",
+          "ref_id": "IR-Art-24",
+          "description": "The processor shall not engage another processor without prior written authorization of the controller. Where a processor engages a sub-processor, the same data protection obligations shall be imposed through a contract. The processor shall remain fully liable for the performance of the sub-processor."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:data-protection-by-design-and-default",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Data Protection by Design and Default"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-25",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:data-protection-by-design-and-default",
+          "ref_id": "IR-Art-25",
+          "description": "The controller shall implement appropriate technical and organizational measures designed to implement data protection principles in an effective manner and to integrate the necessary safeguards into the processing. At the time of determining the means for processing and at the time of the processing itself, the controller shall implement measures such as pseudonymization."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-26",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:data-protection-by-design-and-default",
+          "ref_id": "IR-Art-26",
+          "description": "The controller shall implement appropriate measures for ensuring that, by default, only personal data which is necessary for each specific purpose is processed. This applies to the amount of data collected, the extent of processing, the period of storage, and accessibility."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:anonymization-and-pseudonymization",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Anonymization and Pseudonymization"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-27",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:anonymization-and-pseudonymization",
+          "ref_id": "IR-Art-27",
+          "description": "Where the purposes of processing can be achieved through anonymized data, the controller shall anonymize the data. Anonymized data is data that cannot, by any reasonable means, be linked to a specific or identifiable individual. The provisions of this Law shall not apply to anonymized data."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-28",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:anonymization-and-pseudonymization",
+          "ref_id": "IR-Art-28",
+          "description": "Where pseudonymization is used, the additional information required for attribution to a specific data subject shall be kept separately and subject to technical and organizational measures to ensure non-attribution. Pseudonymized data shall remain subject to the provisions of this Law."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:privacy-notices-and-transparency",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Privacy Notices and Transparency"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-29",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:privacy-notices-and-transparency",
+          "ref_id": "IR-Art-29",
+          "description": "The controller shall provide privacy notices to data subjects at the time of collection. The privacy notice shall include: (a) the identity and contact details of the controller and DPO; (b) the purposes and legal basis of processing; (c) the categories of personal data; (d) the recipients; (e) cross-border transfers; (f) the retention period; (g) the rights of the data subject; (h) the right to lodge a complaint."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-30",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:privacy-notices-and-transparency",
+          "ref_id": "IR-Art-30",
+          "description": "Privacy notices shall be provided in a concise, transparent, intelligible and easily accessible form, using clear and plain language. Where personal data is not collected directly from the data subject, the controller shall provide the privacy notice within a reasonable period after obtaining the data."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:direct-marketing-requirements",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Direct Marketing Requirements"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-31",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:direct-marketing-requirements",
+          "ref_id": "IR-Art-31",
+          "description": "The controller shall obtain explicit, prior consent from the data subject before processing personal data for direct marketing purposes. The consent request shall be clearly distinguishable from any other request for consent. The data subject shall be informed of the right to object to direct marketing at any time."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-32",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:direct-marketing-requirements",
+          "ref_id": "IR-Art-32",
+          "description": "Where the data subject objects to processing for direct marketing, the controller shall cease processing without undue delay and no later than the period specified in this Regulation. The controller shall maintain a suppression list to ensure data subjects who have objected are not contacted."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:automated-decision-making-and-profiling",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Automated Decision-Making and Profiling"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-33",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:automated-decision-making-and-profiling",
+          "ref_id": "IR-Art-33",
+          "description": "The data subject shall have the right not to be subject to a decision based solely on automated processing, including profiling, which produces legal effects or similarly significantly affects the data subject. This right shall not apply where the decision is necessary for the performance of a contract, authorized by law, or based on explicit consent."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-34",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:automated-decision-making-and-profiling",
+          "ref_id": "IR-Art-34",
+          "description": "Where automated decision-making is permitted, the controller shall implement suitable measures to safeguard the rights of the data subject, including the right to obtain human intervention, to express their point of view, and to contest the decision."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:supervisory-authority-and-enforcement",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:implementing-regulation-of-the-personal-data-protection-law",
+          "name": "Supervisory Authority and Enforcement"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-35",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:supervisory-authority-and-enforcement",
+          "ref_id": "IR-Art-35",
+          "description": "The competent authority (SDAIA) shall supervise compliance with the provisions of the Law and this Regulation. It shall have the power to: (a) conduct investigations and audits; (b) issue warnings and orders; (c) impose administrative fines; (d) order the suspension or cessation of processing; (e) require the controller to notify data subjects of a breach."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-36",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:supervisory-authority-and-enforcement",
+          "ref_id": "IR-Art-36",
+          "description": "Any data subject may lodge a complaint with the competent authority regarding an alleged infringement of this Law. The competent authority shall investigate the complaint and inform the complainant of the outcome within the period specified in this Regulation."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-37",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:supervisory-authority-and-enforcement",
+          "ref_id": "IR-Art-37",
+          "description": "The competent authority shall maintain public registers and databases as necessary for the effective implementation of this Law, including the register of controllers and processors and the register of approved certifications."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:ir-art-38",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:supervisory-authority-and-enforcement",
+          "ref_id": "IR-Art-38",
+          "description": "This Regulation shall be published in the Official Gazette and shall come into force on the date of its publication or on the date specified therein."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:regulation-on-personal-data-transfer-outside-the-kingdom",
+          "assessable": false,
+          "depth": 1,
+          "name": "Regulation on Personal Data Transfer Outside the Kingdom"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:definitions-and-general-provisions",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:regulation-on-personal-data-transfer-outside-the-kingdom",
+          "name": "Definitions and General Provisions"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-1",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:definitions-and-general-provisions",
+          "ref_id": "TR-Art-1",
+          "description": "This Regulation specifies the rules and conditions governing the transfer of personal data outside the Kingdom of Saudi Arabia. It defines the terms and expressions used in this Regulation, supplementing the definitions in the Personal Data Protection Law and its Implementing Regulation."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-2",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:definitions-and-general-provisions",
+          "ref_id": "TR-Art-2",
+          "description": "Personal data shall not be transferred outside the Kingdom unless the transfer is carried out in accordance with the provisions of this Regulation and the requirements of the Personal Data Protection Law. The controller shall be responsible for ensuring compliance with all conditions for transfer and shall be able to demonstrate such compliance."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:transfer-based-on-adequate-level-of-protection",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:regulation-on-personal-data-transfer-outside-the-kingdom",
+          "name": "Transfer Based on Adequate Level of Protection"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-3",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:transfer-based-on-adequate-level-of-protection",
+          "ref_id": "TR-Art-3",
+          "description": "The competent authority shall assess and publish a list of countries and international organizations that provide an adequate level of protection for personal data. The assessment shall take into account: (a) the rule of law; (b) the existence and effectiveness of data protection legislation; (c) the existence of an independent supervisory authority; (d) international commitments; (e) the security situation in the receiving country."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-4",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:transfer-based-on-adequate-level-of-protection",
+          "ref_id": "TR-Art-4",
+          "description": "Where the receiving country or international organization has been determined to provide an adequate level of protection, personal data may be transferred without the need for additional safeguards. The adequacy determination shall be reviewed periodically by the competent authority and may be amended or revoked."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:transfer-based-on-appropriate-safeguards-and-exemptions",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:regulation-on-personal-data-transfer-outside-the-kingdom",
+          "name": "Transfer Based on Appropriate Safeguards and Exemptions"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-5",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:transfer-based-on-appropriate-safeguards-and-exemptions",
+          "ref_id": "TR-Art-5",
+          "description": "In the absence of an adequacy determination, the controller may transfer personal data outside the Kingdom subject to appropriate safeguards, including: (a) binding corporate rules approved by the competent authority; (b) standard contractual clauses issued or approved by the competent authority; (c) an approved code of conduct together with binding commitments; (d) an approved certification mechanism."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-6",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:transfer-based-on-appropriate-safeguards-and-exemptions",
+          "ref_id": "TR-Art-6",
+          "description": "Personal data may be transferred outside the Kingdom in the following cases, notwithstanding the absence of an adequacy determination or appropriate safeguards: (a) explicit consent of the data subject after being informed of the risks; (b) performance of a contract between the data subject and controller; (c) important reasons of public interest; (d) establishment, exercise or defense of legal claims; (e) protection of vital interests of the data subject."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-7",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:transfer-based-on-appropriate-safeguards-and-exemptions",
+          "ref_id": "TR-Art-7",
+          "description": "The controller shall conduct a transfer impact assessment before transferring personal data outside the Kingdom in the absence of an adequacy determination. The assessment shall evaluate the level of protection in the receiving country and identify supplementary measures necessary to ensure an essentially equivalent level of protection."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions-on-data-transfer",
+          "assessable": false,
+          "depth": 2,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:regulation-on-personal-data-transfer-outside-the-kingdom",
+          "name": "Final Provisions on Data Transfer"
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-8",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions-on-data-transfer",
+          "ref_id": "TR-Art-8",
+          "description": "The competent authority may restrict or prohibit the transfer of specific categories of personal data outside the Kingdom where such transfer would jeopardize national security, the vital interests of the Kingdom, or the rights of data subjects. Such restrictions shall be published."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-9",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions-on-data-transfer",
+          "ref_id": "TR-Art-9",
+          "description": "The controller shall maintain records of all cross-border transfers of personal data, including: (a) the identity of the recipient; (b) the country of destination; (c) the legal basis for the transfer; (d) the categories and volume of data transferred; (e) the safeguards in place; (f) the date of transfer."
+        },
+        {
+          "urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:tr-art-10",
+          "assessable": true,
+          "depth": 3,
+          "parent_urn": "urn:intuitem:risk:req_node:saudi-pdpl-1.0:final-provisions-on-data-transfer",
+          "ref_id": "TR-Art-10",
+          "description": "This Regulation shall be published in the Official Gazette and shall come into force on the date of its publication or on the date specified therein. Entities shall adjust their status in accordance with the provisions of this Regulation within the period specified by the competent authority."
+        }
+      ],
+      "scores": [
+        {
+          "score": 0,
+          "name": "Non-compliant",
+          "description": "No measures or controls have been implemented to address the requirement. There is no awareness of the obligation or it has been entirely disregarded."
+        },
+        {
+          "score": 1,
+          "name": "Initial / Ad-hoc",
+          "description": "Some measures exist but are ad-hoc, informal and inconsistent. Compliance depends on individual effort rather than systematic processes."
+        },
+        {
+          "score": 2,
+          "name": "Developing",
+          "description": "Policies or procedures are being developed or partially implemented. Compliance measures exist but are not yet fully documented or consistently applied."
+        },
+        {
+          "score": 3,
+          "name": "Defined & Implemented",
+          "description": "Policies and procedures are formally defined, approved and implemented in a structured manner. Compliance can be demonstrated through documentation and evidence."
+        },
+        {
+          "score": 4,
+          "name": "Managed & Measured",
+          "description": "Compliance controls are monitored, measured and periodically reviewed for effectiveness. Improvements are documented and applied based on assessment findings."
+        },
+        {
+          "score": 5,
+          "name": "Optimized & Continuous Improvement",
+          "description": "Compliance controls are subject to continuous improvement. Best practices are followed, controls are proactively adapted to regulatory changes, and the organization demonstrates leadership in data protection."
+        }
+      ]
+    }
+  }
+}

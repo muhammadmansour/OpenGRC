@@ -1,0 +1,186 @@
+{
+  "urn": "urn:intuitem:risk:library:qyias-3",
+  "ref_id": "qyias-digital-transformation-standards",
+  "provider": "DGA",
+  "name": "Qyias Digital Transformation Standards - المعايير الأساسية للتحول الرقمي",
+  "description": "المعايير الأساسية للتحول الرقمي الصادرة عن هيئة الحكومة الرقمية (DGA) - الإصدار 3.0 بتاريخ 19 مارس 2024. رقم الوثيقة: DGA-1-2-1-111. تتضمن 10 منظورات و23 محوراً و96 معياراً لقياس التحول الرقمي في الجهات الحكومية السعودية.\n\nQyias Digital Transformation Standards issued by Digital Government Authority (DGA) - Version 3.0, March 19, 2024. Document ID: DGA-1-2-1-111. Contains 10 perspectives, 23 axes, and 96 standards for measuring digital transformation in Saudi government entities.",
+  "copyright": "Digital Government Authority (DGA) - هيئة الحكومة الرقمية ©",
+  "version": 1,
+  "locale": "ar",
+  "publication_date": "2024-03-19",
+  "packager": "wathba",
+  "content": {
+    "framework": {
+      "urn": "urn:intuitem:risk:framework:qyias-3",
+      "ref_id": "qyias-digital-transformation-standards",
+      "name": "المعايير الأساسية للتحول الرقمي (قياس)",
+      "description": "Digital Transformation Measurement Framework for Saudi Government Entities - إطار قياس التحول الرقمي للجهات الحكومية السعودية",
+      "tab": "qyias",
+      "requirement_nodes": [
+        {"urn": "urn:intuitem:risk:req_node:qyias:1", "assessable": false, "depth": 1, "ref_id": "1", "name": "Strategy and Planning - الاستراتيجية والتخطيط", "description": "يتناول هذا المنظور التخطيط الاستراتيجي للتحول الرقمي وضمان التوافق مع رؤية 2030"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:1-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:1", "ref_id": "1-1", "name": "Digital Transformation Strategy - استراتيجية التحول الرقمي", "description": "تبني ووضع استراتيجية التحول الرقمي تتوافق مع الاستراتيجية العامة وتتضمن ضمان استراتيجيتها العامة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.1.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-1", "ref_id": "5.1.1", "name": "تبني التحول الرقمي كجوهر استراتيجي", "description": "اعتماد التحول الرقمي كأحد التوجهات الاستراتيجية للجهة وتضمينه ضمن استراتيجيتها العامة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.1.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-1", "ref_id": "5.1.2", "name": "استراتيجية التحول الرقمي للجهة", "description": "إعداد الاستراتيجية الرقمية للجهة والتي تتضمن الرؤية، الأهداف الاستراتيجية، مبادرات التحول الرقمي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.1.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-1", "ref_id": "5.1.3", "name": "التواصل والمواءمة", "description": "مواءمة استراتيجية التحول الرقمي مع استراتيجيات الإدارات والوحدات المختلفة"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:1-2", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:1", "ref_id": "1-2", "name": "Digital Transformation Planning - تخطيط التحول الرقمي", "description": "إعداد خطة التحول الرقمي ومتابعة تنفيذها وضمان التوافق مع المبادرات الرقمية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.2.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-2", "ref_id": "5.2.1", "name": "وضع خطة التحول الرقمي", "description": "إعداد خطة التحول الرقمي التفصيلية وفق كافة المعايير والمبادرات الرقمية الحكومية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.2.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-2", "ref_id": "5.2.2", "name": "تنفيذ خطة التحول الرقمي", "description": "تنفيذ خطة التحول الرقمي وفق الخطة الاستراتيجية المحددة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.2.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-2", "ref_id": "5.2.3", "name": "متابعة وتقييم تنفيذ الخطة", "description": "متابعة وتقييم تنفيذ خطة التحول الرقمي بشكل دوري"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:1-3", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:1", "ref_id": "1-3", "name": "Financial Planning - التخطيط المالي", "description": "التخطيط لميزانيات التحول الرقمي والاستفادة من الموازنة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.3.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-3", "ref_id": "5.3.1", "name": "التخطيط المالي للتحول الرقمي", "description": "الاستفادة من الميزانية المخصصة للتحول الرقمي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.3.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-3", "ref_id": "5.3.2", "name": "حجم الإنفاق على التحول الرقمي", "description": "الاستفادة من الميزانية وفق الخطة المعدة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.3.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-3", "ref_id": "5.3.3", "name": "المستوى الموحد للتحول الرقمي", "description": "البناء الموحد للتحول الرقمي وفق تصنيف الديوان الملكي رقم 6262 وتاريخ 26/1/1445هـ"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.3.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:1-3", "ref_id": "5.3.4", "name": "البناء على الاستثمار في التحول الرقمي", "description": "البناء على الاستثمار في مشاريع التحول الرقمي"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:2", "assessable": false, "depth": 1, "ref_id": "2", "name": "Organization and Culture - التنظيم والثقافة", "description": "الهيكل التنظيمي والثقافة المؤسسية الداعمة للتحول الرقمي"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:2-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:2", "ref_id": "2-1", "name": "Organizational Structure - الهيكل التنظيمي", "description": "إيجاد وحدة مختصة للتحول الرقمي أو تكليف وحدة قائمة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.4.1", "assessable": false, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-1", "ref_id": "5.4.1", "name": "وحدة التحول الرقمي", "description": "إيجاد وحدة مختصة بالتحول الرقمي أو تكليف وحدة قائمة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.4.1.1", "assessable": true, "depth": 4, "parent_urn": "urn:intuitem:risk:req_node:qyias:5.4.1", "ref_id": "5.4.1.1", "name": "إعداد دراسة لتحديد مستوى الوعي والثقافة الرقمية", "description": "إعداد دراسة لتحديد مستوى الوعي والثقافة الرقمية ومدى أهميتها، ومجالات التحول الرقمي، تم تحديد الفجوات في هذا الصدد على مختلف المستويات في الجهة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.4.1.2", "assessable": true, "depth": 4, "parent_urn": "urn:intuitem:risk:req_node:qyias:5.4.1", "ref_id": "5.4.1.2", "name": "إعداد برامج توعوية لمنسوبي الجهة الحكومية بأهمية عمليات التحول الرقمي", "description": "إعداد برامج توعوية لمنسوبي الجهة الحكومية بأهمية عمليات التحول الرقمي بحيث تشمل: أ. تحديد الفئات المستهدفة والمستهدفات لزيادة الوعي بالتحول الرقمي من منسوبي الجهة بمختلف الوحدات والمستويات الإدارية. ب. اختيار الوسائل والقنوات التي سيستخدمها في برامج زيادة الوعي بالتحول الرقمي والجدول الزمني لتنفيذ هذه البرامج"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.4.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-1", "ref_id": "5.4.2", "name": "قائد التحول الرقمي (CDTO)", "description": "تعيين مسؤول تنفيذي للتحول الرقمي (CDTO) أو ما يعادله"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.4.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-1", "ref_id": "5.4.3", "name": "تشكيل لجنة التحول الرقمي", "description": "تشكيل لجنة للتحول الرقمي برئاسة الجهة أو من ينيبه"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:2-2", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:2", "ref_id": "2-2", "name": "Digital Competencies - الكفاءات الرقمية", "description": "تطوير وتمكين الكفاءات الرقمية للموظفين"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.5.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-2", "ref_id": "5.5.1", "name": "الكفاءات الرقمية", "description": "توفير الكفاءات الرقمية للموظفين من خلال برامج التدريب"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.5.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-2", "ref_id": "5.5.2", "name": "تطوير المهارات الرقمية", "description": "تطوير المهارات الرقمية للموظفين من خلال برامج التدريب"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.5.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-2", "ref_id": "5.5.3", "name": "المهارات الرقمية", "description": "المهارات الرقمية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.5.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-2", "ref_id": "5.5.4", "name": "الكفاءات الرقمية المتخصصة", "description": "توفير كفاءات متخصصة في مجالات التحول الرقمي"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:2-3", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:2", "ref_id": "2-3", "name": "Digital Culture - الثقافة الرقمية", "description": "نشر الثقافة الرقمية في الجهة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.6.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-3", "ref_id": "5.6.1", "name": "نشر الثقافة الرقمية", "description": "نشر الثقافة الرقمية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.6.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-3", "ref_id": "5.6.2", "name": "توعية الموظفين للتقنيات الرقمية", "description": "توعية الموظفين للتقنيات وأدوات التحول الرقمي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.6.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:2-3", "ref_id": "5.6.3", "name": "مستوى الثقافة الرقمية", "description": "مستوى الثقافة الرقمية"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:3", "assessable": false, "depth": 1, "ref_id": "3", "name": "Operations and Execution - العمليات والتنفيذ", "description": "تنفيذ إدارة العمليات وتنفيذ مشاريع التحول الرقمي بشكل فعال ضمن الجهة"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:3-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:3", "ref_id": "3-1", "name": "Project Management - إدارة المشاريع", "description": "منهجية إدارة مشاريع التحول الرقمي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.7.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:3-1", "ref_id": "5.7.1", "name": "منهجية إدارة المشاريع", "description": "وضع منهجية متقدمة لإدارة المشاريع"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.7.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:3-1", "ref_id": "5.7.2", "name": "مكتب إدارة المشاريع (PMO)", "description": "إنشاء أو تفعيل مكتب إدارة المشاريع (PMO)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.7.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:3-1", "ref_id": "5.7.3", "name": "إدارة مشاريع التحول الرقمي", "description": "إدارة تنفيذ مشاريع التحول الرقمي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.7.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:3-1", "ref_id": "5.7.4", "name": "إدارة المخاطر والتغيير", "description": "إدارة مخاطر والتغيير للأعمال"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:4", "assessable": false, "depth": 1, "ref_id": "4", "name": "Risk Management and Business Continuity - إدارة المخاطر واستمرارية الأعمال", "description": "إدارة المخاطر الرقمية واستمرارية الأعمال"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:4-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:4", "ref_id": "4-1", "name": "Risk Management - إدارة المخاطر", "description": "تحديد المخاطر المرتبطة بالتحول الرقمي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.8.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-1", "ref_id": "5.8.1", "name": "تحديد المخاطر الرقمية", "description": "تحديد المخاطر المرتبطة بالتحول الرقمي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.8.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-1", "ref_id": "5.8.2", "name": "تقييم المخاطر", "description": "تقييم المخاطر"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.8.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-1", "ref_id": "5.8.3", "name": "معالجة المخاطر", "description": "معالجة المخاطر"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.8.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-1", "ref_id": "5.8.4", "name": "وضع خطط لمعالجة المخاطر الرقمية", "description": "وضع خطط لمعالجة المخاطر الرقمية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.8.5", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-1", "ref_id": "5.8.5", "name": "الضوابط الأساسية للأمن السيبراني (NCA ECC)", "description": "اتباع الضوابط الأساسية للأمن السيبراني (NCA ECC)"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:4-2", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:4", "ref_id": "4-2", "name": "Business Continuity - استمرارية الأعمال", "description": "ضمان استمرارية الأعمال والتعافي من الكوارث"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.9.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-2", "ref_id": "5.9.1", "name": "خطة استمرارية الأعمال الرقمية", "description": "وجود خطة استمرارية الأعمال للأنظمة الرقمية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.9.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-2", "ref_id": "5.9.2", "name": "خطة التعافي من الكوارث (DRP)", "description": "وجود خطة التعافي من الكوارث (DRP)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.9.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-2", "ref_id": "5.9.3", "name": "تحليل الأثر", "description": "تحليل الأثر"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.9.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-2", "ref_id": "5.9.4", "name": "اختبارات الاستمرارية والأنظمة", "description": "اختبارات الاستمرارية والأنظمة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.9.5", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-2", "ref_id": "5.9.5", "name": "مركز البيانات الاحتياطي", "description": "مركز بيانات احتياطي أو حلول بديلة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.9.6", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-2", "ref_id": "5.9.6", "name": "مستوى التوفر (SLA)", "description": "تحقيق وإدارة اتفاقيات التوفر المطلوبة للأنظمة الحرجة (SLA)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.9.7", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:4-2", "ref_id": "5.9.7", "name": "إجراءات إدارة الكوارث", "description": "إجراءات إدارة الكوارث"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:5", "assessable": false, "depth": 1, "ref_id": "5", "name": "Information Technology - البنية التقنية والحوسبة السحابية", "description": "البنية التقنية التحتية لتمكين التحول الرقمي"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:5-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:5", "ref_id": "5-1", "name": "IT Infrastructure - البنية التقنية", "description": "البنية التقنية التحتية الرقمية لدى الجهة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.10.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-1", "ref_id": "5.10.1", "name": "تقييم البنية التقنية التحتية الحالية", "description": "تقييم البنية التقنية التحتية الحالية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.10.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-1", "ref_id": "5.10.2", "name": "تطوير البنية التحتية", "description": "تطوير وإحداث البنية التحتية التقنية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.10.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-1", "ref_id": "5.10.3", "name": "تقنيات الافتراضية (Virtualization)", "description": "تطبيق تقنيات الافتراضية (Virtualization)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.10.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-1", "ref_id": "5.10.4", "name": "إدارة الأصول التقنية", "description": "الأصول التقنية وتوثيقها"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.10.5", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-1", "ref_id": "5.10.5", "name": "الاستفادة من مراكز البيانات", "description": "الاستفادة من مراكز البيانات"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:5-2", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:5", "ref_id": "5-2", "name": "Communications and Networks - شبكة الاتصالات", "description": "مستوى خدمات الاتصالات والشبكات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.11.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-2", "ref_id": "5.11.1", "name": "البنية التحتية للشبكات", "description": "تطوير البنية التحتية للشبكات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.11.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-2", "ref_id": "5.11.2", "name": "أمن الشبكات", "description": "تطبيق معايير أمن الشبكات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.11.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-2", "ref_id": "5.11.3", "name": "إدارة سعة الشبكة", "description": "إدارة سعة الشبكة وتوافرها"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.11.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-2", "ref_id": "5.11.4", "name": "الشبكة اللاسلكية", "description": "وجود وتوفير الشبكة اللاسلكية والواي فاي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.11.5", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-2", "ref_id": "5.11.5", "name": "الاستفادة من مزايا الاتصالات والشبكات", "description": "الاستفادة من مزايا الاتصالات والشبكات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.11.6", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-2", "ref_id": "5.11.6", "name": "الربط بالشبكة الحكومية الموحدة", "description": "الربط بالشبكة الحكومية الموحدة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.11.7", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-2", "ref_id": "5.11.7", "name": "تقنيات الاتصالات الحديثة (5G, IoT)", "description": "تبني تقنيات الاتصالات الحديثة (5G, IoT)"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:5-3", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:5", "ref_id": "5-3", "name": "Cloud Infrastructure - الحوسبة السحابية", "description": "تبني وتنفيذ الحوسبة السحابية الحكومية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.12.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-3", "ref_id": "5.12.1", "name": "تبني الحوسبة السحابية", "description": "تبني الحوسبة السحابية الحكومية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.12.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-3", "ref_id": "5.12.2", "name": "خطة تبني الحوسبة السحابية بهدف 50% بحلول 2025", "description": "خطة تبني الحوسبة السحابية بهدف 50% بحلول 2025"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.12.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:5-3", "ref_id": "5.12.3", "name": "تنفيذ البنية السحابية", "description": "تنفيذ البنية السحابية وفق التخطيط ونقل التطبيقات والبيانات"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:6", "assessable": false, "depth": 1, "ref_id": "6", "name": "Inclusive Government - الحكومة الشاملة", "description": "التكامل مع المنصات الحكومية المشتركة"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:6-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:6", "ref_id": "6-1", "name": "Inclusive Government Platforms - المنصات الحكومية الشاملة", "description": "رقم DGA 1339 التكامل مع الخدمات والمنصات المشتركة وفق تعميم"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.1", "name": "التكامل مع منصة النفاذ الوطني الموحد (Nafath)", "description": "التكامل مع منصة النفاذ الوطني الموحد (Nafath)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.2", "name": "التكامل مع بوابات الدفع الحكومية (سداد/المحصيل)", "description": "التكامل مع بوابات الدفع الحكومية (سداد/المحصيل)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.3", "name": "التكامل مع منصة المشتريات الحكومية (اعتماد)", "description": "التكامل مع منصة المشتريات الحكومية (اعتماد)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.4", "name": "حوكمة المنصات الحكومية", "description": "حوكمة منصات المنصات الحكومية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.5", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.5", "name": "منصة المراسلات الحكومية", "description": "منصة المراسلات الحكومية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.6", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.6", "name": "خدمات الأرشفة الرقمية والتوقيع الإلكتروني وفق الأمر السامي 41990", "description": "التكامل مع خدمات الأرشفة الرقمية والتوقيع الإلكتروني وفق الأمر السامي 41990"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.7", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.7", "name": "خدمات الأرشيف الرقمية", "description": "توثيق وإدارة الوثائق الرقمية الحافشة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.8", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.8", "name": "واجهات التكامل (APIs) وفق تعميم DGA رقم 754", "description": "توثيق وإدارة وحوكمة واجهات التكامل (APIs) وفق تعميم DGA رقم 754"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.9", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.9", "name": "ناقل الخدمات الحكومي (GSB)", "description": "الربط مع ناقل الخدمات الحكومي (GSB)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.13.10", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:6-1", "ref_id": "5.13.10", "name": "تنفيذ IPv6 وDNSSEC وSEO", "description": "تفعيل بروتوكول IPv6 وDNSSEC وSEO"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:7", "assessable": false, "depth": 1, "ref_id": "7", "name": "Channels and Services - القنوات والخدمات الرقمية", "description": "ضمان جودة الخدمات الرقمية وقنوات تقديمها"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:7-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:7", "ref_id": "7-1", "name": "Digital Services Quality - جودة الخدمات الرقمية", "description": "ضمان جودة الخدمات الرقمية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.14.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:7-1", "ref_id": "5.14.1", "name": "أدوات قياس جودة الخدمات الرقمية", "description": "تطبيق أدوات قياس جودة الخدمات الرقمية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.14.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:7-1", "ref_id": "5.14.2", "name": "الأنظمة الرقمية اللازمة لتقديم الخدمات", "description": "توفر الأنظمة الرقمية اللازمة لتقديم الخدمات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.14.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:7-1", "ref_id": "5.14.3", "name": "معايير الأنظمة", "description": "معايير الأنظمة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.14.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:7-1", "ref_id": "5.14.4", "name": "القنوات والخدمات الرقمية", "description": "القنوات والخدمات الرقمية"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:7-2", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:7", "ref_id": "7-2", "name": "Digital Channels and Services - القنوات الرقمية والخدمات للمستفيدين", "description": "تطوير القنوات الرقمية وقنوات تقديم الخدمات للمستفيدين"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.15.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:7-2", "ref_id": "5.15.1", "name": "تطوير الخدمات غير المؤتمتة", "description": "تطوير وإدارة الخدمات غير المؤتمتة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.15.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:7-2", "ref_id": "5.15.2", "name": "التخطيط لأتمتة الخدمات", "description": "التخطيط لإتاحة الخدمات عبر القنوات 6000"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.15.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:7-2", "ref_id": "5.15.3", "name": "تنفيذ الأتمتة للخدمات", "description": "تنفيذ الأتمتة للخدمات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.15.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:7-2", "ref_id": "5.15.4", "name": "تصميم الخدمات عبر التجاوب (RWD)", "description": "تصميم واجهات المستفيد عبر التجاوب (RWD)"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:8", "assessable": false, "depth": 1, "ref_id": "8", "name": "Beneficiary Centricity - محورية المستفيدين", "description": "رقم DGA 311 إشراك المستفيدين في التحول الرقمي وفق تعميم"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:8-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:8", "ref_id": "8-1", "name": "Beneficiary Participation - مشاركة المستفيدين", "description": "مشاركة المستفيدين في تطوير الخدمات الرقمية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.16.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-1", "ref_id": "5.16.1", "name": "النشر الاستباقي للمعلومات", "description": "النشر الاستباقي للمعلومات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.16.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-1", "ref_id": "5.16.2", "name": "قنوات لمشاركة المستفيدين وأخذ أرائهم", "description": "توفر قنوات لمشاركة المستفيدين وأخذ أرائهم"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.16.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-1", "ref_id": "5.16.3", "name": "صناعة القرارات", "description": "مشاركة المستفيدين في صناعة القرارات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.16.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-1", "ref_id": "5.16.4", "name": "فعالية المشاركة", "description": "فعالية المشاركة"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:8-2", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:8", "ref_id": "8-2", "name": "Strengthening Beneficiary Relations - تعزيز علاقات المستفيدين", "description": "تعزيز العلاقة مع المستفيدين"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.17.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-2", "ref_id": "5.17.1", "name": "برامج تعزيز علاقات المستفيدين", "description": "تطوير برامج تعزيز علاقات المستفيدين"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.17.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-2", "ref_id": "5.17.2", "name": "برامج تعزيز العلاقات", "description": "برامج تعزيز العلاقات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.17.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-2", "ref_id": "5.17.3", "name": "إشراك المستفيدين في تطوير الخدمات", "description": "إشراك المستفيدين في تطوير الخدمات"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:8-3", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:8", "ref_id": "8-3", "name": "Beneficiary Experience - تجربة المستفيدين", "description": "تحسين تجربة المستفيدين"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.18.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-3", "ref_id": "5.18.1", "name": "تأسيس أسس ومبادئ إدارة تجربة المستفيد", "description": "تأسيس أسس ومبادئ إدارة تجربة المستفيد"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.18.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-3", "ref_id": "5.18.2", "name": "رحلات وخارطة تجربة المستفيد المستهدفة", "description": "رحلات وخارطة تجربة المستفيد المستهدفة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.18.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-3", "ref_id": "5.18.3", "name": "تصميم تجربة المستفيد", "description": "تصميم تجربة المستفيد"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.18.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-3", "ref_id": "5.18.4", "name": "قياس رضا المستفيدين", "description": "قياس رضا المستفيدين"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.18.5", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:8-3", "ref_id": "5.18.5", "name": "الأحداث الحياتية (Life Events)", "description": "تنفيذ خدمات الأحداث الحياتية (Life Events)"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:9", "assessable": false, "depth": 1, "ref_id": "9", "name": "Government Data - البيانات الحكومية", "description": "إدارة وحوكمة البيانات والبيانات المفتوحة"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:9-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:9", "ref_id": "9-1", "name": "Data Governance and Management - حوكمة البيانات وإدارتها (19/1443هـ)", "description": "تأسيس وحدة البيانات وفق نظام حماية البيانات الشخصية 19/1443هـ"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.19.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:9-1", "ref_id": "5.19.1", "name": "تأسيس وحدة بيانات", "description": "تأسيس وحدة بيانات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.19.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:9-1", "ref_id": "5.19.2", "name": "تفعيل وحدة أو تكليف فريق إدارة البيانات", "description": "حوكمة وإدارة أو تكليف فريق لإدارة البيانات وفق نظام حماية البيانات الشخصية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.19.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:9-1", "ref_id": "5.19.3", "name": "اتباع الأطر والمعايير المتعلقة بحماية البيانات الشخصية", "description": "اتباع الأطر والمعايير المتعلقة بحماية البيانات الشخصية"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:9-2", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:9", "ref_id": "9-2", "name": "Data Usage and Availability - الاستفادة من البيانات وإتاحتها", "description": "الاستفادة من البيانات وإتاحتها"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.20.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:9-2", "ref_id": "5.20.1", "name": "استراتيجية الاستفادة من البيانات", "description": "استراتيجية الاستفادة من البيانات"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.20.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:9-2", "ref_id": "5.20.2", "name": "مشاركة البيانات مع الجهات", "description": "مشاركة البيانات مع الجهات عبر (GSB)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.20.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:9-2", "ref_id": "5.20.3", "name": "البيانات الجغرافية المكانية", "description": "البيانات الجغرافية المكانية"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:9-3", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:9", "ref_id": "9-3", "name": "Open Data - البيانات المفتوحة", "description": "نشر وإدارة البيانات المفتوحة مع رؤية المملكة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.21.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:9-3", "ref_id": "5.21.1", "name": "التخطيط للبيانات المفتوحة", "description": "التخطيط للبيانات المفتوحة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.21.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:9-3", "ref_id": "5.21.2", "name": "مجموعات البيانات المفتوحة", "description": "مجموعات البيانات المفتوحة"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.21.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:9-3", "ref_id": "5.21.3", "name": "تحليل استخدام البيانات المفتوحة", "description": "تحليل الجدوى واستخدام البيانات المفتوحة"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:10", "assessable": false, "depth": 1, "ref_id": "10", "name": "Research and Innovation - البحث والابتكار", "description": "الابتكار والحلول الابتكارية"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:10-1", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:10", "ref_id": "10-1", "name": "Institutional Innovation - الابتكار المؤسسي", "description": "الابتكار المؤسسي والحلول الابتكارية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.22.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:10-1", "ref_id": "5.22.1", "name": "ثقافة الابتكار الرقمي", "description": "ثقافة الابتكار الرقمي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.22.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:10-1", "ref_id": "5.22.2", "name": "خطة الابتكار التقنية", "description": "تعزيز خطة الابتكار التقنية وفق كافة مراحل (التفكير التصميمي، الابتكار المفتوح، الهاكاثون)"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.22.3", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:10-1", "ref_id": "5.22.3", "name": "مبادرات الابتكار", "description": "مبادرات الابتكار"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.22.4", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:10-1", "ref_id": "5.22.4", "name": "مركز الابتكار", "description": "مركز الابتكار"},
+        
+        {"urn": "urn:intuitem:risk:req_node:qyias:10-2", "assessable": false, "depth": 2, "parent_urn": "urn:intuitem:risk:req_node:qyias:10", "ref_id": "10-2", "name": "Innovative Solutions - الحلول الابتكارية", "description": "تبني تقنيات الحلول الابتكارية"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.23.1", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:10-2", "ref_id": "5.23.1", "name": "تقنيات الذكاء الاصطناعي", "description": "تبني تقنيات الذكاء الاصطناعي"},
+        {"urn": "urn:intuitem:risk:req_node:qyias:5.23.2", "assessable": true, "depth": 3, "parent_urn": "urn:intuitem:risk:req_node:qyias:10-2", "ref_id": "5.23.2", "name": "التقنيات الناشئة", "description": "تبني التقنيات الناشئة"}
+      ]
+    }
+  }
+}
