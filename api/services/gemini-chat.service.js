@@ -4,6 +4,7 @@
  */
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const promptService = require('./prompt.service');
 
 class GeminiChatService {
   constructor() {
@@ -80,8 +81,8 @@ class GeminiChatService {
       console.log(`📄 Context: ${context.substring(0, 100)}...`);
       console.log(`📎 Files: ${files.length}`);
       
-      // Build multimodal content parts
-      const parts = this.buildMultimodalParts(context, files);
+      // Build multimodal content parts (async - loads prompt template from DB)
+      const parts = await this.buildMultimodalParts(context, files);
       
       // Log the exact prompt being sent to Gemini (text part only, files are logged separately)
       const textPart = parts.find(p => p.text);
@@ -111,17 +112,21 @@ class GeminiChatService {
   }
 
   /**
-   * Build multimodal parts for Gemini (text + files)
+   * Build multimodal parts for Gemini (text + files).
+   * System instruction, evaluation instructions, and output format are loaded from the DB.
    */
-  buildMultimodalParts(context, files = []) {
+  async buildMultimodalParts(context, files = []) {
     const parts = [];
     
     // Separate text and binary files
     const textFiles = files.filter(f => f.encoding === 'text');
     const binaryFiles = files.filter(f => f.encoding === 'base64');
 
+    // Load prompt template from DB (falls back to hardcoded defaults)
+    const promptTemplate = await promptService.getByKey('chat_evaluate');
+
     // Build the text prompt
-    let textPrompt = `You are an expert compliance and audit evaluator. Analyze the provided context and ALL evidence files thoroughly, then provide a comprehensive evaluation.
+    let textPrompt = `${promptTemplate.system_instruction}
 
 **CONTEXT:**
 ${context}
@@ -162,34 +167,12 @@ ${context}
     textPrompt += `
 **EVALUATION TASK:**
 Based on the context and evidence provided (including any attached documents), conduct a thorough compliance evaluation. Consider:
-1. Completeness and quality of evidence
-2. Alignment with requirements/standards
-3. Gaps, weaknesses, or areas of concern
-4. Specific, actionable recommendations
+${promptTemplate.evaluation_instructions}
 
 **RESPONSE FORMAT:**
 Return a JSON object with this structure:
 
-{
-  "status": "Fully Compliant" | "Partially Compliant" | "Non-Compliant" | "Not Applicable",
-  "compliance_status": "Fully Compliant" | "Partially Compliant" | "Non-Compliant" | "Not Applicable",
-  "effectiveness": "Highly Effective" | "Effective" | "Partially Effective" | "Ineffective" | "Not Applicable",
-  "score": <number 0-100>,
-  "complianceLevel": "high" | "medium" | "low",
-  "filesAnalyzed": [
-    {"filename": "file1.pdf", "description": "Brief description of what this file contains", "relevance": "How relevant is this file to the audit requirement"},
-    ...
-  ],
-  "strengths": ["strength 1", "strength 2", ...],
-  "weaknesses": ["weakness 1", "weakness 2", ...],
-  "recommendations": ["recommendation 1", "recommendation 2", ...],
-  "evidenceQuality": "Excellent" | "Good" | "Adequate" | "Poor",
-  "summary": "Brief 2-3 sentence overall assessment",
-  "detailedAnalysis": "Comprehensive 3-5 paragraph analysis of findings, MUST mention specific content found in each file",
-  "riskAssessment": "low" | "medium" | "high",
-  "nextSteps": ["step 1", "step 2", ...],
-  "note": "Any important notes or caveats"
-}
+${promptTemplate.output_format}
 
 **CRITICAL:** Return ONLY the JSON object. No markdown code blocks, no additional text.`;
 

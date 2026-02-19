@@ -26,6 +26,7 @@ const libraryV2Routes = require('./routes/library.v2.routes');
 const mailRoutes = require('./routes/mail.routes');
 const entityExtractionRoutes = require('./routes/entity-extraction.routes');
 const auditRoutes = require('./routes/audit.routes');
+const promptRoutes = require('./routes/prompt.routes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/error.middleware');
@@ -167,6 +168,7 @@ app.use('/api/libraries', libraryRoutes); // Library CRUD v1 (public for now)
 app.use('/api/mail', mailRoutes); // Mail sending (public for now)
 app.use('/api/entity-extraction', entityExtractionRoutes); // Entity extraction (public for now)
 app.use('/api/audit', auditRoutes); // Audit analysis (public for now)
+app.use('/api/prompts', promptRoutes); // AI prompt management (public for now)
 
 // =============================================================================
 // ERROR HANDLING

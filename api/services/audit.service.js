@@ -5,6 +5,7 @@
  */
 
 const geminiChatService = require('./gemini-chat.service');
+const promptService = require('./prompt.service');
 
 // File manager for looking up Gemini Files API metadata (uri, mimeType)
 let fileManager = null;
@@ -82,8 +83,8 @@ class AuditService {
       console.log(`📄 Typical Evidence: ${typical_evidence.length}`);
       console.log(`📎 Inline files (legacy): ${files.length}`);
 
-      // Build the audit prompt
-      const auditPrompt = this.buildAuditPrompt({
+      // Build the audit prompt (async - loads prompt template from DB)
+      const auditPrompt = await this.buildAuditPrompt({
         applied_control,
         gemini_file_search,
         requirements,
@@ -129,9 +130,10 @@ class AuditService {
   }
 
   /**
-   * Build the audit analysis prompt with all context
+   * Build the audit analysis prompt with all context.
+   * System instruction, evaluation instructions, and output format are loaded from the DB.
    */
-  buildAuditPrompt(params = {}) {
+  async buildAuditPrompt(params = {}) {
     const {
       applied_control = {},
       gemini_file_search = {},
@@ -152,7 +154,10 @@ class AuditService {
       ...analysis_config
     };
 
-    let prompt = `You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.
+    // Load prompt template from DB (falls back to hardcoded defaults)
+    const promptTemplate = await promptService.getByKey('audit_analyze');
+
+    let prompt = `${promptTemplate.system_instruction}
 
 `;
 
@@ -248,34 +253,24 @@ ${options.context}
 `;
     }
 
-    // === EVALUATION INSTRUCTIONS ===
+    // === EVALUATION INSTRUCTIONS (from DB) ===
     prompt += `**=== EVALUATION INSTRUCTIONS ===**
-1. READ all evidence files
-2. COMPARE against requirements
-3. ANSWER audit questions
-4. CHECK typical evidence items
-5. IDENTIFY gaps
-6. Respond ENTIRELY in English
+${promptTemplate.evaluation_instructions}
 
 `;
 
-    // === OUTPUT FORMAT ===
+    // === OUTPUT FORMAT (from DB) ===
     const reqName = requirements.length > 0 ? (requirements[0].name || '') : '';
     const reqDesc = requirements.length > 0 ? (requirements[0].description || '') : '';
 
+    // Replace placeholders in the output format template
+    const outputFormat = promptTemplate.output_format
+      .replace('{{REQ_NAME}}', reqName)
+      .replace('{{REQ_DESC}}', reqDesc);
+
     prompt += `**=== OUTPUT FORMAT (JSON only) ===**
 
-{
-  "overallAssessment": {
-    "name": "${reqName}",
-    "description": "${reqDesc}",
-    "status": "...",
-    "summary": "..."
-  },
-  "questionEvaluation": [{ "question": "...", "answered": "...", "evidenceFound": "...", "notes": "..." }],
-  "typicalEvidenceCheck": [{ "evidenceItem": "...", "status": "...", "details": "..." }],
-  "gaps": [{ "gap": "...", "recommendation": "..." }]
-}`;
+${outputFormat}`;
 
     return prompt;
   }
