@@ -23,6 +23,60 @@ CREATE TABLE IF NOT EXISTS ai_prompts (
     version INTEGER NOT NULL DEFAULT 1
 );
 
+-- =============================================================================
+-- Schema migration: convert old 3-column layout → single content column
+-- Safe to run multiple times (IF NOT EXISTS / IF EXISTS guards)
+-- =============================================================================
+
+-- Step 1: Add content column if it doesn't exist yet
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'ai_prompts' AND column_name = 'content'
+    ) THEN
+        ALTER TABLE ai_prompts ADD COLUMN content TEXT;
+    END IF;
+END $$;
+
+-- Step 2: Migrate existing data from old columns into content (only if old columns exist)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'ai_prompts' AND column_name = 'system_instruction'
+    ) THEN
+        UPDATE ai_prompts
+        SET content = system_instruction
+            || E'\n\n{{CONTEXT}}\n\n'
+            || evaluation_instructions
+            || E'\n\n'
+            || output_format
+        WHERE content IS NULL;
+    END IF;
+END $$;
+
+-- Step 3: Make content NOT NULL (set a default for any remaining nulls first)
+UPDATE ai_prompts SET content = '' WHERE content IS NULL;
+ALTER TABLE ai_prompts ALTER COLUMN content SET NOT NULL;
+
+-- Step 4: Drop old columns if they exist
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'ai_prompts' AND column_name = 'system_instruction') THEN
+        ALTER TABLE ai_prompts DROP COLUMN system_instruction;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'ai_prompts' AND column_name = 'evaluation_instructions') THEN
+        ALTER TABLE ai_prompts DROP COLUMN evaluation_instructions;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'ai_prompts' AND column_name = 'output_format') THEN
+        ALTER TABLE ai_prompts DROP COLUMN output_format;
+    END IF;
+END $$;
+
+-- Step 5: Delete old seed rows so they get re-inserted with proper content below
+DELETE FROM ai_prompts WHERE key IN ('audit_analyze', 'chat_evaluate', 'entity_extraction');
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_ai_prompts_key ON ai_prompts(key);
 CREATE INDEX IF NOT EXISTS idx_ai_prompts_is_active ON ai_prompts(is_active);
