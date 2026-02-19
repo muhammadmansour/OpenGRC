@@ -33,6 +33,67 @@ const FALLBACK_PROMPTS = {
   "gaps": [{ "gap": "...", "recommendation": "..." }]
 }`
   },
+  entity_extraction: {
+    key: 'entity_extraction',
+    name: 'Entity Extraction',
+    system_instruction: `You are an expert entity extraction system specializing in compliance, governance, risk, and regulatory documents.
+
+**YOUR TASK:**
+Extract ALL relevant entities from the provided documents. Focus on:
+1. People and their roles/titles
+2. Organizations, departments, and teams
+3. Policies, procedures, and standards
+4. Controls, requirements, and regulations
+5. Dates, deadlines, and time periods
+6. Locations and jurisdictions
+7. Systems, applications, and technologies
+8. Risks, threats, and vulnerabilities
+9. Compliance frameworks (ISO, NIST, SOC, GDPR, etc.)
+10. Legal references and contractual terms
+
+**EXTRACTION GUIDELINES:**
+- Extract EVERY entity found, not just a sample
+- Include the exact text as it appears in the document
+- Provide confidence scores based on clarity and context
+- Identify relationships between entities when evident
+- Note the source file for each entity
+- Group similar/duplicate entities together`,
+    evaluation_instructions: `1. Extract ALL entities, not just a sample
+2. Include confidence scores (0.0 to 1.0)
+3. Identify relationships between entities when possible
+4. Group similar entities and note duplicates
+5. For compliance documents, pay special attention to: controls, requirements, policies, standards, regulations
+6. Return ONLY valid JSON, no markdown code blocks
+7. Respond ENTIRELY in English`,
+    output_format: `{
+  "entities": [
+    {
+      "text": "The exact text of the entity",
+      "type": "ENTITY_TYPE",
+      "category": "primary category",
+      "confidence": 0.95,
+      "context": "Brief surrounding context where found",
+      "source": "filename or text input",
+      "metadata": {}
+    }
+  ],
+  "summary": {
+    "totalEntities": 0,
+    "byType": { "PERSON": 0, "ORGANIZATION": 0 },
+    "bySource": { "filename1.pdf": 0 }
+  },
+  "relationships": [
+    {
+      "entity1": "Entity text 1",
+      "relation": "relationship type",
+      "entity2": "Entity text 2",
+      "confidence": 0.85
+    }
+  ],
+  "keyFindings": ["Important finding 1", "Important finding 2"],
+  "documentSummary": "Brief summary of what the documents contain"
+}`
+  },
   chat_evaluate: {
     key: 'chat_evaluate',
     name: 'Chat Evaluation',
@@ -64,45 +125,6 @@ const FALLBACK_PROMPTS = {
 };
 
 class PromptService {
-
-  /**
-   * Add a computed `content` field that combines all 3 prompt parts.
-   * This is used by frontends that display a single text area.
-   */
-  enrichWithContent(prompt) {
-    if (!prompt) return prompt;
-    const p = { ...prompt };
-    p.content = [
-      `=== SYSTEM INSTRUCTION ===`,
-      p.system_instruction,
-      ``,
-      `=== EVALUATION INSTRUCTIONS ===`,
-      p.evaluation_instructions,
-      ``,
-      `=== OUTPUT FORMAT ===`,
-      p.output_format
-    ].join('\n');
-    return p;
-  }
-
-  /**
-   * Parse a combined `content` string back into the 3 separate fields.
-   */
-  parseContent(content) {
-    const parts = {};
-    const sections = content.split(/^=== (SYSTEM INSTRUCTION|EVALUATION INSTRUCTIONS|OUTPUT FORMAT) ===$/m);
-
-    // sections array: ['', 'SYSTEM INSTRUCTION', '...text...', 'EVALUATION INSTRUCTIONS', '...text...', 'OUTPUT FORMAT', '...text...']
-    for (let i = 1; i < sections.length; i += 2) {
-      const label = sections[i];
-      const text = (sections[i + 1] || '').trim();
-      if (label === 'SYSTEM INSTRUCTION') parts.system_instruction = text;
-      if (label === 'EVALUATION INSTRUCTIONS') parts.evaluation_instructions = text;
-      if (label === 'OUTPUT FORMAT') parts.output_format = text;
-    }
-
-    return parts;
-  }
 
   /**
    * Get a prompt by its key.
@@ -145,21 +167,21 @@ class PromptService {
   }
 
   /**
-   * Get all prompts (with computed content field)
+   * Get all prompts
    */
   async getAll() {
     if (!db.isDbConfigured) {
-      return Object.values(FALLBACK_PROMPTS).map(p => this.enrichWithContent(p));
+      return Object.values(FALLBACK_PROMPTS);
     }
 
     const result = await db.query(
       'SELECT * FROM ai_prompts ORDER BY key ASC'
     );
-    return result.rows.map(p => this.enrichWithContent(p));
+    return result.rows;
   }
 
   /**
-   * Get prompt by ID (with computed content field)
+   * Get prompt by ID
    */
   async getById(id) {
     if (!db.isDbConfigured) throw new Error('Database not configured');
@@ -168,7 +190,7 @@ class PromptService {
       'SELECT * FROM ai_prompts WHERE id = $1',
       [id]
     );
-    return result.rows[0] ? this.enrichWithContent(result.rows[0]) : null;
+    return result.rows[0] || null;
   }
 
   /**
@@ -197,19 +219,10 @@ class PromptService {
   }
 
   /**
-   * Update a prompt by ID.
-   * Accepts either individual fields OR a combined `content` string.
+   * Update a prompt by ID
    */
   async update(id, data) {
     if (!db.isDbConfigured) throw new Error('Database not configured');
-
-    // If frontend sent a single `content` field, parse it into the 3 DB fields
-    if (data.content && !data.system_instruction && !data.evaluation_instructions && !data.output_format) {
-      const parsed = this.parseContent(data.content);
-      if (parsed.system_instruction) data.system_instruction = parsed.system_instruction;
-      if (parsed.evaluation_instructions) data.evaluation_instructions = parsed.evaluation_instructions;
-      if (parsed.output_format) data.output_format = parsed.output_format;
-    }
 
     const fields = [];
     const values = [];

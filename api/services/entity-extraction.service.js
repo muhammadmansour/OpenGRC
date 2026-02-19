@@ -4,6 +4,7 @@
  */
 
 const geminiChatService = require('./gemini-chat.service');
+const promptService = require('./prompt.service');
 
 class EntityExtractionService {
   
@@ -38,7 +39,7 @@ class EntityExtractionService {
       console.log(`📎 Files: ${files.length}`);
       
       // Build the extraction prompt
-      const extractionPrompt = this.buildExtractionPrompt(context, files, options);
+      const extractionPrompt = await this.buildExtractionPrompt(context, files, options);
       
       // Log the exact prompt being sent to Gemini
       console.log('\n' + '='.repeat(80));
@@ -65,37 +66,11 @@ class EntityExtractionService {
   }
 
   /**
-   * Default extraction prompt - built into the codebase
+   * Build the extraction prompt (loads template from DB via PromptService)
    */
-  getDefaultPrompt() {
-    return `You are an expert entity extraction system specializing in compliance, governance, risk, and regulatory documents.
+  async buildExtractionPrompt(context, files = [], options = {}) {
+    const promptTemplate = await promptService.getByKey('entity_extraction');
 
-**YOUR TASK:**
-Extract ALL relevant entities from the provided documents. Focus on:
-1. People and their roles/titles
-2. Organizations, departments, and teams
-3. Policies, procedures, and standards
-4. Controls, requirements, and regulations
-5. Dates, deadlines, and time periods
-6. Locations and jurisdictions
-7. Systems, applications, and technologies
-8. Risks, threats, and vulnerabilities
-9. Compliance frameworks (ISO, NIST, SOC, GDPR, etc.)
-10. Legal references and contractual terms
-
-**EXTRACTION GUIDELINES:**
-- Extract EVERY entity found, not just a sample
-- Include the exact text as it appears in the document
-- Provide confidence scores based on clarity and context
-- Identify relationships between entities when evident
-- Note the source file for each entity
-- Group similar/duplicate entities together`;
-  }
-
-  /**
-   * Build the extraction prompt
-   */
-  buildExtractionPrompt(context, files = [], options = {}) {
     const entityTypes = options.entityTypes || [
       'PERSON', 'ORGANIZATION', 'LOCATION', 'DATE', 'TIME', 
       'MONEY', 'PERCENT', 'EMAIL', 'PHONE', 'URL',
@@ -103,9 +78,9 @@ Extract ALL relevant entities from the provided documents. Focus on:
       'CONTROL', 'RISK', 'POLICY', 'PROCEDURE', 'REQUIREMENT'
     ];
 
-    const extractionInstructions = context || this.getDefaultPrompt();
+    const extractionInstructions = context || promptTemplate.system_instruction;
 
-    let prompt = `You are an expert entity extraction system. Your task is to extract all relevant entities from the provided documents and text.
+    let prompt = `${promptTemplate.system_instruction}
 
 **EXTRACTION INSTRUCTIONS:**
 ${extractionInstructions}
@@ -124,54 +99,9 @@ ${entityTypes.join(', ')}
       prompt += `\n**CRITICAL:** Read and extract entities from ALL attached documents.\n`;
     }
 
-    prompt += `
-**OUTPUT FORMAT:**
-Return a JSON object with this exact structure:
+    prompt += `\n**IMPORTANT GUIDELINES:**\n${promptTemplate.evaluation_instructions}\n`;
 
-{
-  "entities": [
-    {
-      "text": "The exact text of the entity",
-      "type": "ENTITY_TYPE",
-      "category": "primary category",
-      "confidence": 0.95,
-      "context": "Brief surrounding context where found",
-      "source": "filename or 'text input'",
-      "metadata": {}
-    }
-  ],
-  "summary": {
-    "totalEntities": <number>,
-    "byType": {
-      "PERSON": <count>,
-      "ORGANIZATION": <count>
-    },
-    "bySource": {
-      "filename1.pdf": <count>
-    }
-  },
-  "relationships": [
-    {
-      "entity1": "Entity text 1",
-      "relation": "relationship type",
-      "entity2": "Entity text 2",
-      "confidence": 0.85
-    }
-  ],
-  "keyFindings": [
-    "Important finding 1",
-    "Important finding 2"
-  ],
-  "documentSummary": "Brief summary of what the documents contain"
-}
-
-**IMPORTANT GUIDELINES:**
-1. Extract ALL entities, not just a sample
-2. Include confidence scores (0.0 to 1.0)
-3. Identify relationships between entities when possible
-4. Group similar entities and note duplicates
-5. For compliance documents, pay special attention to: controls, requirements, policies, standards, regulations
-6. Return ONLY valid JSON, no markdown code blocks`;
+    prompt += `\n**OUTPUT FORMAT:**\nReturn a JSON object with this exact structure:\n\n${promptTemplate.output_format}`;
 
     return prompt;
   }

@@ -43,7 +43,7 @@ INSERT INTO ai_prompts (key, name, description, system_instruction, evaluation_i
 VALUES (
     'audit_analyze',
     'Audit Analysis',
-    'Analyzes evidence files against applied control requirements',
+    'Used by POST /api/audit/analyze — analyzes evidence files against applied control requirements',
     'You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.',
     '1. READ all evidence files
 2. COMPARE against requirements
@@ -71,7 +71,7 @@ INSERT INTO ai_prompts (key, name, description, system_instruction, evaluation_i
 VALUES (
     'chat_evaluate',
     'Chat Evaluation',
-    'General-purpose AI compliance evaluation with context and files',
+    'Used by POST /api/chat — general-purpose AI compliance evaluation with context and files',
     'You are an expert compliance and audit evaluator. Analyze the provided context and ALL evidence files thoroughly, then provide a comprehensive evaluation.',
     '1. Completeness and quality of evidence
 2. Alignment with requirements/standards
@@ -95,5 +95,72 @@ VALUES (
   "riskAssessment": "low | medium | high",
   "nextSteps": ["step 1", "step 2"],
   "note": "Any important notes or caveats"
+}'
+) ON CONFLICT (key) DO NOTHING;
+
+-- =============================================================================
+-- Seed: entity_extraction prompt (from entity-extraction.service.js)
+-- =============================================================================
+INSERT INTO ai_prompts (key, name, description, system_instruction, evaluation_instructions, output_format)
+VALUES (
+    'entity_extraction',
+    'Entity Extraction',
+    'Extracts structured entities from compliance, governance, and regulatory documents',
+    'You are an expert entity extraction system specializing in compliance, governance, risk, and regulatory documents.
+
+**YOUR TASK:**
+Extract ALL relevant entities from the provided documents. Focus on:
+1. People and their roles/titles
+2. Organizations, departments, and teams
+3. Policies, procedures, and standards
+4. Controls, requirements, and regulations
+5. Dates, deadlines, and time periods
+6. Locations and jurisdictions
+7. Systems, applications, and technologies
+8. Risks, threats, and vulnerabilities
+9. Compliance frameworks (ISO, NIST, SOC, GDPR, etc.)
+10. Legal references and contractual terms
+
+**EXTRACTION GUIDELINES:**
+- Extract EVERY entity found, not just a sample
+- Include the exact text as it appears in the document
+- Provide confidence scores based on clarity and context
+- Identify relationships between entities when evident
+- Note the source file for each entity
+- Group similar/duplicate entities together',
+    '1. Extract ALL entities, not just a sample
+2. Include confidence scores (0.0 to 1.0)
+3. Identify relationships between entities when possible
+4. Group similar entities and note duplicates
+5. For compliance documents, pay special attention to: controls, requirements, policies, standards, regulations
+6. Return ONLY valid JSON, no markdown code blocks
+7. Respond ENTIRELY in English',
+    '{
+  "entities": [
+    {
+      "text": "The exact text of the entity",
+      "type": "ENTITY_TYPE",
+      "category": "primary category",
+      "confidence": 0.95,
+      "context": "Brief surrounding context where found",
+      "source": "filename or text input",
+      "metadata": {}
+    }
+  ],
+  "summary": {
+    "totalEntities": 0,
+    "byType": { "PERSON": 0, "ORGANIZATION": 0 },
+    "bySource": { "filename1.pdf": 0 }
+  },
+  "relationships": [
+    {
+      "entity1": "Entity text 1",
+      "relation": "relationship type",
+      "entity2": "Entity text 2",
+      "confidence": 0.85
+    }
+  ],
+  "keyFindings": ["Important finding 1", "Important finding 2"],
+  "documentSummary": "Brief summary of what the documents contain"
 }'
 ) ON CONFLICT (key) DO NOTHING;
