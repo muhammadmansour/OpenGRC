@@ -203,7 +203,20 @@ class PromptService {
   async buildPrompt(key, contextData = '') {
     const prompt = await this.getByKey(key);
     if (!prompt) throw new Error(`Prompt "${key}" not found`);
-    return prompt.content.replace('{{CONTEXT}}', contextData);
+
+    // Support both new schema (content) and old schema (system_instruction + evaluation_instructions + output_format)
+    let template = prompt.content;
+    if (!template && prompt.system_instruction) {
+      template = prompt.system_instruction
+        + '\n\n{{CONTEXT}}\n\n'
+        + (prompt.evaluation_instructions || '')
+        + '\n\n'
+        + (prompt.output_format || '');
+    }
+
+    if (!template) throw new Error(`Prompt "${key}" has no content`);
+
+    return template.replace('{{CONTEXT}}', contextData);
   }
 
   /**
