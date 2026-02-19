@@ -66,6 +66,45 @@ const FALLBACK_PROMPTS = {
 class PromptService {
 
   /**
+   * Add a computed `content` field that combines all 3 prompt parts.
+   * This is used by frontends that display a single text area.
+   */
+  enrichWithContent(prompt) {
+    if (!prompt) return prompt;
+    const p = { ...prompt };
+    p.content = [
+      `=== SYSTEM INSTRUCTION ===`,
+      p.system_instruction,
+      ``,
+      `=== EVALUATION INSTRUCTIONS ===`,
+      p.evaluation_instructions,
+      ``,
+      `=== OUTPUT FORMAT ===`,
+      p.output_format
+    ].join('\n');
+    return p;
+  }
+
+  /**
+   * Parse a combined `content` string back into the 3 separate fields.
+   */
+  parseContent(content) {
+    const parts = {};
+    const sections = content.split(/^=== (SYSTEM INSTRUCTION|EVALUATION INSTRUCTIONS|OUTPUT FORMAT) ===$/m);
+
+    // sections array: ['', 'SYSTEM INSTRUCTION', '...text...', 'EVALUATION INSTRUCTIONS', '...text...', 'OUTPUT FORMAT', '...text...']
+    for (let i = 1; i < sections.length; i += 2) {
+      const label = sections[i];
+      const text = (sections[i + 1] || '').trim();
+      if (label === 'SYSTEM INSTRUCTION') parts.system_instruction = text;
+      if (label === 'EVALUATION INSTRUCTIONS') parts.evaluation_instructions = text;
+      if (label === 'OUTPUT FORMAT') parts.output_format = text;
+    }
+
+    return parts;
+  }
+
+  /**
    * Get a prompt by its key.
    * Returns from cache if fresh, otherwise fetches from DB.
    * Falls back to hardcoded defaults if DB is unavailable.
@@ -106,21 +145,21 @@ class PromptService {
   }
 
   /**
-   * Get all prompts
+   * Get all prompts (with computed content field)
    */
   async getAll() {
     if (!db.isDbConfigured) {
-      return Object.values(FALLBACK_PROMPTS);
+      return Object.values(FALLBACK_PROMPTS).map(p => this.enrichWithContent(p));
     }
 
     const result = await db.query(
       'SELECT * FROM ai_prompts ORDER BY key ASC'
     );
-    return result.rows;
+    return result.rows.map(p => this.enrichWithContent(p));
   }
 
   /**
-   * Get prompt by ID
+   * Get prompt by ID (with computed content field)
    */
   async getById(id) {
     if (!db.isDbConfigured) throw new Error('Database not configured');
@@ -129,7 +168,7 @@ class PromptService {
       'SELECT * FROM ai_prompts WHERE id = $1',
       [id]
     );
-    return result.rows[0] || null;
+    return result.rows[0] ? this.enrichWithContent(result.rows[0]) : null;
   }
 
   /**
@@ -158,10 +197,19 @@ class PromptService {
   }
 
   /**
-   * Update a prompt by ID
+   * Update a prompt by ID.
+   * Accepts either individual fields OR a combined `content` string.
    */
   async update(id, data) {
     if (!db.isDbConfigured) throw new Error('Database not configured');
+
+    // If frontend sent a single `content` field, parse it into the 3 DB fields
+    if (data.content && !data.system_instruction && !data.evaluation_instructions && !data.output_format) {
+      const parsed = this.parseContent(data.content);
+      if (parsed.system_instruction) data.system_instruction = parsed.system_instruction;
+      if (parsed.evaluation_instructions) data.evaluation_instructions = parsed.evaluation_instructions;
+      if (parsed.output_format) data.output_format = parsed.output_format;
+    }
 
     const fields = [];
     const values = [];
