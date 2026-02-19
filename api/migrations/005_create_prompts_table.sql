@@ -43,7 +43,7 @@ INSERT INTO ai_prompts (key, name, description, system_instruction, evaluation_i
 VALUES (
     'audit_analyze',
     'Audit Analysis',
-    'Used by POST /api/audit/analyze — analyzes evidence files against applied control requirements',
+    'Analyzes evidence files against applied control requirements',
     'You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.',
     '1. READ all evidence files
 2. COMPARE against requirements
@@ -71,7 +71,7 @@ INSERT INTO ai_prompts (key, name, description, system_instruction, evaluation_i
 VALUES (
     'chat_evaluate',
     'Chat Evaluation',
-    'Used by POST /api/chat — general-purpose AI compliance evaluation with context and files',
+    'General-purpose AI compliance evaluation with context and files',
     'You are an expert compliance and audit evaluator. Analyze the provided context and ALL evidence files thoroughly, then provide a comprehensive evaluation.',
     '1. Completeness and quality of evidence
 2. Alignment with requirements/standards
