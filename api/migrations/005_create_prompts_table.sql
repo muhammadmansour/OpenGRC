@@ -15,10 +15,8 @@ CREATE TABLE IF NOT EXISTS ai_prompts (
     name VARCHAR(255) NOT NULL,
     description TEXT,
 
-    -- Prompt template parts
-    system_instruction TEXT NOT NULL,
-    evaluation_instructions TEXT NOT NULL,
-    output_format TEXT NOT NULL,
+    -- Full prompt template (use {{CONTEXT}} placeholder for dynamic data)
+    content TEXT NOT NULL,
 
     -- State
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -32,26 +30,31 @@ CREATE INDEX IF NOT EXISTS idx_ai_prompts_is_active ON ai_prompts(is_active);
 -- Comments
 COMMENT ON TABLE ai_prompts IS 'AI prompt templates for Gemini analysis services';
 COMMENT ON COLUMN ai_prompts.key IS 'Unique key to look up the prompt (e.g. audit_analyze, chat_evaluate)';
-COMMENT ON COLUMN ai_prompts.system_instruction IS 'The system/role instruction (persona and task description)';
-COMMENT ON COLUMN ai_prompts.evaluation_instructions IS 'Step-by-step evaluation instructions';
-COMMENT ON COLUMN ai_prompts.output_format IS 'Expected JSON output format template';
+COMMENT ON COLUMN ai_prompts.content IS 'Full prompt template text. Use {{CONTEXT}} as placeholder for dynamic data injection.';
 
 -- =============================================================================
--- Seed: audit_analyze prompt (from audit.service.js)
+-- Seed: audit_analyze prompt
 -- =============================================================================
-INSERT INTO ai_prompts (key, name, description, system_instruction, evaluation_instructions, output_format)
+INSERT INTO ai_prompts (key, name, description, content)
 VALUES (
     'audit_analyze',
     'Audit Analysis',
-    'Used by POST /api/audit/analyze — analyzes evidence files against applied control requirements',
-    'You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.',
-    '1. READ all evidence files
+    'Analyzes evidence files against applied control requirements',
+    'You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.
+
+{{CONTEXT}}
+
+**=== EVALUATION INSTRUCTIONS ===**
+1. READ all evidence files
 2. COMPARE against requirements
 3. ANSWER audit questions
 4. CHECK typical evidence items
 5. IDENTIFY gaps
-6. Respond ENTIRELY in English',
-    '{
+6. Respond ENTIRELY in English
+
+**=== OUTPUT FORMAT (JSON only) ===**
+
+{
   "overallAssessment": {
     "name": "{{REQ_NAME}}",
     "description": "{{REQ_DESC}}",
@@ -65,19 +68,28 @@ VALUES (
 ) ON CONFLICT (key) DO NOTHING;
 
 -- =============================================================================
--- Seed: chat_evaluate prompt (from gemini-chat.service.js)
+-- Seed: chat_evaluate prompt
 -- =============================================================================
-INSERT INTO ai_prompts (key, name, description, system_instruction, evaluation_instructions, output_format)
+INSERT INTO ai_prompts (key, name, description, content)
 VALUES (
     'chat_evaluate',
     'Chat Evaluation',
-    'Used by POST /api/chat — general-purpose AI compliance evaluation with context and files',
-    'You are an expert compliance and audit evaluator. Analyze the provided context and ALL evidence files thoroughly, then provide a comprehensive evaluation.',
-    '1. Completeness and quality of evidence
+    'General-purpose AI compliance evaluation with context and files',
+    'You are an expert compliance and audit evaluator. Analyze the provided context and ALL evidence files thoroughly, then provide a comprehensive evaluation.
+
+{{CONTEXT}}
+
+**EVALUATION TASK:**
+Based on the context and evidence provided (including any attached documents), conduct a thorough compliance evaluation. Consider:
+1. Completeness and quality of evidence
 2. Alignment with requirements/standards
 3. Gaps, weaknesses, or areas of concern
-4. Specific, actionable recommendations',
-    '{
+4. Specific, actionable recommendations
+
+**RESPONSE FORMAT:**
+Return a JSON object with this structure:
+
+{
   "status": "Fully Compliant | Partially Compliant | Non-Compliant | Not Applicable",
   "compliance_status": "Fully Compliant | Partially Compliant | Non-Compliant | Not Applicable",
   "effectiveness": "Highly Effective | Effective | Partially Effective | Ineffective | Not Applicable",
@@ -95,13 +107,15 @@ VALUES (
   "riskAssessment": "low | medium | high",
   "nextSteps": ["step 1", "step 2"],
   "note": "Any important notes or caveats"
-}'
+}
+
+**CRITICAL:** Return ONLY the JSON object. No markdown code blocks, no additional text.'
 ) ON CONFLICT (key) DO NOTHING;
 
 -- =============================================================================
--- Seed: entity_extraction prompt (from entity-extraction.service.js)
+-- Seed: entity_extraction prompt
 -- =============================================================================
-INSERT INTO ai_prompts (key, name, description, system_instruction, evaluation_instructions, output_format)
+INSERT INTO ai_prompts (key, name, description, content)
 VALUES (
     'entity_extraction',
     'Entity Extraction',
@@ -127,15 +141,23 @@ Extract ALL relevant entities from the provided documents. Focus on:
 - Provide confidence scores based on clarity and context
 - Identify relationships between entities when evident
 - Note the source file for each entity
-- Group similar/duplicate entities together',
-    '1. Extract ALL entities, not just a sample
+- Group similar/duplicate entities together
+
+{{CONTEXT}}
+
+**IMPORTANT GUIDELINES:**
+1. Extract ALL entities, not just a sample
 2. Include confidence scores (0.0 to 1.0)
 3. Identify relationships between entities when possible
 4. Group similar entities and note duplicates
 5. For compliance documents, pay special attention to: controls, requirements, policies, standards, regulations
 6. Return ONLY valid JSON, no markdown code blocks
-7. Respond ENTIRELY in English',
-    '{
+7. Respond ENTIRELY in English
+
+**OUTPUT FORMAT:**
+Return a JSON object with this exact structure:
+
+{
   "entities": [
     {
       "text": "The exact text of the entity",

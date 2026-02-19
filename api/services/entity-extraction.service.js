@@ -69,8 +69,6 @@ class EntityExtractionService {
    * Build the extraction prompt (loads template from DB via PromptService)
    */
   async buildExtractionPrompt(context, files = [], options = {}) {
-    const promptTemplate = await promptService.getByKey('entity_extraction');
-
     const entityTypes = options.entityTypes || [
       'PERSON', 'ORGANIZATION', 'LOCATION', 'DATE', 'TIME', 
       'MONEY', 'PERCENT', 'EMAIL', 'PHONE', 'URL',
@@ -78,32 +76,26 @@ class EntityExtractionService {
       'CONTROL', 'RISK', 'POLICY', 'PROCEDURE', 'REQUIREMENT'
     ];
 
-    const extractionInstructions = context || promptTemplate.system_instruction;
+    // Build dynamic context sections
+    let contextData = '';
 
-    let prompt = `${promptTemplate.system_instruction}
+    if (context) {
+      contextData += `**EXTRACTION INSTRUCTIONS:**\n${context}\n\n`;
+    }
 
-**EXTRACTION INSTRUCTIONS:**
-${extractionInstructions}
-
-**ENTITY TYPES TO EXTRACT:**
-${entityTypes.join(', ')}
-
-`;
+    contextData += `**ENTITY TYPES TO EXTRACT:**\n${entityTypes.join(', ')}\n\n`;
 
     // Add file info
     if (files.length > 0) {
-      prompt += `\n**DOCUMENTS TO ANALYZE (${files.length} file(s)):**\n`;
+      contextData += `**DOCUMENTS TO ANALYZE (${files.length} file(s)):**\n`;
       files.forEach((file, idx) => {
-        prompt += `${idx + 1}. ${file.name} (${file.mimeType})\n`;
+        contextData += `${idx + 1}. ${file.name} (${file.mimeType})\n`;
       });
-      prompt += `\n**CRITICAL:** Read and extract entities from ALL attached documents.\n`;
+      contextData += `\n**CRITICAL:** Read and extract entities from ALL attached documents.\n`;
     }
 
-    prompt += `\n**IMPORTANT GUIDELINES:**\n${promptTemplate.evaluation_instructions}\n`;
-
-    prompt += `\n**OUTPUT FORMAT:**\nReturn a JSON object with this exact structure:\n\n${promptTemplate.output_format}`;
-
-    return prompt;
+    // Build final prompt from DB template, injecting dynamic context at {{CONTEXT}}
+    return promptService.buildPrompt('entity_extraction', contextData);
   }
 
   /**

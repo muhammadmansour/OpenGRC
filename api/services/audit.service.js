@@ -154,62 +154,51 @@ class AuditService {
       ...analysis_config
     };
 
-    // Load prompt template from DB (falls back to hardcoded defaults)
-    const promptTemplate = await promptService.getByKey('audit_analyze');
-
-    let prompt = `${promptTemplate.system_instruction}
-
-`;
+    // Build dynamic context sections
+    let contextData = '';
 
     // === APPLIED CONTROL SECTION ===
     if (applied_control && (applied_control.ref_id || applied_control.name)) {
-      prompt += `**=== APPLIED CONTROL ===**
-`;
-      if (applied_control.ref_id) prompt += `Reference ID: ${applied_control.ref_id}\n`;
-      if (applied_control.name) prompt += `Name: ${applied_control.name}\n`;
-      if (applied_control.description) prompt += `Description: ${applied_control.description}\n`;
-      if (applied_control.status) prompt += `Status: ${applied_control.status}\n`;
-      if (applied_control.category) prompt += `Category: ${applied_control.category}\n`;
-      if (applied_control.csf_function) prompt += `CSF Function: ${applied_control.csf_function}\n`;
-      prompt += `\n`;
+      contextData += `**=== APPLIED CONTROL ===**\n`;
+      if (applied_control.ref_id) contextData += `Reference ID: ${applied_control.ref_id}\n`;
+      if (applied_control.name) contextData += `Name: ${applied_control.name}\n`;
+      if (applied_control.description) contextData += `Description: ${applied_control.description}\n`;
+      if (applied_control.status) contextData += `Status: ${applied_control.status}\n`;
+      if (applied_control.category) contextData += `Category: ${applied_control.category}\n`;
+      if (applied_control.csf_function) contextData += `CSF Function: ${applied_control.csf_function}\n`;
+      contextData += `\n`;
     }
 
     // === REQUIREMENTS SECTION ===
     if (requirements.length > 0) {
-      prompt += `**=== COMPLIANCE REQUIREMENTS (${requirements.length}) ===**
-Evaluate if the submitted evidence satisfies these requirements:
-`;
+      contextData += `**=== COMPLIANCE REQUIREMENTS (${requirements.length}) ===**\nEvaluate if the submitted evidence satisfies these requirements:\n`;
       requirements.forEach((req, idx) => {
-        prompt += `\nRequirement ${idx + 1}:\n`;
-        if (req.ref_id) prompt += `  ID: ${req.ref_id}\n`;
-        if (req.name) prompt += `  Name: ${req.name}\n`;
-        if (req.description) prompt += `  Description: ${req.description}\n`;
-        if (req.framework) prompt += `  Framework: ${req.framework}\n`;
-        if (req.provider) prompt += `  Provider: ${req.provider}\n`;
+        contextData += `\nRequirement ${idx + 1}:\n`;
+        if (req.ref_id) contextData += `  ID: ${req.ref_id}\n`;
+        if (req.name) contextData += `  Name: ${req.name}\n`;
+        if (req.description) contextData += `  Description: ${req.description}\n`;
+        if (req.framework) contextData += `  Framework: ${req.framework}\n`;
+        if (req.provider) contextData += `  Provider: ${req.provider}\n`;
       });
-      prompt += `\n`;
+      contextData += `\n`;
     }
 
     // === QUESTIONS SECTION ===
     if (questions.length > 0) {
-      prompt += `**=== AUDIT QUESTIONS (${questions.length}) ===**
-Evaluate if the submitted evidence answers these questions:
-`;
+      contextData += `**=== AUDIT QUESTIONS (${questions.length}) ===**\nEvaluate if the submitted evidence answers these questions:\n`;
       questions.forEach((q, idx) => {
-        prompt += `Q${idx + 1}: ${q}\n`;
+        contextData += `Q${idx + 1}: ${q}\n`;
       });
-      prompt += `\n`;
+      contextData += `\n`;
     }
 
     // === TYPICAL EVIDENCE SECTION ===
     if (typical_evidence.length > 0) {
-      prompt += `**=== TYPICAL/EXPECTED EVIDENCE (${typical_evidence.length}) ===**
-Check if the submitted files contain or demonstrate these:
-`;
+      contextData += `**=== TYPICAL/EXPECTED EVIDENCE (${typical_evidence.length}) ===**\nCheck if the submitted files contain or demonstrate these:\n`;
       typical_evidence.forEach((e, idx) => {
-        prompt += `E${idx + 1}: ${e}\n`;
+        contextData += `E${idx + 1}: ${e}\n`;
       });
-      prompt += `\n`;
+      contextData += `\n`;
     }
 
     // === EVIDENCE FILES SECTION ===
@@ -217,60 +206,40 @@ Check if the submitted files contain or demonstrate these:
     const fileIds = gemini_file_search.file_ids || [];
 
     if (evidences.length > 0) {
-      prompt += `**=== SUBMITTED EVIDENCE FILES (${evidences.length}) ===**
-The following evidence files have been uploaded and are attached for your analysis:
-`;
+      contextData += `**=== SUBMITTED EVIDENCE FILES (${evidences.length}) ===**\nThe following evidence files have been uploaded and are attached for your analysis:\n`;
       evidences.forEach((ev, idx) => {
-        prompt += `\nEvidence ${idx + 1}:`;
-        if (ev.evidence_name) prompt += ` ${ev.evidence_name}`;
-        prompt += `\n`;
-        if (ev.evidence_description) prompt += `  Description: ${ev.evidence_description}\n`;
-        if (ev.gemini_file_id) prompt += `  File Reference: ${ev.gemini_file_id}\n`;
+        contextData += `\nEvidence ${idx + 1}:`;
+        if (ev.evidence_name) contextData += ` ${ev.evidence_name}`;
+        contextData += `\n`;
+        if (ev.evidence_description) contextData += `  Description: ${ev.evidence_description}\n`;
+        if (ev.gemini_file_id) contextData += `  File Reference: ${ev.gemini_file_id}\n`;
       });
-      prompt += `\n`;
+      contextData += `\n`;
     } else if (fileIds.length > 0) {
-      prompt += `**=== SUBMITTED EVIDENCE FILES (${fileIds.length}) ===**
-${fileIds.length} file(s) are attached for your analysis.
-`;
-      prompt += `\n`;
+      contextData += `**=== SUBMITTED EVIDENCE FILES (${fileIds.length}) ===**\n${fileIds.length} file(s) are attached for your analysis.\n\n`;
     }
 
     // Legacy inline files
     if (files.length > 0) {
-      prompt += `**=== INLINE EVIDENCE FILES (${files.length}) ===**
-`;
+      contextData += `**=== INLINE EVIDENCE FILES (${files.length}) ===**\n`;
       files.forEach((file, idx) => {
-        prompt += `File ${idx + 1}: ${file.name} (${file.mimeType})\n`;
+        contextData += `File ${idx + 1}: ${file.name} (${file.mimeType})\n`;
       });
-      prompt += `\n`;
+      contextData += `\n`;
     }
 
     // === ADDITIONAL CONTEXT ===
     if (options.context) {
-      prompt += `**=== ADDITIONAL CONTEXT ===**
-${options.context}
-
-`;
+      contextData += `**=== ADDITIONAL CONTEXT ===**\n${options.context}\n\n`;
     }
 
-    // === EVALUATION INSTRUCTIONS (from DB) ===
-    prompt += `**=== EVALUATION INSTRUCTIONS ===**
-${promptTemplate.evaluation_instructions}
+    // Build final prompt from DB template, injecting dynamic context at {{CONTEXT}}
+    let prompt = await promptService.buildPrompt('audit_analyze', contextData);
 
-`;
-
-    // === OUTPUT FORMAT (from DB) ===
+    // Replace requirement-specific placeholders
     const reqName = requirements.length > 0 ? (requirements[0].name || '') : '';
     const reqDesc = requirements.length > 0 ? (requirements[0].description || '') : '';
-
-    // Replace placeholders in the output format template
-    const outputFormat = promptTemplate.output_format
-      .replace('{{REQ_NAME}}', reqName)
-      .replace('{{REQ_DESC}}', reqDesc);
-
-    prompt += `**=== OUTPUT FORMAT (JSON only) ===**
-
-${outputFormat}`;
+    prompt = prompt.replace('{{REQ_NAME}}', reqName).replace('{{REQ_DESC}}', reqDesc);
 
     return prompt;
   }

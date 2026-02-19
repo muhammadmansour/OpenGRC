@@ -1,6 +1,8 @@
 /**
  * Prompt Service
- * CRUD operations for ai_prompts table with in-memory caching
+ * CRUD operations for ai_prompts table with in-memory caching.
+ * Each prompt has a single "content" text field.
+ * Services inject dynamic data by replacing the {{CONTEXT}} placeholder.
  */
 
 const db = require('../config/database');
@@ -14,14 +16,21 @@ const FALLBACK_PROMPTS = {
   audit_analyze: {
     key: 'audit_analyze',
     name: 'Audit Analysis',
-    system_instruction: 'You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.',
-    evaluation_instructions: `1. READ all evidence files
+    content: `You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.
+
+{{CONTEXT}}
+
+**=== EVALUATION INSTRUCTIONS ===**
+1. READ all evidence files
 2. COMPARE against requirements
 3. ANSWER audit questions
 4. CHECK typical evidence items
 5. IDENTIFY gaps
-6. Respond ENTIRELY in English`,
-    output_format: `{
+6. Respond ENTIRELY in English
+
+**=== OUTPUT FORMAT (JSON only) ===**
+
+{
   "overallAssessment": {
     "name": "{{REQ_NAME}}",
     "description": "{{REQ_DESC}}",
@@ -33,10 +42,49 @@ const FALLBACK_PROMPTS = {
   "gaps": [{ "gap": "...", "recommendation": "..." }]
 }`
   },
+  chat_evaluate: {
+    key: 'chat_evaluate',
+    name: 'Chat Evaluation',
+    content: `You are an expert compliance and audit evaluator. Analyze the provided context and ALL evidence files thoroughly, then provide a comprehensive evaluation.
+
+{{CONTEXT}}
+
+**EVALUATION TASK:**
+Based on the context and evidence provided (including any attached documents), conduct a thorough compliance evaluation. Consider:
+1. Completeness and quality of evidence
+2. Alignment with requirements/standards
+3. Gaps, weaknesses, or areas of concern
+4. Specific, actionable recommendations
+
+**RESPONSE FORMAT:**
+Return a JSON object with this structure:
+
+{
+  "status": "Fully Compliant | Partially Compliant | Non-Compliant | Not Applicable",
+  "compliance_status": "Fully Compliant | Partially Compliant | Non-Compliant | Not Applicable",
+  "effectiveness": "Highly Effective | Effective | Partially Effective | Ineffective | Not Applicable",
+  "score": 0,
+  "complianceLevel": "high | medium | low",
+  "filesAnalyzed": [
+    {"filename": "file1.pdf", "description": "Brief description of what this file contains", "relevance": "How relevant is this file to the audit requirement"}
+  ],
+  "strengths": ["strength 1", "strength 2"],
+  "weaknesses": ["weakness 1", "weakness 2"],
+  "recommendations": ["recommendation 1", "recommendation 2"],
+  "evidenceQuality": "Excellent | Good | Adequate | Poor",
+  "summary": "Brief 2-3 sentence overall assessment",
+  "detailedAnalysis": "Comprehensive 3-5 paragraph analysis of findings, MUST mention specific content found in each file",
+  "riskAssessment": "low | medium | high",
+  "nextSteps": ["step 1", "step 2"],
+  "note": "Any important notes or caveats"
+}
+
+**CRITICAL:** Return ONLY the JSON object. No markdown code blocks, no additional text.`
+  },
   entity_extraction: {
     key: 'entity_extraction',
     name: 'Entity Extraction',
-    system_instruction: `You are an expert entity extraction system specializing in compliance, governance, risk, and regulatory documents.
+    content: `You are an expert entity extraction system specializing in compliance, governance, risk, and regulatory documents.
 
 **YOUR TASK:**
 Extract ALL relevant entities from the provided documents. Focus on:
@@ -57,15 +105,23 @@ Extract ALL relevant entities from the provided documents. Focus on:
 - Provide confidence scores based on clarity and context
 - Identify relationships between entities when evident
 - Note the source file for each entity
-- Group similar/duplicate entities together`,
-    evaluation_instructions: `1. Extract ALL entities, not just a sample
+- Group similar/duplicate entities together
+
+{{CONTEXT}}
+
+**IMPORTANT GUIDELINES:**
+1. Extract ALL entities, not just a sample
 2. Include confidence scores (0.0 to 1.0)
 3. Identify relationships between entities when possible
 4. Group similar entities and note duplicates
 5. For compliance documents, pay special attention to: controls, requirements, policies, standards, regulations
 6. Return ONLY valid JSON, no markdown code blocks
-7. Respond ENTIRELY in English`,
-    output_format: `{
+7. Respond ENTIRELY in English
+
+**OUTPUT FORMAT:**
+Return a JSON object with this exact structure:
+
+{
   "entities": [
     {
       "text": "The exact text of the entity",
@@ -92,34 +148,6 @@ Extract ALL relevant entities from the provided documents. Focus on:
   ],
   "keyFindings": ["Important finding 1", "Important finding 2"],
   "documentSummary": "Brief summary of what the documents contain"
-}`
-  },
-  chat_evaluate: {
-    key: 'chat_evaluate',
-    name: 'Chat Evaluation',
-    system_instruction: 'You are an expert compliance and audit evaluator. Analyze the provided context and ALL evidence files thoroughly, then provide a comprehensive evaluation.',
-    evaluation_instructions: `1. Completeness and quality of evidence
-2. Alignment with requirements/standards
-3. Gaps, weaknesses, or areas of concern
-4. Specific, actionable recommendations`,
-    output_format: `{
-  "status": "Fully Compliant | Partially Compliant | Non-Compliant | Not Applicable",
-  "compliance_status": "Fully Compliant | Partially Compliant | Non-Compliant | Not Applicable",
-  "effectiveness": "Highly Effective | Effective | Partially Effective | Ineffective | Not Applicable",
-  "score": 0,
-  "complianceLevel": "high | medium | low",
-  "filesAnalyzed": [
-    {"filename": "file1.pdf", "description": "Brief description of what this file contains", "relevance": "How relevant is this file to the audit requirement"}
-  ],
-  "strengths": ["strength 1", "strength 2"],
-  "weaknesses": ["weakness 1", "weakness 2"],
-  "recommendations": ["recommendation 1", "recommendation 2"],
-  "evidenceQuality": "Excellent | Good | Adequate | Poor",
-  "summary": "Brief 2-3 sentence overall assessment",
-  "detailedAnalysis": "Comprehensive 3-5 paragraph analysis of findings, MUST mention specific content found in each file",
-  "riskAssessment": "low | medium | high",
-  "nextSteps": ["step 1", "step 2"],
-  "note": "Any important notes or caveats"
 }`
   }
 };
@@ -167,6 +195,18 @@ class PromptService {
   }
 
   /**
+   * Build a final prompt by replacing {{CONTEXT}} with dynamic data.
+   * @param {string} key - The prompt key
+   * @param {string} contextData - The dynamic context to inject
+   * @returns {string} The final prompt with context injected
+   */
+  async buildPrompt(key, contextData = '') {
+    const prompt = await this.getByKey(key);
+    if (!prompt) throw new Error(`Prompt "${key}" not found`);
+    return prompt.content.replace('{{CONTEXT}}', contextData);
+  }
+
+  /**
    * Get all prompts
    */
   async getAll() {
@@ -199,17 +239,17 @@ class PromptService {
   async create(data) {
     if (!db.isDbConfigured) throw new Error('Database not configured');
 
-    const { key, name, description, system_instruction, evaluation_instructions, output_format } = data;
+    const { key, name, description, content } = data;
 
-    if (!key || !name || !system_instruction || !evaluation_instructions || !output_format) {
-      throw new Error('Missing required fields: key, name, system_instruction, evaluation_instructions, output_format');
+    if (!key || !name || !content) {
+      throw new Error('Missing required fields: key, name, content');
     }
 
     const result = await db.query(
-      `INSERT INTO ai_prompts (key, name, description, system_instruction, evaluation_instructions, output_format)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO ai_prompts (key, name, description, content)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [key, name, description || null, system_instruction, evaluation_instructions, output_format]
+      [key, name, description || null, content]
     );
 
     // Invalidate cache
@@ -228,10 +268,7 @@ class PromptService {
     const values = [];
     let paramIdx = 1;
 
-    const allowedFields = [
-      'name', 'description', 'system_instruction',
-      'evaluation_instructions', 'output_format', 'is_active'
-    ];
+    const allowedFields = ['name', 'description', 'content', 'is_active'];
 
     for (const field of allowedFields) {
       if (data[field] !== undefined) {

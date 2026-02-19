@@ -44,12 +44,12 @@ router.get('/:id', asyncHandler(async (req, res) => {
  * Create a new prompt
  */
 router.post('/', asyncHandler(async (req, res) => {
-  const { key, name, description, system_instruction, evaluation_instructions, output_format } = req.body;
+  const { key, name, description, content } = req.body;
 
-  if (!key || !name || !system_instruction || !evaluation_instructions || !output_format) {
+  if (!key || !name || !content) {
     return res.status(400).json({
       error: 'Validation Error',
-      message: 'Required fields: key, name, system_instruction, evaluation_instructions, output_format'
+      message: 'Required fields: key, name, content'
     });
   }
 

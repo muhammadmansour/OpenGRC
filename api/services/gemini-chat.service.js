@@ -122,59 +122,42 @@ class GeminiChatService {
     const textFiles = files.filter(f => f.encoding === 'text');
     const binaryFiles = files.filter(f => f.encoding === 'base64');
 
-    // Load prompt template from DB (falls back to hardcoded defaults)
-    const promptTemplate = await promptService.getByKey('chat_evaluate');
+    // Build dynamic context sections
+    let contextData = `**CONTEXT:**\n${context}\n\n`;
 
-    // Build the text prompt
-    let textPrompt = `${promptTemplate.system_instruction}
-
-**CONTEXT:**
-${context}
-
-`;
-
-    // Add text files content to the prompt
+    // Add text files content
     if (textFiles.length > 0) {
-      textPrompt += `\n**TEXT-BASED EVIDENCE (${textFiles.length} file(s)):**\n`;
+      contextData += `**TEXT-BASED EVIDENCE (${textFiles.length} file(s)):**\n`;
       textFiles.forEach((file, idx) => {
-        textPrompt += `\n--- File ${idx + 1}: ${file.name} ---`;
+        contextData += `\n--- File ${idx + 1}: ${file.name} ---`;
         if (file.description) {
-          textPrompt += `\nDescription: ${file.description}`;
+          contextData += `\nDescription: ${file.description}`;
         }
-        textPrompt += `\nMIME Type: ${file.mimeType}\n`;
-        textPrompt += `Content:\n${file.data.substring(0, 15000)}${file.data.length > 15000 ? '\n...[content truncated]' : ''}\n`;
+        contextData += `\nMIME Type: ${file.mimeType}\n`;
+        contextData += `Content:\n${file.data.substring(0, 15000)}${file.data.length > 15000 ? '\n...[content truncated]' : ''}\n`;
       });
     }
 
     // Note about binary files that will be attached
     if (binaryFiles.length > 0) {
-      textPrompt += `\n**ATTACHED DOCUMENT FILES (${binaryFiles.length} file(s)):**\n`;
-      textPrompt += `The following files are attached as binary data for your analysis:\n`;
+      contextData += `\n**ATTACHED DOCUMENT FILES (${binaryFiles.length} file(s)):**\n`;
+      contextData += `The following files are attached as binary data for your analysis:\n`;
       binaryFiles.forEach((file, idx) => {
-        textPrompt += `${idx + 1}. ${file.name} (${file.mimeType})`;
+        contextData += `${idx + 1}. ${file.name} (${file.mimeType})`;
         if (file.description) {
-          textPrompt += ` - ${file.description}`;
+          contextData += ` - ${file.description}`;
         }
-        textPrompt += `\n`;
+        contextData += `\n`;
       });
-      textPrompt += `\n**CRITICAL:** You MUST read and analyze the ACTUAL CONTENT of these attached PDF/image files. For each file, describe what you found in it.\n`;
+      contextData += `\n**CRITICAL:** You MUST read and analyze the ACTUAL CONTENT of these attached PDF/image files. For each file, describe what you found in it.\n`;
     }
 
     if (files.length === 0) {
-      textPrompt += `\nNo evidence files were submitted.\n`;
+      contextData += `\nNo evidence files were submitted.\n`;
     }
 
-    textPrompt += `
-**EVALUATION TASK:**
-Based on the context and evidence provided (including any attached documents), conduct a thorough compliance evaluation. Consider:
-${promptTemplate.evaluation_instructions}
-
-**RESPONSE FORMAT:**
-Return a JSON object with this structure:
-
-${promptTemplate.output_format}
-
-**CRITICAL:** Return ONLY the JSON object. No markdown code blocks, no additional text.`;
+    // Build final prompt from DB template, injecting dynamic context at {{CONTEXT}}
+    let textPrompt = await promptService.buildPrompt('chat_evaluate', contextData);
 
     // Add text prompt as first part
     parts.push({ text: textPrompt });
