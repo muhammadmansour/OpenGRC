@@ -23,7 +23,7 @@ function convertToBundle(library) {
     authority: library.provider || 'Unknown',
     source_url: `https://muraji-api.wathbahs.com/api/libraries/${library.id}`,
     image: null,
-    repo_url: `muraji-library://${library.id}`,
+    repo_url: `muraji://${library.id}`,
     status: library.is_loaded ? 'imported' : null,
     type: 'Standard'
   };
