@@ -44,6 +44,7 @@ class AuditService {
    * 2. Inline files: Sends base64/text files directly (legacy compatibility)
    * 
    * @param {Object} params
+   * @param {string} params.assessment_type - "requirement" | "control" (default: auto-detect)
    * @param {Object} params.applied_control - The control being evaluated
    * @param {Object} params.gemini_file_search - Gemini file references (file_ids, store_id, evidences)
    * @param {Array}  params.requirements - Compliance requirements to check against
@@ -59,6 +60,7 @@ class AuditService {
     }
 
     const {
+      assessment_type,
       applied_control = {},
       gemini_file_search = {},
       requirements = [],
@@ -74,7 +76,11 @@ class AuditService {
       const evidences = gemini_file_search.evidences || [];
       const fileIds = gemini_file_search.file_ids || [];
 
+      // Resolve assessment type: explicit > auto-detect
+      const resolvedType = this.resolveAssessmentType(assessment_type, applied_control, requirements);
+
       console.log('📋 Starting audit analysis...');
+      console.log(`🔖 Assessment type: ${resolvedType}`);
       console.log(`🎯 Applied Control: ${applied_control.ref_id || 'N/A'} - ${applied_control.name || 'N/A'}`);
       console.log(`📁 Gemini File IDs: ${fileIds.length}`);
       console.log(`📎 Evidence entries: ${evidences.length}`);
@@ -85,6 +91,7 @@ class AuditService {
 
       // Build the audit prompt (async - loads prompt template from DB)
       const auditPrompt = await this.buildAuditPrompt({
+        assessment_type: resolvedType,
         applied_control,
         gemini_file_search,
         requirements,
@@ -130,11 +137,34 @@ class AuditService {
   }
 
   /**
+   * Auto-detect or validate the assessment type.
+   * @param {string|undefined} explicit - Caller-supplied type
+   * @param {Object} applied_control
+   * @param {Array} requirements
+   * @returns {"requirement"|"control"}
+   */
+  resolveAssessmentType(explicit, applied_control = {}, requirements = []) {
+    if (explicit === 'requirement' || explicit === 'control') return explicit;
+
+    // Auto-detect: if there's a meaningful applied control but no requirements, it's a control assessment
+    const hasControl = applied_control.name || applied_control.description;
+    const hasRequirement = requirements.length > 0 && (requirements[0].name || requirements[0].description);
+
+    if (hasControl && !hasRequirement) return 'control';
+    // Default to requirement assessment
+    return 'requirement';
+  }
+
+  /**
    * Build the audit analysis prompt with all context.
-   * System instruction, evaluation instructions, and output format are loaded from the DB.
+   * Uses named {{PLACEHOLDER}} tokens in the template loaded from DB/fallback.
+   * Picks the prompt template based on assessment_type:
+   *   - "requirement" → audit_analyze_requirement
+   *   - "control"     → audit_analyze_control
    */
   async buildAuditPrompt(params = {}) {
     const {
+      assessment_type = 'requirement',
       applied_control = {},
       gemini_file_search = {},
       requirements = [],
@@ -145,101 +175,391 @@ class AuditService {
       options = {}
     } = params;
 
-    // Default analysis config
+    // Merge with defaults
     const config = {
+      return_compliance_result: true,
       include_entity_extraction: false,
       include_compliance_check: false,
       include_gap_analysis: true,
+      include_typical_evidence_check: true,
       include_recommendations: false,
+      response_language: 'auto',
+      question_answer_values: ['"Yes"', '"No"', '"Partial"'],
+      compliance_result_values: ['"compliant"', '"partially_compliant"', '"non_compliant"', '"not_applicable"'],
       ...analysis_config
     };
 
-    // Build dynamic context sections
-    let contextData = '';
+    // --- Requirement ---
+    const req = requirements.length > 0 ? requirements[0] : {};
 
-    // === APPLIED CONTROL SECTION ===
-    if (applied_control && (applied_control.ref_id || applied_control.name)) {
-      contextData += `**=== APPLIED CONTROL ===**\n`;
-      if (applied_control.ref_id) contextData += `Reference ID: ${applied_control.ref_id}\n`;
-      if (applied_control.name) contextData += `Name: ${applied_control.name}\n`;
-      if (applied_control.description) contextData += `Description: ${applied_control.description}\n`;
-      if (applied_control.status) contextData += `Status: ${applied_control.status}\n`;
-      if (applied_control.category) contextData += `Category: ${applied_control.category}\n`;
-      if (applied_control.csf_function) contextData += `CSF Function: ${applied_control.csf_function}\n`;
-      contextData += `\n`;
-    }
-
-    // === REQUIREMENTS SECTION ===
-    if (requirements.length > 0) {
-      contextData += `**=== COMPLIANCE REQUIREMENTS (${requirements.length}) ===**\nEvaluate if the submitted evidence satisfies these requirements:\n`;
-      requirements.forEach((req, idx) => {
-        contextData += `\nRequirement ${idx + 1}:\n`;
-        if (req.ref_id) contextData += `  ID: ${req.ref_id}\n`;
-        if (req.name) contextData += `  Name: ${req.name}\n`;
-        if (req.description) contextData += `  Description: ${req.description}\n`;
-        if (req.framework) contextData += `  Framework: ${req.framework}\n`;
-        if (req.provider) contextData += `  Provider: ${req.provider}\n`;
-      });
-      contextData += `\n`;
-    }
-
-    // === QUESTIONS SECTION ===
-    if (questions.length > 0) {
-      contextData += `**=== AUDIT QUESTIONS (${questions.length}) ===**\nEvaluate if the submitted evidence answers these questions:\n`;
-      questions.forEach((q, idx) => {
-        contextData += `Q${idx + 1}: ${q}\n`;
-      });
-      contextData += `\n`;
-    }
-
-    // === TYPICAL EVIDENCE SECTION ===
-    if (typical_evidence.length > 0) {
-      contextData += `**=== TYPICAL/EXPECTED EVIDENCE (${typical_evidence.length}) ===**\nCheck if the submitted files contain or demonstrate these:\n`;
-      typical_evidence.forEach((e, idx) => {
-        contextData += `E${idx + 1}: ${e}\n`;
-      });
-      contextData += `\n`;
-    }
-
-    // === EVIDENCE FILES SECTION ===
+    // --- Evidence list ---
     const evidences = gemini_file_search.evidences || [];
     const fileIds = gemini_file_search.file_ids || [];
-
+    let evidenceList = '';
     if (evidences.length > 0) {
-      contextData += `**=== SUBMITTED EVIDENCE FILES (${evidences.length}) ===**\nThe following evidence files have been uploaded and are attached for your analysis:\n`;
       evidences.forEach((ev, idx) => {
-        contextData += `\nEvidence ${idx + 1}:`;
-        if (ev.evidence_name) contextData += ` ${ev.evidence_name}`;
-        contextData += `\n`;
-        if (ev.evidence_description) contextData += `  Description: ${ev.evidence_description}\n`;
-        if (ev.gemini_file_id) contextData += `  File Reference: ${ev.gemini_file_id}\n`;
+        evidenceList += `${idx + 1}. ${ev.evidence_name || 'Unnamed file'}`;
+        if (ev.evidence_description) evidenceList += ` — ${ev.evidence_description}`;
+        evidenceList += `\n`;
       });
-      contextData += `\n`;
     } else if (fileIds.length > 0) {
-      contextData += `**=== SUBMITTED EVIDENCE FILES (${fileIds.length}) ===**\n${fileIds.length} file(s) are attached for your analysis.\n\n`;
-    }
-
-    // Legacy inline files
-    if (files.length > 0) {
-      contextData += `**=== INLINE EVIDENCE FILES (${files.length}) ===**\n`;
-      files.forEach((file, idx) => {
-        contextData += `File ${idx + 1}: ${file.name} (${file.mimeType})\n`;
+      fileIds.forEach((fid, idx) => {
+        evidenceList += `${idx + 1}. ${fid}\n`;
       });
-      contextData += `\n`;
+    } else if (files.length > 0) {
+      files.forEach((file, idx) => {
+        evidenceList += `${idx + 1}. ${file.name} (${file.mimeType})\n`;
+      });
+    } else {
+      evidenceList = '(No evidence files submitted)\n';
     }
 
-    // === ADDITIONAL CONTEXT ===
-    if (options.context) {
-      contextData += `**=== ADDITIONAL CONTEXT ===**\n${options.context}\n\n`;
+    // --- Typical evidence list ---
+    let typicalEvidenceList = '';
+    if (typical_evidence.length > 0) {
+      typical_evidence.forEach((e, idx) => {
+        typicalEvidenceList += `${idx + 1}. ${e}\n`;
+      });
+    } else {
+      typicalEvidenceList = '(None specified)\n';
     }
 
-    // Build final prompt from DB template, injecting dynamic context at {{CONTEXT}}
-    let prompt = await promptService.buildPrompt('audit_analyze', contextData);
+    // --- Questions list ---
+    let questionsList = '';
+    if (questions.length > 0) {
+      questions.forEach((q, idx) => {
+        questionsList += `${idx + 1}. ${q}\n`;
+      });
+    } else {
+      questionsList = '(No questions provided)\n';
+    }
 
-    // Replace requirement-specific placeholders
-    const reqName = requirements.length > 0 ? (requirements[0].name || '') : '';
-    const reqDesc = requirements.length > 0 ? (requirements[0].description || '') : '';
-    prompt = prompt.replace('{{REQ_NAME}}', reqName).replace('{{REQ_DESC}}', reqDesc);
+    // --- Conditional sections (2–8) ---
+    let conditionalSections = '';
+
+    // Section 2: Overall Compliance/Effectiveness Assessment
+    if (config.return_compliance_result) {
+      if (assessment_type === 'control') {
+        conditionalSections += `### 2. OVERALL CONTROL EFFECTIVENESS ASSESSMENT
+
+Provide an overall assessment of the applied control using EXACTLY one of these values: ${config.compliance_result_values.join(', ')}
+
+**Assessment Criteria:**
+
+- **"compliant"**: ALL questions are answered "Yes" and all evidence demonstrates the control is fully implemented, operational, and effective.
+- **"partially_compliant"**: SOME questions are answered "Yes" or "Partial", showing the control is partially implemented but has gaps in coverage, documentation, or effectiveness.
+- **"non_compliant"**: ALL or most questions are answered "No", meaning the submitted evidence does not demonstrate that the control is implemented at all, or the evidence is entirely irrelevant.
+- **"not_applicable"**: The control does not apply to this organization or context.
+
+**CRITICAL**: If all questions are answered "No" because the evidence is unrelated to the control, the overall status MUST be "non_compliant", NOT "partially_compliant".
+
+Include:
+- \`status\`: One of the compliance result values
+- \`score\`: 0-100 effectiveness score
+- \`summary\`: Brief explanation of the control effectiveness determination
+
+---
+
+`;
+      } else {
+        conditionalSections += `### 2. OVERALL COMPLIANCE ASSESSMENT
+
+Provide an overall compliance assessment using EXACTLY one of these values: ${config.compliance_result_values.join(', ')}
+
+**Compliance Criteria:**
+
+- **"compliant"**: ALL questions are answered "Yes" and all required evidence is present and sufficient.
+- **"partially_compliant"**: SOME questions are answered "Yes" or "Partial", showing the organization has made progress but has gaps. At least some evidence is relevant to the requirement.
+- **"non_compliant"**: ALL or most questions are answered "No", meaning the submitted evidence does not address the requirement at all, or is entirely irrelevant.
+- **"not_applicable"**: The requirement does not apply to this organization or context.
+
+**CRITICAL**: If all questions are answered "No" because the evidence is unrelated to the requirement, the overall status MUST be "non_compliant", NOT "partially_compliant".
+
+Include:
+- \`status\`: One of the compliance result values
+- \`score\`: 0-100 compliance score
+- \`summary\`: Brief explanation of the compliance determination
+
+---
+
+`;
+      }
+    }
+
+    // Section 3: Entity Extraction
+    if (config.include_entity_extraction) {
+      conditionalSections += `### 3. ENTITY EXTRACTION
+
+Extract key entities from the evidence documents:
+- Organization names
+- Policy/document names and versions
+- Dates (creation, review, expiry)
+- People/roles mentioned
+- Systems/technologies referenced
+
+---
+
+`;
+    }
+
+    // Section 4: Compliance Check
+    if (config.include_compliance_check) {
+      if (assessment_type === 'control') {
+        conditionalSections += `### 4. IMPLEMENTATION CHECK
+
+For the applied control, assess:
+- Whether the evidence demonstrates the control is implemented
+- Specific configurations, policies, or processes that support the control
+- Any gaps in implementation or operational effectiveness
+
+---
+
+`;
+      } else {
+        conditionalSections += `### 4. COMPLIANCE CHECK
+
+For each requirement, assess:
+- Whether the evidence directly addresses the requirement
+- Specific clauses or sections that are met or unmet
+- Any conditions or caveats
+
+---
+
+`;
+      }
+    }
+
+    // Section 5: Gap Analysis
+    if (config.include_gap_analysis) {
+      if (assessment_type === 'control') {
+        conditionalSections += `### 5. GAP ANALYSIS
+
+Identify gaps between:
+- What the control requires for full implementation vs. what the evidence demonstrates
+- Missing documentation, configurations, or operational procedures
+- Areas where the control's coverage or effectiveness is insufficient
+
+---
+
+`;
+      } else {
+        conditionalSections += `### 5. GAP ANALYSIS
+
+Identify gaps between:
+- What the requirement demands vs. what the evidence provides
+- Missing documentation or processes
+- Areas where evidence is weak or insufficient
+
+---
+
+`;
+      }
+    }
+
+    // Section 6: Typical Evidence Check
+    if (config.include_typical_evidence_check && typical_evidence.length > 0) {
+      let teList = '';
+      typical_evidence.forEach((e, idx) => {
+        teList += `${idx + 1}. ${e}\n`;
+      });
+      conditionalSections += `### 6. TYPICAL EVIDENCE CHECK
+
+Compare the uploaded evidence against the typical evidence list:
+${teList}
+For each typical evidence item, indicate whether it was found, partially found, or not found in the uploaded documents.
+
+---
+
+`;
+    }
+
+    // Section 7: Recommendations
+    if (config.include_recommendations) {
+      if (assessment_type === 'control') {
+        conditionalSections += `### 7. RECOMMENDATIONS
+
+Provide actionable recommendations to:
+- Improve control implementation and operational effectiveness
+- Close identified gaps in coverage or documentation
+- Strengthen evidence of the control's effectiveness
+
+---
+
+`;
+      } else {
+        conditionalSections += `### 7. RECOMMENDATIONS
+
+Provide actionable recommendations to:
+- Close identified gaps
+- Strengthen existing evidence
+- Achieve full compliance
+
+---
+
+`;
+      }
+    }
+
+    // Section 8: Response Language
+    conditionalSections += `### 8. RESPONSE LANGUAGE
+
+`;
+    if (config.response_language === 'auto') {
+      conditionalSections += `Respond in the same language as the requirement and questions. If mixed languages are detected, use the predominant language.\n`;
+    } else if (config.response_language) {
+      conditionalSections += `Respond entirely in ${config.response_language}.\n`;
+    } else {
+      conditionalSections += `Respond in the same language as the requirement and questions.\n`;
+    }
+
+    // --- Response format JSON (dynamic based on enabled sections) ---
+    let responseFormat = '{\n';
+
+    // Always include questionAnswers
+    responseFormat += `  "questionAnswers": [
+    {
+      "question": "Exact question text",
+      "answer": "Yes | No | Partial",
+      "justification": "Explanation referencing evidence"
+    }
+  ]`;
+
+    if (config.return_compliance_result) {
+      responseFormat += `,
+  "overallAssessment": {
+    "status": "compliant | partially_compliant | non_compliant | not_applicable",
+    "score": 0-100,
+    "summary": "Brief explanation"
+  }`;
+    }
+
+    if (config.include_entity_extraction) {
+      responseFormat += `,
+  "entityExtraction": {
+    "organizations": [],
+    "documents": [],
+    "dates": [],
+    "roles": [],
+    "systems": []
+  }`;
+    }
+
+    if (config.include_compliance_check) {
+      responseFormat += `,
+  "complianceCheck": {
+    "details": []
+  }`;
+    }
+
+    if (config.include_gap_analysis) {
+      responseFormat += `,
+  "gapAnalysis": {
+    "gaps": [
+      {
+        "requirement": "What is required",
+        "currentState": "What evidence shows",
+        "gap": "What is missing"
+      }
+    ]
+  }`;
+    }
+
+    if (config.include_typical_evidence_check && typical_evidence.length > 0) {
+      responseFormat += `,
+  "typicalEvidenceCheck": [
+    {
+      "typicalEvidence": "Expected item",
+      "status": "found | partially_found | not_found",
+      "details": "Explanation"
+    }
+  ]`;
+    }
+
+    if (config.include_recommendations) {
+      responseFormat += `,
+  "recommendations": [
+    {
+      "priority": "high | medium | low",
+      "recommendation": "Action to take",
+      "rationale": "Why this matters"
+    }
+  ]`;
+    }
+
+    responseFormat += '\n}';
+
+    // --- Choose prompt key based on assessment type ---
+    const promptKey = assessment_type === 'control'
+      ? 'audit_analyze_control'
+      : 'audit_analyze_requirement';
+
+    // --- Build type-specific placeholder values ---
+    const placeholders = {
+      EVIDENCE_LIST: evidenceList,
+      TYPICAL_EVIDENCE_LIST: typicalEvidenceList,
+      QUESTION_ANSWER_VALUES: config.question_answer_values.join(', '),
+      QUESTIONS_LIST: questionsList,
+      CONDITIONAL_SECTIONS: conditionalSections,
+      RESPONSE_FORMAT: responseFormat
+    };
+
+    if (assessment_type === 'control') {
+      // Control assessment: control is primary, requirements provide context
+      placeholders.CTRL_NAME = applied_control.name || 'N/A';
+      placeholders.CTRL_DESCRIPTION = applied_control.description || 'N/A';
+      placeholders.CTRL_STATUS = applied_control.status || 'N/A';
+      placeholders.CTRL_CATEGORY = applied_control.category || 'N/A';
+      placeholders.CTRL_CSF_FUNCTION = applied_control.csf_function || 'N/A';
+
+      // Build optional mapped requirements section
+      if (requirements.length > 0) {
+        let reqSection = '**Mapped Requirements (for context):**\n';
+        requirements.forEach((r, idx) => {
+          reqSection += `${idx + 1}. **${r.ref_id || 'N/A'}** — ${r.name || 'N/A'}\n`;
+          if (r.description) reqSection += `   ${r.description}\n`;
+        });
+        placeholders.MAPPED_REQUIREMENTS_SECTION = reqSection;
+      } else {
+        placeholders.MAPPED_REQUIREMENTS_SECTION = '';
+      }
+    } else {
+      // Requirement assessment: requirement is primary, control provides context
+      placeholders.REQ_REF_ID = req.ref_id || 'N/A';
+      placeholders.REQ_NAME = req.name || 'N/A';
+      placeholders.REQ_DESCRIPTION = req.description || 'N/A';
+
+      // Build optional related control section
+      if (applied_control.name || applied_control.description) {
+        let ctrlSection = '**Related Applied Control (for context):**\n';
+        ctrlSection += `- Name: ${applied_control.name || 'N/A'}\n`;
+        ctrlSection += `- Description: ${applied_control.description || 'N/A'}\n`;
+        ctrlSection += `- Status: ${applied_control.status || 'N/A'}\n`;
+        ctrlSection += `- Category: ${applied_control.category || 'N/A'}\n`;
+        ctrlSection += `- CSF Function: ${applied_control.csf_function || 'N/A'}\n`;
+        placeholders.RELATED_CONTROL_SECTION = ctrlSection;
+      } else {
+        placeholders.RELATED_CONTROL_SECTION = '';
+      }
+    }
+
+    // --- Build final prompt using named placeholders ---
+    let prompt;
+    try {
+      prompt = await promptService.buildPrompt(promptKey, placeholders);
+    } catch (err) {
+      // Fall back to legacy combined prompt if the type-specific prompt is not found
+      console.warn(`⚠️ Prompt "${promptKey}" not found, falling back to "audit_analyze": ${err.message}`);
+      // For legacy prompt, supply all placeholders
+      placeholders.REQ_REF_ID = placeholders.REQ_REF_ID || req.ref_id || 'N/A';
+      placeholders.REQ_NAME = placeholders.REQ_NAME || req.name || 'N/A';
+      placeholders.REQ_DESCRIPTION = placeholders.REQ_DESCRIPTION || req.description || 'N/A';
+      placeholders.CTRL_NAME = placeholders.CTRL_NAME || applied_control.name || 'N/A';
+      placeholders.CTRL_DESCRIPTION = placeholders.CTRL_DESCRIPTION || applied_control.description || 'N/A';
+      placeholders.CTRL_STATUS = placeholders.CTRL_STATUS || applied_control.status || 'N/A';
+      placeholders.CTRL_CATEGORY = placeholders.CTRL_CATEGORY || applied_control.category || 'N/A';
+      placeholders.CTRL_CSF_FUNCTION = placeholders.CTRL_CSF_FUNCTION || applied_control.csf_function || 'N/A';
+      prompt = await promptService.buildPrompt('audit_analyze', placeholders);
+    }
 
     return prompt;
   }
@@ -390,7 +710,9 @@ class AuditService {
   }
 
   /**
-   * Parse the audit response from Gemini
+   * Parse the audit response from Gemini.
+   * Handles the new modular response format (questionAnswers, overallAssessment, gapAnalysis, etc.)
+   * and also gracefully accepts the old format for backward compatibility.
    */
   parseAuditResponse(responseText) {
     try {
@@ -399,19 +721,29 @@ class AuditService {
 
       const response = JSON.parse(jsonText);
 
-      // Only keep the fields defined in the prompt output format
+      // Build cleaned response — pass through all known sections
       const cleaned = {
         success: true,
-        overallAssessment: response.overallAssessment || {
-          name: '',
-          description: '',
-          status: '',
-          summary: ''
-        },
-        questionEvaluation: response.questionEvaluation || [],
-        typicalEvidenceCheck: response.typicalEvidenceCheck || [],
-        gaps: response.gaps || []
+        // Question answers (new key) — also check old key for backward compat
+        questionAnswers: response.questionAnswers || response.questionEvaluation || [],
+        // Overall assessment
+        overallAssessment: response.overallAssessment || null,
+        // Entity extraction
+        entityExtraction: response.entityExtraction || null,
+        // Compliance check
+        complianceCheck: response.complianceCheck || null,
+        // Gap analysis (new structure) — also check old flat array
+        gapAnalysis: response.gapAnalysis || (response.gaps ? { gaps: response.gaps } : null),
+        // Typical evidence check
+        typicalEvidenceCheck: response.typicalEvidenceCheck || null,
+        // Recommendations
+        recommendations: response.recommendations || null
       };
+
+      // Remove null sections (not requested)
+      Object.keys(cleaned).forEach(key => {
+        if (cleaned[key] === null) delete cleaned[key];
+      });
 
       return cleaned;
     } catch (error) {
@@ -421,14 +753,11 @@ class AuditService {
       return {
         success: false,
         overallAssessment: {
-          name: '',
-          description: '',
-          status: 'خطأ',
-          summary: 'فشل في تحليل نتائج التدقيق'
+          status: 'non_compliant',
+          score: 0,
+          summary: 'Failed to parse audit analysis results'
         },
-        questionEvaluation: [],
-        typicalEvidenceCheck: [],
-        gaps: [],
+        questionAnswers: [],
         rawResponse: responseText,
         parseError: error.message
       };

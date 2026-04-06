@@ -33,6 +33,14 @@ const { asyncHandler } = require('../middleware/error.middleware');
  *           schema:
  *             type: object
  *             properties:
+ *               assessment_type:
+ *                 type: string
+ *                 enum: [requirement, control]
+ *                 description: |
+ *                   Type of assessment to perform:
+ *                   - **requirement**: Evaluate evidence against a compliance requirement (default)
+ *                   - **control**: Evaluate evidence against an applied control
+ *                   If omitted, auto-detected from provided data.
  *               applied_control:
  *                 type: object
  *                 description: The control being evaluated
@@ -149,6 +157,7 @@ const { asyncHandler } = require('../middleware/error.middleware');
  */
 router.post('/analyze', asyncHandler(async (req, res) => {
   const {
+    assessment_type,
     applied_control = {},
     gemini_file_search = {},
     requirements = [],
@@ -210,6 +219,7 @@ router.post('/analyze', asyncHandler(async (req, res) => {
 
   try {
     const result = await auditService.analyze({
+      assessment_type,
       applied_control,
       gemini_file_search,
       requirements,

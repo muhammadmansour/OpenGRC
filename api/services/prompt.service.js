@@ -13,34 +13,197 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // Hardcoded fallbacks (used when DB is unavailable)
 const FALLBACK_PROMPTS = {
+  // ── Legacy key kept for backward compatibility ──
   audit_analyze: {
     key: 'audit_analyze',
-    name: 'Audit Analysis',
-    content: `You are an expert compliance auditor. Your task is to thoroughly analyze the submitted evidence files and evaluate them against the specified control and requirements.
+    name: 'Audit Analysis (legacy)',
+    content: `You are an expert compliance auditor and cybersecurity analyst. Your task is to analyze uploaded evidence documents against specific compliance requirements and answer audit questions.
 
-{{CONTEXT}}
+## CONTEXT
 
-**=== EVALUATION INSTRUCTIONS ===**
-1. READ all evidence files
-2. COMPARE against requirements
-3. ANSWER audit questions
-4. CHECK typical evidence items
-5. IDENTIFY gaps
-6. Respond ENTIRELY in English
+**Requirement Being Assessed:**
+- Reference ID: {{REQ_REF_ID}}
+- Name: {{REQ_NAME}}
+- Description: {{REQ_DESCRIPTION}}
 
-**=== OUTPUT FORMAT (JSON only) ===**
+**Applied Control:**
+- Name: {{CTRL_NAME}}
+- Description: {{CTRL_DESCRIPTION}}
+- Status: {{CTRL_STATUS}}
+- Category: {{CTRL_CATEGORY}}
+- CSF Function: {{CTRL_CSF_FUNCTION}}
 
-{
-  "overallAssessment": {
-    "name": "{{REQ_NAME}}",
-    "description": "{{REQ_DESC}}",
-    "status": "...",
-    "summary": "..."
+**Uploaded Evidence Files:**
+{{EVIDENCE_LIST}}
+
+**Typical Evidence Expected for This Requirement:**
+{{TYPICAL_EVIDENCE_LIST}}
+
+---
+
+## INSTRUCTIONS
+
+You MUST analyze the uploaded evidence documents using Gemini File Search and evaluate them against the requirement described above.
+
+### 1. QUESTION ANSWERING
+
+Answer each of the following questions using EXACTLY one of these values: {{QUESTION_ANSWER_VALUES}}
+
+**Questions to answer (in this exact order, using the exact same text):**
+{{QUESTIONS_LIST}}
+
+**Evaluation Criteria — apply these strictly:**
+
+- **"Yes"**: The submitted evidence DIRECTLY and CLEARLY satisfies this question. The required document, policy, process, or proof is present, relevant, and sufficient.
+
+- **"No"**: The submitted evidence does NOT address this question AT ALL. Either no relevant evidence was provided, the evidence is entirely unrelated to what the question asks, or the evidence covers a completely different topic/domain than what is required. If your justification states the evidence "does not represent", "is not related to", "does not meet", or "was not provided" for what the question asks — the answer MUST be "No", not "Partial".
+
+- **"Partial"**: The submitted evidence PARTIALLY addresses this question — some relevant information is present and directly related to the topic, but it is incomplete, outdated, lacks detail, or does not fully satisfy all aspects of the requirement. Do NOT use "Partial" when the evidence is entirely irrelevant or unrelated to the question.
+
+**CRITICAL RULE**: If your justification says the evidence "does not represent", "is not related to", "does not meet", or "was not provided" for what the question asks, you MUST answer "No". "Partial" should ONLY be used when the evidence is on the right topic but incomplete.
+
+For each question, provide:
+- \`question\`: The exact question text (unchanged)
+- \`answer\`: Exactly one of "Yes", "No", or "Partial"
+- \`justification\`: A brief explanation referencing specific evidence
+
+---
+
+{{CONDITIONAL_SECTIONS}}
+
+---
+
+## RESPONSE FORMAT
+
+Return a JSON object with the following structure:
+
+{{RESPONSE_FORMAT}}`
   },
-  "questionEvaluation": [{ "question": "...", "answered": "...", "evidenceFound": "...", "notes": "..." }],
-  "typicalEvidenceCheck": [{ "evidenceItem": "...", "status": "...", "details": "..." }],
-  "gaps": [{ "gap": "...", "recommendation": "..." }]
-}`
+
+  // ── Requirements Assessment prompt ──
+  audit_analyze_requirement: {
+    key: 'audit_analyze_requirement',
+    name: 'Requirement Assessment',
+    content: `You are an expert compliance auditor and cybersecurity analyst. Your task is to analyze uploaded evidence documents against a specific **compliance requirement** and answer audit questions.
+
+## CONTEXT
+
+**Requirement Being Assessed:**
+- Reference ID: {{REQ_REF_ID}}
+- Name: {{REQ_NAME}}
+- Description: {{REQ_DESCRIPTION}}
+
+{{RELATED_CONTROL_SECTION}}
+
+**Uploaded Evidence Files:**
+{{EVIDENCE_LIST}}
+
+**Typical Evidence Expected for This Requirement:**
+{{TYPICAL_EVIDENCE_LIST}}
+
+---
+
+## INSTRUCTIONS
+
+You MUST analyze the uploaded evidence documents and evaluate them against the **requirement** described above. Focus on whether the evidence demonstrates that the organization meets this specific compliance requirement.
+
+### 1. QUESTION ANSWERING
+
+Answer each of the following questions using EXACTLY one of these values: {{QUESTION_ANSWER_VALUES}}
+
+**Questions to answer (in this exact order, using the exact same text):**
+{{QUESTIONS_LIST}}
+
+**Evaluation Criteria — apply these strictly:**
+
+- **"Yes"**: The submitted evidence DIRECTLY and CLEARLY satisfies this question. The required document, policy, process, or proof is present, relevant, and sufficient.
+
+- **"No"**: The submitted evidence does NOT address this question AT ALL. Either no relevant evidence was provided, the evidence is entirely unrelated to what the question asks, or the evidence covers a completely different topic/domain than what is required. If your justification states the evidence "does not represent", "is not related to", "does not meet", or "was not provided" for what the question asks — the answer MUST be "No", not "Partial".
+
+- **"Partial"**: The submitted evidence PARTIALLY addresses this question — some relevant information is present and directly related to the topic, but it is incomplete, outdated, lacks detail, or does not fully satisfy all aspects of the requirement. Do NOT use "Partial" when the evidence is entirely irrelevant or unrelated to the question.
+
+**CRITICAL RULE**: If your justification says the evidence "does not represent", "is not related to", "does not meet", or "was not provided" for what the question asks, you MUST answer "No". "Partial" should ONLY be used when the evidence is on the right topic but incomplete.
+
+For each question, provide:
+- \`question\`: The exact question text (unchanged)
+- \`answer\`: Exactly one of "Yes", "No", or "Partial"
+- \`justification\`: A brief explanation referencing specific evidence
+
+---
+
+{{CONDITIONAL_SECTIONS}}
+
+---
+
+## RESPONSE FORMAT
+
+Return a JSON object with the following structure:
+
+{{RESPONSE_FORMAT}}`
+  },
+
+  // ── Applied Control Assessment prompt ──
+  audit_analyze_control: {
+    key: 'audit_analyze_control',
+    name: 'Applied Control Assessment',
+    content: `You are an expert compliance auditor and cybersecurity analyst. Your task is to analyze uploaded evidence documents to evaluate the implementation and effectiveness of a specific **applied control**.
+
+## CONTEXT
+
+**Applied Control Being Assessed:**
+- Name: {{CTRL_NAME}}
+- Description: {{CTRL_DESCRIPTION}}
+- Status: {{CTRL_STATUS}}
+- Category: {{CTRL_CATEGORY}}
+- CSF Function: {{CTRL_CSF_FUNCTION}}
+
+{{MAPPED_REQUIREMENTS_SECTION}}
+
+**Uploaded Evidence Files:**
+{{EVIDENCE_LIST}}
+
+**Typical Evidence Expected for This Control:**
+{{TYPICAL_EVIDENCE_LIST}}
+
+---
+
+## INSTRUCTIONS
+
+You MUST analyze the uploaded evidence documents and evaluate them against the **applied control** described above. Focus on whether the evidence demonstrates that the control is properly implemented, operational, and effective.
+
+### 1. QUESTION ANSWERING
+
+Answer each of the following questions using EXACTLY one of these values: {{QUESTION_ANSWER_VALUES}}
+
+**Questions to answer (in this exact order, using the exact same text):**
+{{QUESTIONS_LIST}}
+
+**Evaluation Criteria — apply these strictly:**
+
+- **"Yes"**: The submitted evidence DIRECTLY and CLEARLY demonstrates that this aspect of the control is implemented and effective. The required documentation, configuration, process, or proof is present, relevant, and sufficient.
+
+- **"No"**: The submitted evidence does NOT address this question AT ALL. Either no relevant evidence was provided, the evidence is entirely unrelated to the control being assessed, or the evidence covers a completely different topic/domain. If your justification states the evidence "does not represent", "is not related to", "does not meet", or "was not provided" for what the question asks — the answer MUST be "No", not "Partial".
+
+- **"Partial"**: The submitted evidence PARTIALLY addresses this question — some relevant information about the control is present, but it is incomplete, outdated, lacks detail, or does not fully demonstrate that the control is implemented and effective. Do NOT use "Partial" when the evidence is entirely irrelevant or unrelated.
+
+**CRITICAL RULE**: If your justification says the evidence "does not represent", "is not related to", "does not meet", or "was not provided" for what the question asks, you MUST answer "No". "Partial" should ONLY be used when the evidence is on the right topic but incomplete.
+
+For each question, provide:
+- \`question\`: The exact question text (unchanged)
+- \`answer\`: Exactly one of "Yes", "No", or "Partial"
+- \`justification\`: A brief explanation referencing specific evidence
+
+---
+
+{{CONDITIONAL_SECTIONS}}
+
+---
+
+## RESPONSE FORMAT
+
+Return a JSON object with the following structure:
+
+{{RESPONSE_FORMAT}}`
   },
   chat_evaluate: {
     key: 'chat_evaluate',
@@ -195,12 +358,16 @@ class PromptService {
   }
 
   /**
-   * Build a final prompt by replacing {{CONTEXT}} with dynamic data.
+   * Build a final prompt by replacing {{PLACEHOLDER}} tokens with dynamic data.
+   * Supports two calling styles:
+   *   1. buildPrompt(key, contextString)         — replaces {{CONTEXT}} only (legacy)
+   *   2. buildPrompt(key, { KEY: value, ... })   — replaces every {{KEY}} with its value
+   *
    * @param {string} key - The prompt key
-   * @param {string} contextData - The dynamic context to inject
-   * @returns {string} The final prompt with context injected
+   * @param {string|Object} data - Either a context string or a map of placeholder→value
+   * @returns {string} The final prompt with all placeholders replaced
    */
-  async buildPrompt(key, contextData = '') {
+  async buildPrompt(key, data = '') {
     const prompt = await this.getByKey(key);
     if (!prompt) throw new Error(`Prompt "${key}" not found`);
 
@@ -216,7 +383,17 @@ class PromptService {
 
     if (!template) throw new Error(`Prompt "${key}" has no content`);
 
-    return template.replace('{{CONTEXT}}', contextData);
+    // If data is a string, treat it as the old single-context replacement
+    if (typeof data === 'string') {
+      return template.replace('{{CONTEXT}}', data);
+    }
+
+    // If data is an object, replace each {{KEY}} with its value
+    let result = template;
+    for (const [placeholder, value] of Object.entries(data)) {
+      result = result.replace(new RegExp(`\\{\\{${placeholder}\\}\\}`, 'g'), value ?? '');
+    }
+    return result;
   }
 
   /**
