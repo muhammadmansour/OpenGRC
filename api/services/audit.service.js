@@ -185,7 +185,7 @@ class AuditService {
       include_recommendations: false,
       response_language: 'auto',
       question_answer_values: ['"Yes"', '"No"', '"Partial"'],
-      compliance_result_values: ['"compliant"', '"partially_compliant"', '"non_compliant"', '"not_applicable"'],
+      compliance_result_values: ['"Compliant"', '"Partially Compliant"', '"Non-Compliant"', '"Not Applicable"'],
       ...analysis_config
     };
 
@@ -246,12 +246,12 @@ Provide an overall assessment of the applied control using EXACTLY one of these 
 
 **Assessment Criteria:**
 
-- **"compliant"**: ALL questions are answered "Yes" and all evidence demonstrates the control is fully implemented, operational, and effective.
-- **"partially_compliant"**: SOME questions are answered "Yes" or "Partial", showing the control is partially implemented but has gaps in coverage, documentation, or effectiveness.
-- **"non_compliant"**: ALL or most questions are answered "No", meaning the submitted evidence does not demonstrate that the control is implemented at all, or the evidence is entirely irrelevant.
-- **"not_applicable"**: The control does not apply to this organization or context.
+- **"Compliant"**: ALL questions are answered "Yes" and all evidence demonstrates the control is fully implemented, operational, and effective.
+- **"Partially Compliant"**: SOME questions are answered "Yes" or "Partial", showing the control is partially implemented but has gaps in coverage, documentation, or effectiveness.
+- **"Non-Compliant"**: ALL or most questions are answered "No", meaning the submitted evidence does not demonstrate that the control is implemented at all, or the evidence is entirely irrelevant.
+- **"Not Applicable"**: The control does not apply to this organization or context.
 
-**CRITICAL**: If all questions are answered "No" because the evidence is unrelated to the control, the overall status MUST be "non_compliant", NOT "partially_compliant".
+**CRITICAL**: If all questions are answered "No" because the evidence is unrelated to the control, the overall status MUST be "Non-Compliant", NOT "Partially Compliant".
 
 Include:
 - \`status\`: One of the compliance result values
@@ -268,12 +268,12 @@ Provide an overall compliance assessment using EXACTLY one of these values: ${co
 
 **Compliance Criteria:**
 
-- **"compliant"**: ALL questions are answered "Yes" and all required evidence is present and sufficient.
-- **"partially_compliant"**: SOME questions are answered "Yes" or "Partial", showing the organization has made progress but has gaps. At least some evidence is relevant to the requirement.
-- **"non_compliant"**: ALL or most questions are answered "No", meaning the submitted evidence does not address the requirement at all, or is entirely irrelevant.
-- **"not_applicable"**: The requirement does not apply to this organization or context.
+- **"Compliant"**: ALL questions are answered "Yes" and all required evidence is present and sufficient.
+- **"Partially Compliant"**: SOME questions are answered "Yes" or "Partial", showing the organization has made progress but has gaps. At least some evidence is relevant to the requirement.
+- **"Non-Compliant"**: ALL or most questions are answered "No", meaning the submitted evidence does not address the requirement at all, or is entirely irrelevant.
+- **"Not Applicable"**: The requirement does not apply to this organization or context.
 
-**CRITICAL**: If all questions are answered "No" because the evidence is unrelated to the requirement, the overall status MUST be "non_compliant", NOT "partially_compliant".
+**CRITICAL**: If all questions are answered "No" because the evidence is unrelated to the requirement, the overall status MUST be "Non-Compliant", NOT "Partially Compliant".
 
 Include:
 - \`status\`: One of the compliance result values
@@ -427,7 +427,7 @@ Provide actionable recommendations to:
     if (config.return_compliance_result) {
       responseFormat += `,
   "overallAssessment": {
-    "status": "compliant | partially_compliant | non_compliant | not_applicable",
+    "status": "Compliant | Partially Compliant | Non-Compliant | Not Applicable",
     "score": 0-100,
     "summary": "Brief explanation"
   }`;
@@ -479,7 +479,7 @@ Provide actionable recommendations to:
       responseFormat += `,
   "recommendations": [
     {
-      "priority": "high | medium | low",
+      "priority": "High | Medium | Low",
       "recommendation": "Action to take",
       "rationale": "Why this matters"
     }
@@ -753,7 +753,7 @@ Provide actionable recommendations to:
       return {
         success: false,
         overallAssessment: {
-          status: 'non_compliant',
+          status: 'Non-Compliant',
           score: 0,
           summary: 'Failed to parse audit analysis results'
         },
