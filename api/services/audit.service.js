@@ -469,7 +469,7 @@ Provide actionable recommendations to:
   "typicalEvidenceCheck": [
     {
       "typicalEvidence": "Expected item",
-      "status": "found | partially_found | not_found",
+      "status": "Found | Partially Found | Not Found",
       "details": "Explanation"
     }
   ]`;
