@@ -1,0 +1,20 @@
+#!/bin/bash
+export PATH="$HOME/.local/bin:$PATH"
+
+# PostgreSQL connection
+export POSTGRES_NAME=ciso_back
+export POSTGRES_USER=ciso_back
+export POSTGRES_PASSWORD=ciso_back
+export DB_HOST=localhost
+
+export DJANGO_DEBUG=False
+export ALLOWED_HOSTS=localhost,127.0.0.1,ciso.wathbahs.com,34.18.50.238
+export CISO_ASSISTANT_URL=https://ciso.wathbahs.com
+export EMAIL_HOST="smtp.gmail.com"
+export EMAIL_PORT="587"
+export EMAIL_HOST_USER="mansourmuhmmad37@gmail.com"
+export EMAIL_HOST_PASSWORD="flbl yblm cmfz koax"
+export EMAIL_USE_TLS="True"
+export DEFAULT_FROM_EMAIL="mansourmuhmmad37@gmail.com"
+cd "$(dirname "$0")/backend"
+exec poetry run gunicorn --chdir ciso_assistant --bind 0.0.0.0:8000 --workers 2 --timeout 120 ciso_assistant.wsgi:application
