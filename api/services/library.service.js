@@ -564,6 +564,11 @@ class LibraryService {
           }
         }
 
+        if (update.admin_notes !== undefined) {
+          requirementNodes[index].admin_notes = update.admin_notes;
+          wasUpdated = true;
+        }
+
         if (wasUpdated) {
           stats.updated++;
           updatedItems.push({
@@ -572,7 +577,8 @@ class LibraryService {
             ref_id: node.ref_id,
             name: node.name,
             has_typical_evidence: !!requirementNodes[index].typical_evidence,
-            has_questions: !!requirementNodes[index].questions && Object.keys(requirementNodes[index].questions).length > 0
+            has_questions: !!requirementNodes[index].questions && Object.keys(requirementNodes[index].questions).length > 0,
+            has_admin_notes: Array.isArray(requirementNodes[index].admin_notes) && requirementNodes[index].admin_notes.length > 0
           });
           console.log(`   ✅ Updated: ${identifier} (matched by ${matchedBy})`);
         } else {
@@ -651,6 +657,7 @@ class LibraryService {
       parent_urn: node.parent_urn,
       typical_evidence: node.typical_evidence || null,
       questions: node.questions || null,
+      admin_notes: node.admin_notes || null,
       implementation_groups: node.implementation_groups
     }));
 

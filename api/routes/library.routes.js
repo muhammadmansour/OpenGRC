@@ -559,9 +559,9 @@ router.get('/:id/controls', asyncHandler(async (req, res) => {
  * @swagger
  * /api/libraries/{id}/controls:
  *   patch:
- *     summary: Update library controls with typical_evidence and questions
+ *     summary: Update library controls with typical_evidence, questions, and admin_notes
  *     description: |
- *       Update multiple controls in a library with their typical_evidence and/or questions.
+ *       Update multiple controls in a library with their typical_evidence, questions, and/or admin_notes.
  *       Each update object must have at least one identifier (id, urn, code, or ref_id) to match the control.
  *     tags: [Libraries]
  *     parameters:
@@ -609,6 +609,23 @@ router.get('/:id/controls', asyncHandler(async (req, res) => {
  *                     typical_requirements:
  *                       type: string
  *                       description: Alias for typical_evidence (backwards compatibility)
+ *                     admin_notes:
+ *                       type: array
+ *                       description: |
+ *                         Array of admin notes (auditor comments, internal guidance, historical findings).
+ *                         Each note has text and date fields. Pass an empty array to clear all notes.
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           text:
+ *                             type: string
+ *                             description: Note content
+ *                           date:
+ *                             type: string
+ *                             description: Date the note was created/updated (YYYY-MM-DD)
+ *                       example:
+ *                         - text: "Auditor confirmed this requires board-level sign-off"
+ *                           date: "2026-04-14"
  *                     questions:
  *                       type: object
  *                       description: |
